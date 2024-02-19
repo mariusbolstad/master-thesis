@@ -27,15 +27,22 @@ forward_prices <- read_delim('./data/ffa/panamax/4tc_forward.csv',
                              trim_ws = TRUE)
 
 
+perp_forward_prices <- read_delim('./data/ffa/panamax/4tc_perpetual.csv', 
+                             delim = ';', 
+                             escape_double = FALSE, 
+                             col_types = cols(Date = col_date(format = "%d/%m/%Y")),
+                             trim_ws = TRUE)
+
+
 # Step 2: Merge data frames on the Date column
-data_combined <- merge(spot_prices, forward_prices, by = "Date")
+data_combined <- merge(spot_prices, perp_forward_prices, by = "Date")
 
 
 # Step 3: Transform data to log levels and create a new data frame for log levels
 data_log_levels <- data.frame(
   Date = data_combined$Date,
   log_Spot = log(data_combined$Open),
-  log_4TC_FORWARD = log(data_combined$`4TC_FORWARD`)
+  log_4TC_FORWARD = log(data_combined$`Perpetual`)
 )
 
 # Display the first few rows of each new data frame to verify
@@ -149,10 +156,10 @@ for (round in 1:num_rounds) {
   arima_forecasts_4TC_FORWARD <- forecast(arima_model_4TC_FORWARD, h = forecast_horizon)  # Only 1 step ahead
   
   # Random Walk (ARIMA(0,1,0))
-  rw_model_spot <- Arima(train_log_levels$log_Spot, order = c(0, 1, 0))
+  rw_model_spot <- Arima(current_train_log_levels$log_Spot, order = c(0, 1, 0))
   rw_forecasts_spot <- forecast(rw_model_spot, h = forecast_horizon)
 
-  rw_model_4TC_FORWARD <- Arima(train_log_levels$log_4TC_FORWARD, order = c(0, 1, 0))
+  rw_model_4TC_FORWARD <- Arima(current_train_log_levels$log_4TC_FORWARD, order = c(0, 1, 0))
   rw_forecasts_4TC_FORWARD <- forecast(rw_model_4TC_FORWARD, h = forecast_horizon)
   
   
@@ -191,6 +198,8 @@ for (round in 1:num_rounds) {
 
 # Calculate mean MSE for each model
 mean_mse_results <- sapply(mse_results, mean)
+# Now multiply all mean MSE results by 100
+mean_mse_results <- mean_mse_results * 100
 
 # Print mean MSE results
 cat("Mean MSE Results:\n")
