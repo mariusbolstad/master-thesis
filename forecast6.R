@@ -328,11 +328,13 @@ for (round in 1:num_rounds) {
   
   # Recalculate differences for the updated training set
   train_diff <- data.frame(
-    Date = train_lev$Date[-1],
+    Date = train_lev$Date[-1],  # Exclude the first date because there's no prior value to difference with
     spot = diff(train_lev$spot),
     forwc = diff(train_lev$forwc),
     forw1m = diff(train_lev$forw1m),
     forwp = diff(train_lev$forwp),
+    wc = train_lev$wc[-1],
+    w1m = train_lev$w1m[-1]
   )
   
   # Re-fit models with the updated training set
