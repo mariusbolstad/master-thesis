@@ -6,6 +6,7 @@
 #install.packages("vars")
 #install.packages("urca")
 #install.packages("tsDyn")
+#install.packages("tidyverse")
 
 #getwd()
 #setwd("./master-thesis")
@@ -17,6 +18,7 @@ library(vars)
 library(forecast)
 library(urca)
 library(tsDyn)
+library(tidyverse)
 
 
 
@@ -119,6 +121,8 @@ lapply(train_diff_ts, function(series) adf.test(series, alternative = "stationar
 
 # VAR
 # Select an appropriate lag order, p. You can use the VARselect function for guidance
+lags <- VARselect(train_diff_ts, type = "const")
+lags
 lag_order <- VARselect(train_diff_ts, type = "both")$selection["AIC(n)"]
 var_model <- VAR(train_diff_ts, p = lag_order, type = "both")
 summary(var_model)
@@ -153,7 +157,7 @@ for(i in 1:num_equations) {
   white_test <- bptest(lm_res_i, ~ fitted(lm_res_i) + I(fitted(lm_res_i)^2), data = data.frame(ts_res_i))
   
   # Print the Ljung-Box test results
-  cat("Ljung-Box test for autocorrelation in equation", i, ":\n")
+  cat("Ljung-Box test for autocorrelation in equation", i, " :\n")
   print(lb_test)
   cat("\n") # Add a newline for better readability
   
@@ -178,17 +182,17 @@ grangerForw
 #var_irf_spot_to_spot <- irf(var_model, impulse = "spot", response = "spot")
 #plot(var_irf_spot_to_spot, main = "Shock from 'spot' to 'spot'")
 
-# 2. Shock from "spot" to "forwc"
-#var_irf_spot_to_forwc <- irf(var_model, impulse = "spot", response = "forwc")
-#plot(var_irf_spot_to_forwc, main = "Shock from 'spot' to 'forwc'")
+# 2. Shock from "spot" to "forwp"
+var_irf_spot_to_forwp <- irf(var_model, impulse = "spot", response = "forwp")
+plot(var_irf_spot_to_forwp, main = "Shock from 'spot' to 'forwp'")
 
 # 3. Shock from "spot" to "forw1m"
 #var_irf_spot_to_forw1m <- irf(var_model, impulse = "spot", response = "forw1m")
 #plot(var_irf_spot_to_forw1m, main = "Shock from 'spot' to 'forw1m'")
 
-# 4. Shock from "forwc" to "spot"
-#var_irf_forwc_to_spot <- irf(var_model, impulse = "forwc", response = "spot")
-#plot(var_irf_forwc_to_spot, main = "Shock from 'forwc' to 'spot'")
+# 4. Shock from "forwp" to "spot"
+var_irf_forwp_to_spot <- irf(var_model, impulse = "forwp", response = "spot")
+plot(var_irf_forwp_to_spot, main = "Shock from 'forwp' to 'spot'")
 
 # 5. Shock from "forwc" to "forwc"
 #var_irf_forwc_to_forwc <- irf(var_model, impulse = "forwc", response = "forwc")
@@ -218,16 +222,65 @@ plot(var_vd1)
 
 
 # VECM
-#coint_test <- ca.jo(train_log_diff_ts, spec = "transitory", type = "eigen", ecdet = "const", K = lag_order)
-#summary(coint_test)
+#coint_test <- ca.jo(train_diff_ts, spec = "transitory", type = "eigen", ecdet = "const", K = lag_order)
+coint_test <- ca.jo(train_diff_ts, spec = "longrun", type = "eigen", ecdet = "const", K = lag_order)
+summary(coint_test)
 
-#vecm_model <- VECM(train_log_diff_ts, lag=lag_order, r=1, include="none")
-#summary(vecm_model)
+vecm_cajo <- cajorls(coint_test2, r=1)  # 'r' is the cointegration rank from the Johansen test results
+summary(vecm_cajo$rlm)
+vecm_model <- VECM(train_diff_ts, lag=lag_order, r=1, include="const")
+summary(vecm_model)
 # Impulse response analysis
-#irf.vecm <- irf(vecm_model, n.ahead=10, boot=TRUE)
+irf.vecm <- irf(vecm_model, n.ahead=10, boot=TRUE)
 
 # Plot the impulse responses
-#plot(irf.vecm)
+plot(irf.vecm)
+
+vecm_var <- vec2var(coint_test, r = 1)
+
+# Extract the residuals from the VAR model
+residuals_var <- residuals(vecm_var)
+
+# Get the number of equations (variables) in the VAR model
+num_equations <- ncol(residuals_var)
+
+arch_var <- arch.test(vecm_var)
+arch_var
+
+stab_var <- stability(vecm_var, type = "OLS-CUSUM")
+plot(stab_var)
+
+# Loop through each equation and perform the Ljung-Box test on its residuals
+for(i in 1:num_equations) {
+  # Extract residuals for the ith equation
+  res_i <- residuals_var[, i]
+  
+  # Create a time series object from residuals for White test
+  ts_res_i <- ts(res_i)
+  
+  # Fit a linear model on residuals as dependent variable for White test
+  lm_res_i <- lm(ts_res_i ~ 1)
+  
+  # Perform the Ljung-Box test, e.g., at lag 10
+  lb_test <- Box.test(res_i, lag = 10, type = "Ljung-Box")
+  
+  # Perform the White test for heteroskedasticity
+  white_test <- bptest(lm_res_i, ~ fitted(lm_res_i) + I(fitted(lm_res_i)^2), data = data.frame(ts_res_i))
+  
+  # Print the Ljung-Box test results
+  cat("Ljung-Box test for autocorrelation in equation", i, ":\n")
+  print(lb_test)
+  cat("\n") # Add a newline for better readability
+  
+  # Print the White test results
+  cat("White test for heteroskedasticity in equation", i, ":\n")
+  print(white_test)
+  cat("\n\n") # Add extra newlines for better readability
+}
+
+
+
+
 
 # ARIMA
 arima_model_spot <- auto.arima(train_lev$spot)
@@ -280,12 +333,18 @@ print(white_test_forw2)
 forecast_horizon <- 10
 #vecm_forecasts <- predict(vecm_model, n.ahead = forecast_horizon)
 var_fcs <- predict(var_model, n.ahead = forecast_horizon) 
+vecm_var <- vec2var(coint_test)
+vecm_fcs <- predict(vecm_var, n.ahead = forecast_horizon)
 
 #n_forecast <- nrow(test_log_levels)  # Number of points to forecast equals the size of the test set
 
+arima_fcs_spot <- forecast(arima_model_spot, h = forecast_horizon)
+arima_fcs_forwc <- forecast(arima_model_forwc, h = forecast_horizon)
+arima_fcs_forw1m <- forecast(arima_model_forw1m, h = forecast_horizon)
+
 # Determine the number of rounds based on the test set size and forecast horizon
 num_rounds <- min(floor(nrow(test_lev) / forecast_horizon), 30)
-num_rounds <- floor(nrow(test_lev) / forecast_horizon)
+#num_rounds <- floor(nrow(test_lev) / forecast_horizon)
 
 print(num_rounds)
 
@@ -302,15 +361,13 @@ mse_results <- list(
   RW_spot = numeric(),
   RW_forwp = numeric(),
   RW_forwc = numeric(),
-  RW_forw1m = numeric()
-  #VECM_Spot = numeric(),
-  #VECM_4TC_FORWARD = numeric()
+  RW_forw1m = numeric(),
+  VECM_spot = numeric(),
+  VECM_forwp = numeric()
 )
 
 
-arima_fcs_spot <- forecast(arima_model_spot, h = forecast_horizon)
-arima_fcs_forwc <- forecast(arima_model_forwc, h = forecast_horizon)
-arima_fcs_forw1m <- forecast(arima_model_forw1m, h = forecast_horizon)
+
 
 # Loop through each forecasting round
 for (round in 1:num_rounds) {
@@ -347,8 +404,10 @@ for (round in 1:num_rounds) {
   var_fcs <- predict(var_model, n.ahead = forecast_horizon)  
   
   # VECM
-  #vecm_model <- VECM(current_train_log_diff_ts, lag=lag_order, r=1, include="none")
-  #vecm_forecasts <- predict(vecm_model, n.ahead = forecast_horizon)
+  coint_test <- ca.jo(train_diff_ts, spec = "longrun", type = "trace", ecdet = "trend", K = lag_order)
+  vecm_model <- vec2var(coint_test)
+  #vecm_model <- VECM(train_diff_ts, lag=lag_order, r=1, include="none")
+  vecm_fcs <- predict(vecm_model, n.ahead = forecast_horizon)
   
   
   
@@ -390,9 +449,10 @@ for (round in 1:num_rounds) {
   #var_rev_fcs_forw1m <- last_forw1m + cumsum(var_fcs$fcst[[3]][, "fcst"])
   
   # VECM
-  #vecm_reverted_forecasts_log_Spot <- last_log_spot + cumsum(vecm_forecasts[, 1])
-  #vecm_reverted_forecasts_log_4TC_FORWARD <- last_log_4TC_FORWARD + cumsum(vecm_forecasts[, 2])
-  
+  #vecm_rev_fcs_spot <- last_spot + cumsum(vecm_fcs[, 1])
+  #vecm_rev_fcs_forwp <- last_forwp + cumsum(vecm_fcs[, 2])
+  vecm_rev_fcs_spot <- last_spot + cumsum(vecm_fcs$fcst[[1]][, "fcst"])
+  vecm_rev_fcs_forwp <- last_forwp + cumsum(vecm_fcs$fcst[[2]][, "fcst"])
   
   
   act_spot <- test_lev$spot
@@ -402,21 +462,25 @@ for (round in 1:num_rounds) {
   
   # Calculate and append MSE for VAR forecasts
   mse_results$VAR_spot <- c(mse_results$VAR_spot, mean((var_rev_fcs_spot - act_spot)^2))
-  mse_results$VAR_forwc <- c(mse_results$VAR_forwp, mean((var_rev_fcs_forwp - act_forwp)^2))
+  mse_results$VAR_forwp <- c(mse_results$VAR_forwp, mean((var_rev_fcs_forwp - act_forwp)^2))
   #mse_results$VAR_forwc <- c(mse_results$VAR_forwc, mean((var_rev_fcs_forwc - act_forwc)^2))
   #mse_results$VAR_forw1m <- c(mse_results$VAR_forw1m, mean((var_rev_fcs_forw1m - act_forw1m)^2))
+  
+  # Calculate and append MSE for VECM forecasts
+  mse_results$VECM_spot <- c(mse_results$VECM_spot, mean((vecm_rev_fcs_spot - act_spot)^2))
+  mse_results$VECM_forwp <- c(mse_results$VECM_forwp, mean((vecm_rev_fcs_forwp - act_forwp)^2))
   
   # Calculate and append MSE for ARIMA forecasts
   mse_results$ARIMA_spot <- c(mse_results$ARIMA_spot, mean((arima_fcs_spot$mean - act_spot)^2))
   mse_results$ARIMA_forwp <- c(mse_results$ARIMA_forwp, mean((arima_fcs_forwp$mean - act_forwp)^2))
-  mse_results$ARIMA_forwc <- c(mse_results$ARIMA_forwc, mean((arima_fcs_forwc$mean - act_forwc)^2))
-  mse_results$ARIMA_forw1m <- c(mse_results$ARIMA_forw1m, mean((arima_fcs_forw1m$mean - act_forw1m)^2))
+  #mse_results$ARIMA_forwc <- c(mse_results$ARIMA_forwc, mean((arima_fcs_forwc$mean - act_forwc)^2))
+  #mse_results$ARIMA_forw1m <- c(mse_results$ARIMA_forw1m, mean((arima_fcs_forw1m$mean - act_forw1m)^2))
   
   # Calculate and append MSE for Random Walk forecasts
   mse_results$RW_spot <- c(mse_results$RW_spot, mean((rw_fcs_spot$mean - act_spot)^2))
   mse_results$RW_forwp <- c(mse_results$RW_forwp, mean((rw_fcs_forwp$mean - act_forwp)^2))
-  mse_results$RW_forwc <- c(mse_results$RW_forwc, mean((rw_fcs_forwc$mean - act_forwc)^2))
-  mse_results$RW_forw1m <- c(mse_results$RW_forw1m, mean((rw_fcs_forw1m$mean - act_forw1m)^2))
+  #mse_results$RW_forwc <- c(mse_results$RW_forwc, mean((rw_fcs_forwc$mean - act_forwc)^2))
+  #mse_results$RW_forw1m <- c(mse_results$RW_forw1m, mean((rw_fcs_forw1m$mean - act_forw1m)^2))
 }
 
 # Calculate mean MSE for each model
