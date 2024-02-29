@@ -1,14 +1,14 @@
-install.packages("readr")
-install.packages("dplyr")
-install.packages("lubridate")
-install.packages("tseries")
-install.packages("forecast")
-install.packages("vars")
-install.packages("urca")
-install.packages("tsDyn")
+#install.packages("readr")
+#install.packages("dplyr")
+#install.packages("lubridate")
+#install.packages("tseries")
+#install.packages("forecast")
+#install.packages("vars")
+#install.packages("urca")
+#install.packages("tsDyn")
 
-
-
+#getwd()
+#setwd("./master-thesis")
 library(readr)  # For reading CSV files
 library(dplyr)  # For data manipulation
 library(lubridate)  # For date parsing
@@ -20,7 +20,7 @@ library(tsDyn)
 
 
 
-# Step 1: Correctly read the CSV files with semicolon as separator
+# STEP 1: READ CSV
 spot_prices <- read_delim('./data/spot/panamax/BAPI_historical.csv', 
                           delim = ';', 
                           escape_double = FALSE, 
@@ -41,11 +41,19 @@ perp_forward_prices <- read_delim('./data/ffa/panamax/4tc_perpetual.csv',
                              trim_ws = TRUE)
 
 
-# Step 2: Merge data frames on the Date column
+
+
+
+
+
+# STEP 2: CLEAN AND PREPARE DATA
+
+
+# Merge data frames on the Date column
 data_combined <- merge(spot_prices, perp_forward_prices, by = "Date")
 
 
-# Step 3: Transform data to log levels and create a new data frame for log levels
+# Transform data to log levels and create a new data frame for log levels
 data_log_levels <- data.frame(
   Date = data_combined$Date,
   log_Spot = log(data_combined$Open),
@@ -55,7 +63,7 @@ data_log_levels <- data.frame(
 # Display the first few rows of each new data frame to verify
 print(head(data_log_levels))
 
-# Step 4: Split into train and test sets
+# Split into train and test sets
 
 # Calculate the index for the split
 split_index <- round(nrow(data_combined) * 0.5)
@@ -66,7 +74,7 @@ test_log_levels <- data_log_levels[(split_index+1): nrow(data_log_levels), ]
 
 
 
-# Step 5: Calculate differences
+# Calculate differences
 
 # Calculate first differences for the training set
 train_log_diff <- data.frame(
@@ -81,7 +89,7 @@ print(head(train_log_diff))
 
 
 
-# Step 6: Prepare time series objects
+# Prepare time series objects
 
 train_log_levels_ts <- ts(train_log_levels[, -1])
 train_log_diff_ts <- ts(train_log_diff[, -1])
@@ -89,7 +97,13 @@ train_log_diff_ts <- ts(train_log_diff[, -1])
 #test_log_levels_ts <- ts(test_log_levels[, -1])
 
 
-# Step 7: Check for stationarity and make any necessary adjustments
+
+
+
+
+
+
+# Step 3: STATIONARITY CHECKS
 
 # Perform Augmented Dickey-Fuller Test
 lapply(train_log_levels_ts, function(series) adf.test(series, alternative = "stationary"))
@@ -98,13 +112,77 @@ lapply(train_log_diff_ts, function(series) adf.test(series, alternative = "stati
 
 
 
-# Step 8: Fit the models
+
+
+# Step 4: MODEL FITS AND DIAGNOSTIC CHECKS
 
 # VAR
 # Select an appropriate lag order, p. You can use the `VARselect` function for guidance
 lag_order <- VARselect(train_log_diff_ts, type = "both")$selection["AIC(n)"]
 var_model <- VAR(train_log_diff_ts, p = lag_order, type = "both")
 summary(var_model)
+
+# Extract the residuals from the VAR model
+residuals_var <- residuals(var_model)
+
+# Get the number of equations (variables) in the VAR model
+num_equations <- ncol(residuals_var)
+
+arch_var <- arch.test(var_model)
+arch_var
+
+stab_var <- stability(var_model, type = "OLS-CUSUM")
+plot(stab_var)
+
+# Loop through each equation and perform the Ljung-Box test on its residuals
+for(i in 1:num_equations) {
+  # Extract residuals for the ith equation
+  res_i <- residuals_var[, i]
+  
+  # Create a time series object from residuals for White test
+  ts_res_i <- ts(res_i)
+  
+  # Fit a linear model on residuals as dependent variable for White test
+  lm_res_i <- lm(ts_res_i ~ 1)
+  
+  # Perform the Ljung-Box test, e.g., at lag 10
+  lb_test <- Box.test(res_i, lag = 10, type = "Ljung-Box")
+  
+  # Perform the White test for heteroskedasticity
+  white_test <- bptest(lm_res_i, ~ fitted(lm_res_i) + I(fitted(lm_res_i)^2), data = data.frame(ts_res_i))
+  
+  # Print the Ljung-Box test results
+  cat("Ljung-Box test for autocorrelation in equation", i, ":\n")
+  print(lb_test)
+  cat("\n") # Add a newline for better readability
+  
+  # Print the White test results
+  cat("White test for heteroskedasticity in equation", i, ":\n")
+  print(white_test)
+  cat("\n\n") # Add extra newlines for better readability
+}
+
+# Granger causality
+spot_ts <- train_log_diff_ts[, 1]
+forw_ts <- train_log_diff_ts[, 2]
+grangerSpot <- causality(var_model, cause = "diff_log_Spot")
+grangerSpot
+grangerForw <- causality(var_model, cause = "diff_log_4TC_FORWARD")
+grangerForw
+
+# Impulse response
+var_irf1 <- irf(var_model, impulse = "diff_log_Spot", response = "diff_log_4TC_FORWARD")
+plot(var_irf1, ylab="Spot", main = "Shock from FORWARD")
+var_irf2 <- irf(var_model, impulse = "diff_log_4TC_FORWARD", response = "diff_log_Spot")
+plot(var_irf2, ylab = "Forward", main = "Shock from Spot")
+
+
+# Variance decomposition
+
+var_vd1 <- fevd(var_model)
+plot(var_vd1)
+
+
 
 # VECM
 coint_test <- ca.jo(train_log_diff_ts, spec = "transitory", type = "eigen", ecdet = "const", K = lag_order)
@@ -118,18 +196,39 @@ irf.vecm <- irf(vecm_model, n.ahead=10, boot=TRUE)
 # Plot the impulse responses
 plot(irf.vecm)
 
+# ARIMA
+arima_model_spot <- auto.arima(train_log_levels$log_Spot)
+arima_model_4TC_FORWARD <- auto.arima(train_log_levels$log_4TC_FORWARD)
+
+arima_res_spot <- residuals(arima_model_spot)
+arima_res_forw <- residuals(arima_model_4TC_FORWARD)
+
+Box.test(arima_res_spot, type = "Ljung-Box")
+Box.test(arima_res_forw, type = "Ljung-Box")
+
+# Fit a linear model to the residuals of the ARIMA model for log_Spot
+lm_res_spot <- lm(arima_res_spot ~ I(1:nrow(as.data.frame(arima_res_spot))))
+
+# Conduct the White test for heteroskedasticity on the fitted linear model
+white_test_spot <- bptest(lm_res_spot)
+
+# Print the results for log_Spot
+print("White test for heteroskedasticity in ARIMA model residuals (log_Spot):")
+print(white_test_spot)
+
+# Fit a linear model to the residuals of the ARIMA model for log_4TC_FORWARD
+lm_res_forw <- lm(arima_res_forw ~ I(1:nrow(as.data.frame(arima_res_forw))))
+
+# Conduct the White test for heteroskedasticity
+white_test_forw <- bptest(lm_res_forw)
+
+# Print the results for log_4TC_FORWARD
+print("White test for heteroskedasticity in ARIMA model residuals (log_4TC_FORWARD):")
+print(white_test_forw)
 
 
 
 
-
-# Convert the Johansen test results into a VECM
-#vecm_model <- cajorls(coint_test, r = 1)  # `r` is the number of cointegrating relations
-# Summary of the VECM model
-#summary(vecm_model$rlm)
-# For forecasting, convert VECM to VAR representation
-#vecm_to_var <- vec2var(coint_test, r = 1)
-#summary(vecm_to_var)
 
 
 # Step 9: Forecast future values
@@ -154,6 +253,11 @@ mse_results <- list(
   VECM_Spot = numeric(),
   VECM_4TC_FORWARD = numeric()
 )
+
+
+arima_forecasts_spot <- forecast(arima_model_spot, h = forecast_horizon)
+arima_forecasts_4TC_FORWARD <- forecast(arima_model_4TC_FORWARD, h = forecast_horizon)
+
 
 # Loop through each forecasting round
 for (round in 1:num_rounds) {
