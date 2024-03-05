@@ -36,26 +36,53 @@ forward_prices <- read_delim('./data/ffa/panamax/4tc_data.csv',
                              trim_ws = TRUE)
 
 
+spot <- read_delim('./data/spot/clarkson_data.csv', 
+                   delim = ';', 
+                   escape_double = FALSE, 
+                   col_types = cols(Date = col_date(format = "%d/%m/%Y")),
+                   trim_ws = TRUE)
 
+
+pmx_forw <- read_delim('./data/ffa/PMAX_FFA.csv', 
+                       delim = ';', 
+                       escape_double = FALSE, 
+                       col_types = cols(Date = col_date(format = "%d.%m.%Y")),
+                       trim_ws = TRUE)
+
+csz_forw <- read_delim('./data/ffa/CSZ_FFA.csv', 
+                       delim = ';', 
+                       escape_double = FALSE, 
+                       col_types = cols(Date = col_date(format = "%d.%m.%Y")),
+                       trim_ws = TRUE)
+
+smx_forw <- read_delim('./data/ffa/SMX_FFA.csv', 
+                       delim = ';', 
+                       escape_double = FALSE, 
+                       col_types = cols(Date = col_date(format = "%d.%m.%Y")),
+                       trim_ws = TRUE)
 
 
 
 # STEP 2: CLEAN AND PREPARE DATA
+# CSZ column: SMX
+# PMX column: PMX
+# SMX column: SMX
+# ffa column: ROLL
 
 
 # Merge data frames on the Date column
-data_combined <- merge(spot_prices, forward_prices, by = "Date")
+data_combined <- merge(spot, smx_forw, by = "Date")
+
+
+# Remove rows with NA or 0 in either the S6TC_S10TC column or the 4TC_ROLL column
+data_combined <- subset(data_combined, !(is.na(SMX) | SMX == 0) & !(is.na(`1MON`) | `1MON` == 0))
 
 
 # Transform data to log levels and create a new data frame for log levels
 data_log_levels <- data.frame(
   Date = data_combined$Date,
-  spot = log(data_combined$Open),
-  forwc = log(data_combined$`4TC_PCURMON`),
-  forw1m = log(data_combined$`4TC_P+1MON`),
-  forwp = log(data_combined$`4TC_ROLL`),
-  wc = data_combined$`w C`,
-  w1m = data_combined$`w 1M`
+  spot = log(data_combined$SMX),
+forwp = log(data_combined$`1MON`)
 )
 
 
@@ -79,11 +106,7 @@ test_lev <- data_log_levels[(split_index+1): nrow(data_log_levels), ]
 train_diff <- data.frame(
   Date = train_lev$Date[-1],  # Exclude the first date because there's no prior value to difference with
   spot = diff(train_lev$spot),
-  forwc = diff(train_lev$forwc),
-  forw1m = diff(train_lev$forw1m),
-  forwp = diff(train_lev$forwp),
-  wc = train_lev$wc[-1],
-  w1m = train_lev$w1m[-1]
+  forwp = diff(train_lev$forwp)
 )
 
 # Print the first few rows to verify
@@ -94,8 +117,8 @@ print(head(train_diff))
 
 # Prepare time series objects
 
-train_lev_ts <- ts(train_lev[, c(2, 5)])
-train_diff_ts <- ts(train_diff[, c(2, 5)])
+train_lev_ts <- ts(train_lev[, -1])
+train_diff_ts <- ts(train_diff[, -1])
 
 #test_log_levels_ts <- ts(test_log_levels[, -1])
 
@@ -136,8 +159,8 @@ num_equations <- ncol(residuals_var)
 arch_var <- arch.test(var_model)
 arch_var
 
-stab_var <- stability(var_model, type = "OLS-CUSUM")
-plot(stab_var)
+#stab_var <- stability(var_model, type = "OLS-CUSUM")
+#plot(stab_var)
 
 # Loop through each equation and perform the Ljung-Box test on its residuals
 for(i in 1:num_equations) {
@@ -247,8 +270,8 @@ num_equations <- ncol(residuals_var)
 arch_var <- arch.test(vecm_var)
 arch_var
 
-stab_var <- stability(vecm_var, type = "OLS-CUSUM")
-plot(stab_var)
+#stab_var <- stability(vecm_var, type = "OLS-CUSUM")
+#plot(stab_var)
 
 # Loop through each equation and perform the Ljung-Box test on its residuals
 for(i in 1:num_equations) {
@@ -284,16 +307,13 @@ for(i in 1:num_equations) {
 
 # ARIMA
 arima_model_spot <- auto.arima(train_lev$spot)
-arima_model_forwc <- auto.arima(train_lev$forwc)
-arima_model_forw1m <- auto.arima(train_lev$forw1m)
+arima_model_forwp <- auto.arima(train_lev$forwp)
 
 arima_res_spot <- residuals(arima_model_spot)
-arima_res_forw <- residuals(arima_model_forwc)
-arima_res_forw2 <- residuals(arima_model_forw1m)
+arima_res_forw <- residuals(arima_model_forwp)
 
 Box.test(arima_res_spot, type = "Ljung-Box")
 Box.test(arima_res_forw, type = "Ljung-Box")
-Box.test(arima_res_forw2, type = "Ljung-Box")
 
 
 # Fit a linear model to the residuals of the ARIMA model for log_Spot
@@ -317,20 +337,12 @@ print("White test for heteroskedasticity in ARIMA model residuals (log_4TC_FORWA
 print(white_test_forw)
 
 
-# Fit a linear model to the residuals of the ARIMA model for log_4TC_FORWARD
-lm_res_forw2 <- lm(arima_res_forw2 ~ I(1:nrow(as.data.frame(arima_res_forw2))))
 
-# Conduct the White test for heteroskedasticity
-white_test_forw2 <- bptest(lm_res_forw2)
-
-# Print the results for log_4TC_FORWARD
-print("White test for heteroskedasticity in ARIMA model residuals (log_4TC_FORWARD2):")
-print(white_test_forw2)
 
 
 
 # Step 9: Forecast future values
-forecast_horizon <- 10
+forecast_horizon <- 20
 #vecm_forecasts <- predict(vecm_model, n.ahead = forecast_horizon)
 var_fcs <- predict(var_model, n.ahead = forecast_horizon) 
 vecm_var <- vec2var(coint_test)
@@ -339,8 +351,7 @@ vecm_fcs <- predict(vecm_var, n.ahead = forecast_horizon)
 #n_forecast <- nrow(test_log_levels)  # Number of points to forecast equals the size of the test set
 
 arima_fcs_spot <- forecast(arima_model_spot, h = forecast_horizon)
-arima_fcs_forwc <- forecast(arima_model_forwc, h = forecast_horizon)
-arima_fcs_forw1m <- forecast(arima_model_forw1m, h = forecast_horizon)
+arima_fcs_forwp <- forecast(arima_model_forwp, h = forecast_horizon)
 
 # Determine the number of rounds based on the test set size and forecast horizon
 num_rounds <- min(floor(nrow(test_lev) / forecast_horizon), 30)
@@ -352,16 +363,10 @@ print(num_rounds)
 mse_results <- list(
   VAR_spot = numeric(),
   VAR_forwp = numeric(),
-  VAR_forwc = numeric(),
-  VAR_forw1m = numeric(),
   ARIMA_spot = numeric(),
   ARIMA_forwp = numeric(),
-  ARIMA_forwc = numeric(),
-  ARIMA_forw1m = numeric(),
   RW_spot = numeric(),
   RW_forwp = numeric(),
-  RW_forwc = numeric(),
-  RW_forw1m = numeric(),
   VECM_spot = numeric(),
   VECM_forwp = numeric()
 )
@@ -387,15 +392,11 @@ for (round in 1:num_rounds) {
   train_diff <- data.frame(
     Date = train_lev$Date[-1],  # Exclude the first date because there's no prior value to difference with
     spot = diff(train_lev$spot),
-    forwc = diff(train_lev$forwc),
-    forw1m = diff(train_lev$forw1m),
-    forwp = diff(train_lev$forwp),
-    wc = train_lev$wc[-1],
-    w1m = train_lev$w1m[-1]
+    forwp = diff(train_lev$forwp)
   )
   
   # Re-fit models with the updated training set
-  train_diff_ts <- ts(train_diff[, c(2, 5)])
+  train_diff_ts <- ts(train_diff[, -1])
   
   
   ## VAR
@@ -414,40 +415,29 @@ for (round in 1:num_rounds) {
   ## ARIMA
   arima_model_spot <- auto.arima(train_lev$spot)
   arima_model_forwp <- auto.arima(train_lev$forwp)
-  arima_model_forwc <- auto.arima(train_lev$forwc)
-  arima_model_forw1m <- auto.arima(train_lev$forw1m)
-  
+
   arima_fcs_spot <- forecast(arima_model_spot, h = forecast_horizon)
   arima_fcs_forwp <- forecast(arima_model_forwp, h = forecast_horizon)
-  arima_fcs_forwc <- forecast(arima_model_forwc, h = forecast_horizon)
-  arima_fcs_forw1m <- forecast(arima_model_forw1m, h = forecast_horizon)
-  
+
   
   # Random Walk (ARIMA(0,1,0))
   rw_model_spot <- Arima(train_lev$spot, order = c(0, 1, 0))
   rw_model_forwp <- Arima(train_lev$forwp, order = c(0, 1, 0))
-  rw_model_forwc <- Arima(train_lev$forwc, order = c(0, 1, 0))
-  rw_model_forw1m <- Arima(train_lev$forw1m, order = c(0, 1, 0))
-  
+
   rw_fcs_spot <- forecast(rw_model_spot, h = forecast_horizon)
   rw_fcs_forwp <- forecast(rw_model_forwp, h = forecast_horizon)
-  rw_fcs_forwc <- forecast(rw_model_forwc, h = forecast_horizon)
-  rw_fcs_forw1m <- forecast(rw_model_forw1m, h = forecast_horizon)
-  
+
   
   # Step 10: Convert differenced forecasts back to levels
   
   # Last log levels from the training set
   last_spot <- tail(train_lev$spot, 1)
   last_forwp <- tail(train_lev$forwp, 1)
-  last_forwc <- tail(train_lev$forwc, 1)
-  last_forw1m <- tail(train_lev$forw1m, 1)
-  
+
   # VAR
   var_rev_fcs_spot <- last_spot + cumsum(var_fcs$fcst[[1]][, "fcst"])
   var_rev_fcs_forwp <- last_forwp + cumsum(var_fcs$fcst[[2]][, "fcst"])
-  #var_rev_fcs_forw1m <- last_forw1m + cumsum(var_fcs$fcst[[3]][, "fcst"])
-  
+
   # VECM
   #vecm_rev_fcs_spot <- last_spot + cumsum(vecm_fcs[, 1])
   #vecm_rev_fcs_forwp <- last_forwp + cumsum(vecm_fcs[, 2])
@@ -457,15 +447,11 @@ for (round in 1:num_rounds) {
   
   act_spot <- test_lev$spot
   act_forwp <- test_lev$forwp
-  act_forwc <- test_lev$forwc
-  act_forw1m <- test_lev$forw1m
-  
+
   # Calculate and append MSE for VAR forecasts
   mse_results$VAR_spot <- c(mse_results$VAR_spot, mean((var_rev_fcs_spot - act_spot)^2))
   mse_results$VAR_forwp <- c(mse_results$VAR_forwp, mean((var_rev_fcs_forwp - act_forwp)^2))
-  #mse_results$VAR_forwc <- c(mse_results$VAR_forwc, mean((var_rev_fcs_forwc - act_forwc)^2))
-  #mse_results$VAR_forw1m <- c(mse_results$VAR_forw1m, mean((var_rev_fcs_forw1m - act_forw1m)^2))
-  
+
   # Calculate and append MSE for VECM forecasts
   mse_results$VECM_spot <- c(mse_results$VECM_spot, mean((vecm_rev_fcs_spot - act_spot)^2))
   mse_results$VECM_forwp <- c(mse_results$VECM_forwp, mean((vecm_rev_fcs_forwp - act_forwp)^2))
@@ -473,14 +459,10 @@ for (round in 1:num_rounds) {
   # Calculate and append MSE for ARIMA forecasts
   mse_results$ARIMA_spot <- c(mse_results$ARIMA_spot, mean((arima_fcs_spot$mean - act_spot)^2))
   mse_results$ARIMA_forwp <- c(mse_results$ARIMA_forwp, mean((arima_fcs_forwp$mean - act_forwp)^2))
-  #mse_results$ARIMA_forwc <- c(mse_results$ARIMA_forwc, mean((arima_fcs_forwc$mean - act_forwc)^2))
-  #mse_results$ARIMA_forw1m <- c(mse_results$ARIMA_forw1m, mean((arima_fcs_forw1m$mean - act_forw1m)^2))
-  
+
   # Calculate and append MSE for Random Walk forecasts
   mse_results$RW_spot <- c(mse_results$RW_spot, mean((rw_fcs_spot$mean - act_spot)^2))
   mse_results$RW_forwp <- c(mse_results$RW_forwp, mean((rw_fcs_forwp$mean - act_forwp)^2))
-  #mse_results$RW_forwc <- c(mse_results$RW_forwc, mean((rw_fcs_forwc$mean - act_forwc)^2))
-  #mse_results$RW_forw1m <- c(mse_results$RW_forw1m, mean((rw_fcs_forw1m$mean - act_forw1m)^2))
 }
 
 # Calculate mean MSE for each model
