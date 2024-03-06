@@ -9,7 +9,7 @@
 #install.packages("tidyverse")
 
 getwd()
-#setwd("./master-thesis")
+setwd("./master-thesis")
 library(readr)  # For reading CSV files
 library(dplyr)  # For data manipulation
 library(lubridate)  # For date parsing
@@ -23,17 +23,7 @@ library(tidyverse)
 
 
 # STEP 1: READ CSV
-spot_prices <- read_delim('./data/spot/panamax/BAPI_historical.csv', 
-                          delim = ';', 
-                          escape_double = FALSE, 
-                          col_types = cols(Date = col_date(format = "%d.%m.%Y")),
-                          trim_ws = TRUE)
 
-forward_prices <- read_delim('./data/ffa/panamax/4tc_data.csv', 
-                             delim = ';', 
-                             escape_double = FALSE, 
-                             col_types = cols(Date = col_date(format = "%d.%m.%Y")),
-                             trim_ws = TRUE)
 
 
 spot <- read_delim('./data/spot/clarkson_data.csv', 
@@ -75,14 +65,14 @@ data_combined <- merge(spot, smx_forw, by = "Date")
 
 
 # Remove rows with NA or 0 in either the S6TC_S10TC column or the 4TC_ROLL column
-data_combined <- subset(data_combined, !(is.na(SMX) | SMX == 0) & !(is.na(`1MON`) | `1MON` == 0))
+data_combined <- subset(data_combined, !(is.na(SMX) | SMX == 0) & !(is.na(`1Q`) | `1Q` == 0))
 
 
 # Transform data to log levels and create a new data frame for log levels
 data_log_levels <- data.frame(
   Date = data_combined$Date,
   spot = log(data_combined$SMX),
-forwp = log(data_combined$`1MON`)
+  forwp = log(data_combined$`1Q`)
 )
 
 
@@ -206,16 +196,16 @@ grangerForw
 #plot(var_irf_spot_to_spot, main = "Shock from 'spot' to 'spot'")
 
 # 2. Shock from "spot" to "forwp"
-var_irf_spot_to_forwp <- irf(var_model, impulse = "spot", response = "forwp")
-plot(var_irf_spot_to_forwp, main = "Shock from 'spot' to 'forwp'")
+#var_irf_spot_to_forwp <- irf(var_model, impulse = "spot", response = "forwp")
+#plot(var_irf_spot_to_forwp, main = "Shock from 'spot' to 'forwp'")
 
 # 3. Shock from "spot" to "forw1m"
 #var_irf_spot_to_forw1m <- irf(var_model, impulse = "spot", response = "forw1m")
 #plot(var_irf_spot_to_forw1m, main = "Shock from 'spot' to 'forw1m'")
 
 # 4. Shock from "forwp" to "spot"
-var_irf_forwp_to_spot <- irf(var_model, impulse = "forwp", response = "spot")
-plot(var_irf_forwp_to_spot, main = "Shock from 'forwp' to 'spot'")
+#var_irf_forwp_to_spot <- irf(var_model, impulse = "forwp", response = "spot")
+#plot(var_irf_forwp_to_spot, main = "Shock from 'forwp' to 'spot'")
 
 # 5. Shock from "forwc" to "forwc"
 #var_irf_forwc_to_forwc <- irf(var_model, impulse = "forwc", response = "forwc")
@@ -246,18 +236,18 @@ plot(var_vd1)
 
 # VECM
 #coint_test <- ca.jo(train_diff_ts, spec = "transitory", type = "eigen", ecdet = "const", K = lag_order)
-coint_test <- ca.jo(train_diff_ts, spec = "longrun", type = "eigen", ecdet = "const", K = lag_order)
+coint_test <- ca.jo(train_lev_ts, spec = "longrun", type = "eigen", ecdet = "const", K = lag_order)
 summary(coint_test)
 
 vecm_cajo <- cajorls(coint_test, r=1)  # 'r' is the cointegration rank from the Johansen test results
 summary(vecm_cajo$rlm)
-vecm_model <- VECM(train_diff_ts, lag=lag_order, r=1, include="const")
-summary(vecm_model)
+#vecm_model <- VECM(train_diff_ts, lag=lag_order, r=1, include="const")
+#summary(vecm_model)
 # Impulse response analysis
-irf.vecm <- irf(vecm_model, n.ahead=10, boot=TRUE)
+#irf.vecm <- irf(vecm_model, n.ahead=10, boot=TRUE)
 
 # Plot the impulse responses
-plot(irf.vecm)
+#plot(irf.vecm)
 
 vecm_var <- vec2var(coint_test, r = 1)
 
@@ -396,6 +386,7 @@ for (round in 1:num_rounds) {
   )
   
   # Re-fit models with the updated training set
+  train_lev_ts <- ts(train_lev[, -1])
   train_diff_ts <- ts(train_diff[, -1])
   
   
@@ -405,7 +396,7 @@ for (round in 1:num_rounds) {
   var_fcs <- predict(var_model, n.ahead = forecast_horizon)  
   
   # VECM
-  coint_test <- ca.jo(train_diff_ts, spec = "longrun", type = "trace", ecdet = "trend", K = lag_order)
+  coint_test <- ca.jo(train_lev_ts, spec = "longrun", type = "trace", ecdet = "trend", K = lag_order)
   vecm_model <- vec2var(coint_test)
   #vecm_model <- VECM(train_diff_ts, lag=lag_order, r=1, include="none")
   vecm_fcs <- predict(vecm_model, n.ahead = forecast_horizon)
@@ -441,8 +432,8 @@ for (round in 1:num_rounds) {
   # VECM
   #vecm_rev_fcs_spot <- last_spot + cumsum(vecm_fcs[, 1])
   #vecm_rev_fcs_forwp <- last_forwp + cumsum(vecm_fcs[, 2])
-  vecm_rev_fcs_spot <- last_spot + cumsum(vecm_fcs$fcst[[1]][, "fcst"])
-  vecm_rev_fcs_forwp <- last_forwp + cumsum(vecm_fcs$fcst[[2]][, "fcst"])
+  #vecm_rev_fcs_spot <- last_spot + cumsum(vecm_fcs$fcst[[1]][, "fcst"])
+  #vecm_rev_fcs_forwp <- last_forwp + cumsum(vecm_fcs$fcst[[2]][, "fcst"])
   
   
   act_spot <- test_lev$spot
@@ -453,8 +444,8 @@ for (round in 1:num_rounds) {
   mse_results$VAR_forwp <- c(mse_results$VAR_forwp, mean((var_rev_fcs_forwp - act_forwp)^2))
 
   # Calculate and append MSE for VECM forecasts
-  mse_results$VECM_spot <- c(mse_results$VECM_spot, mean((vecm_rev_fcs_spot - act_spot)^2))
-  mse_results$VECM_forwp <- c(mse_results$VECM_forwp, mean((vecm_rev_fcs_forwp - act_forwp)^2))
+  mse_results$VECM_spot <- c(mse_results$VECM_spot, mean((vecm_fcs$fcst[[1]][, "fcst"] - act_spot)^2))
+  mse_results$VECM_forwp <- c(mse_results$VECM_forwp, mean((vecm_fcs$fcst[[2]][, "fcst"] - act_forwp)^2))
   
   # Calculate and append MSE for ARIMA forecasts
   mse_results$ARIMA_spot <- c(mse_results$ARIMA_spot, mean((arima_fcs_spot$mean - act_spot)^2))
