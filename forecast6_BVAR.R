@@ -8,7 +8,8 @@
 #install.packages("tsDyn")
 #install.packages("tidyverse")
 #install.packages("BVAR")
-install.packages("lmtest")
+#install.packages("lmtest")
+#install.packages("dplyr", dependencies = TRUE)
 
 #getwd()
 #setwd("./master-thesis")
@@ -242,7 +243,10 @@ plot(var_irf_spot_to_forwp_bvar)
 fevd_results_bvar <- fevd(bvar_model)
 print(fevd_results_bvar)
 str(fevd_results_bvar)
-#plot(fevd_results_bvar, main  = "Forecast Error Variance Decomposition")
+# The plot of the Variance Decomposition will be done later
+
+
+
 
 
 # VAR
@@ -459,6 +463,7 @@ print(white_test_forw2)
 # Step 9: Forecast future values
 forecast_horizon <- 10
 #vecm_forecasts <- predict(vecm_model, n.ahead = forecast_horizon)
+bvar_fcs <- predict(bvar_model, horizon = forecast_horizon)
 var_fcs <- predict(var_model, n.ahead = forecast_horizon) 
 vecm_var <- vec2var(coint_test)
 vecm_fcs <- predict(vecm_var, n.ahead = forecast_horizon)
@@ -477,6 +482,10 @@ print(num_rounds)
 
 # Initialize lists to store MSE results for each model
 mse_results <- list(
+  BVAR_spot = numeric(),
+  BVAR_forwp = numeric(),
+  BVAR_forwc = numeric(),
+  BVAR_forw1m = numeric(),
   VAR_spot = numeric(),
   VAR_forwp = numeric(),
   VAR_forwc = numeric(),
@@ -524,6 +533,12 @@ for (round in 1:num_rounds) {
   # Re-fit models with the updated training set
   train_diff_ts <- ts(train_diff[, c(2, 5)])
   
+  # Bayesian VAR
+  lag_order_bvar <- VARselect(train_diff_ts, type = "both")$selection["AIC(n)"]
+  sink(NULL)
+  bvar_model <- bvar(train_diff_ts, lags = lag_order_bvar, type = "both")
+  sink()
+  bvar_fcs <- predict(bvar_model, horizon = forecast_horizon)
   
   ## VAR
   lag_order <- VARselect(train_diff_ts, type = "both")$selection["AIC(n)"]
@@ -570,6 +585,10 @@ for (round in 1:num_rounds) {
   last_forwc <- tail(train_lev$forwc, 1)
   last_forw1m <- tail(train_lev$forw1m, 1)
   
+  # BVAR
+  bvar_rev_fcs_spot <- last_spot + cumsum(bvar_fcs$fcst[[1]][, "fcst"])
+  bvar_rev_fcs_forwp <- last_forwp + cumsum(bvar_fcs$fcst[[2]][, "fcst"])
+  
   # VAR
   var_rev_fcs_spot <- last_spot + cumsum(var_fcs$fcst[[1]][, "fcst"])
   var_rev_fcs_forwp <- last_forwp + cumsum(var_fcs$fcst[[2]][, "fcst"])
@@ -586,6 +605,10 @@ for (round in 1:num_rounds) {
   act_forwp <- test_lev$forwp
   act_forwc <- test_lev$forwc
   act_forw1m <- test_lev$forw1m
+  
+  # Calculate and append MSE for BVAR forecasts
+  mse_results$BVAR_spot <- c(mse_results$BVAR_spot, mean((bvar_rev_fcs_spot - act_spot)^2))
+  mse_results$BVAR_forwp <- c(mse_results$BVAR_forwp, mean((bvar_rev_fcs_forwp - act_forwp)^2))
   
   # Calculate and append MSE for VAR forecasts
   mse_results$VAR_spot <- c(mse_results$VAR_spot, mean((var_rev_fcs_spot - act_spot)^2))
