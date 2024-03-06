@@ -54,24 +54,24 @@ smx_forw <- read_delim('./data/ffa/SMX_FFA.csv',
 
 
 # STEP 2: CLEAN AND PREPARE DATA
-# CSZ column: SMX
+# CSZ column: CSZ
 # PMX column: PMX
 # SMX column: SMX
 # ffa column: ROLL
 
 
 # Merge data frames on the Date column
-data_combined <- merge(spot, smx_forw, by = "Date")
+data_combined <- merge(spot, csz_forw, by = "Date")
 
 
 # Remove rows with NA or 0 in either the S6TC_S10TC column or the 4TC_ROLL column
-data_combined <- subset(data_combined, !(is.na(SMX) | SMX == 0) & !(is.na(`1Q`) | `1Q` == 0))
+data_combined <- subset(data_combined, !(is.na(CSZ) | CSZ == 0) & !(is.na(`1Q`) | `1Q` == 0))
 
 
 # Transform data to log levels and create a new data frame for log levels
 data_log_levels <- data.frame(
   Date = data_combined$Date,
-  spot = log(data_combined$SMX),
+  spot = log(data_combined$CSZ),
   forwp = log(data_combined$`1Q`)
 )
 
