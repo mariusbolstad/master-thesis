@@ -7,6 +7,8 @@
 #install.packages("urca")
 #install.packages("tsDyn")
 #install.packages("tidyverse")
+#install.packages("BVAR")
+install.packages("lmtest")
 
 #getwd()
 #setwd("./master-thesis")
@@ -19,7 +21,8 @@ library(forecast)
 library(urca)
 library(tsDyn)
 library(tidyverse)
-
+library(BVAR)
+library(lmtest)
 
 
 # STEP 1: READ CSV
@@ -119,6 +122,129 @@ lapply(train_diff_ts, function(series) adf.test(series, alternative = "stationar
 
 # Step 4: MODEL FITS AND DIAGNOSTIC CHECKS
 
+# BAYESIAN VAR
+
+# Selecting an appropriate lag order using the VARselect
+lags_bvar <- VARselect(train_diff_ts, type = "const")
+lags_bvar
+lag_bvar_order <- VARselect(train_diff_ts, type = "both")$selection["AIC(n)"]
+bvar_model <- bvar(train_diff_ts, lags = lag_bvar_order, type = "both")
+summary(bvar_model)
+
+# Determining the raw residuals for the BVAR model
+predicted_values <- fitted(bvar_model)
+
+residuals_bvar_raw <- train_diff_ts[-(1:10),] - predicted_values
+str(residuals_bvar_raw)
+head(residuals_bvar_raw)
+
+# Perform the White's test for heteroskedasticity
+#bp_test_bvar <- bptest(residuals_bvar_raw)
+#bp_test_bvar_summary <- summary(bp_test_bvar)
+
+# The White's test are currently returning NULL, and must be assessed closer
+
+# Extract test statistic and p-value
+#bp_test_bvar_stat <- bp_test_bvar_summary$fstatistic[1]
+#bp_bvar_p_value <- bp_test_bvar_summary$coefficients[2,4]
+
+#cat("White's Test for Heteroskedasticity:\n")
+#print(white_test_bvar_stat)
+#print(white_bvar_p_value)
+
+# Extract the residuals from the VAR model
+residuals_bvar <- residuals(bvar_model)
+residuals_bvar
+
+# Get the number of equations (variables) in the VAR model
+num_equations_bvar <- ncol(residuals_bvar)
+num_equations_bvar
+
+# Loop through each equation and perform the Ljung-Box test on its residuals
+for(i in 1:num_equations_bvar) {
+  # Extract residuals for the ith equation
+  res_i <- residuals_bvar_raw[, i]
+  
+  # Create a time series object from residuals for White test
+  ts_res_i <- ts(res_i)
+  
+  # Fit a linear model on residuals as dependent variable for White test
+  lm_res_i <- lm(ts_res_i ~ 1)
+  
+  # Perform the Ljung-Box test, e.g., at lag 10
+  lb_test <- Box.test(res_i, lag = 10, type = "Ljung-Box")
+  
+  # Perform the White test for heteroskedasticity
+  white_test <- bptest(lm_res_i, ~ fitted(lm_res_i) + I(fitted(lm_res_i)^2), data = data.frame(ts_res_i))
+  
+  # Print the Ljung-Box test results
+  cat("Ljung-Box test for autocorrelation in equation", i, " :\n")
+  print(lb_test)
+  cat("\n") # Add a newline for better readability
+  
+  # Print the White test results
+  cat("White test for heteroskedasticity in equation", i, ":\n")
+  print(white_test)
+  cat("\n\n") # Add extra newlines for better readability
+}
+
+# Granger causality
+spot_ts <- train_diff_ts[, 1]
+forwc_ts <- train_diff_ts[, 2]
+#forw1_ts <- train_diff_ts[, 3]
+grangerSpot_bvar <- grangertest(forwc_ts ~ spot_ts, order = lag_bvar_order, data = residuals_bvar_raw)
+grangerForw_bvar <- grangertest(spot_ts ~ forwc_ts, order = lag_bvar_order, data = residuals_bvar_raw)
+grangerSpot_bvar
+grangerForw_bvar
+#grangerForw2 <- causality(var_model, cause = "forw1m")
+#grangerForw2
+
+# Presenting the shocks from the different time series' to each other. For bvar one round w the two variables are sufficient, as it includes all four shock influences
+# According to the BVAR manual, this function could benefit from bv_irf (impulse response settings and identification)
+
+# 1. Shock from "spot" to "spot"
+#var_irf_spot_to_spot <- irf(var_model, impulse = "spot", response = "spot")
+#plot(var_irf_spot_to_spot, main = "Shock from 'spot' to 'spot'")
+
+# 2. Shock from "spot" to "forwp"
+var_irf_spot_to_forwp_bvar <- irf(bvar_model)
+plot(var_irf_spot_to_forwp_bvar)
+
+# 3. Shock from "spot" to "forw1m"
+#var_irf_spot_to_forw1m <- irf(var_model, impulse = "spot", response = "forw1m")
+#plot(var_irf_spot_to_forw1m, main = "Shock from 'spot' to 'forw1m'")
+
+# 4. Shock from "forwp" to "spot"   Not necessary as this is covered in 1
+#var_irf_forwp_to_spot_bvar <- irf(bvar_model)
+#plot(var_irf_forwp_to_spot_bvar)
+
+# 5. Shock from "forwc" to "forwc"
+#var_irf_forwc_to_forwc <- irf(var_model, impulse = "forwc", response = "forwc")
+#plot(var_irf_forwc_to_forwc, main = "Shock from 'forwc' to 'forwc'")
+
+# 6. Shock from "forwc" to "forw1m"
+#var_irf_forwc_to_forw1m <- irf(var_model, impulse = "forwc", response = "forw1m")
+#plot(var_irf_forwc_to_forw1m, main = "Shock from 'forwc' to 'forw1m'")
+
+# 7. Shock from "forw1m" to "spot"
+#var_irf_forw1m_to_spot <- irf(var_model, impulse = "forw1m", response = "spot")
+#plot(var_irf_forw1m_to_spot, main = "Shock from 'forw1m' to 'spot'")
+
+# 8. Shock from "forw1m" to "forwc"
+#var_irf_forw1m_to_forwc <- irf(var_model, impulse = "forw1m", response = "forwc")
+#plot(var_irf_forw1m_to_forwc, main = "Shock from 'forw1m' to 'forwc'")
+
+# 9. Shock from "forw1m" to "forw1m"
+#var_irf_forw1m_to_forw1m <- irf(var_model, impulse = "forw1m", response = "forw1m")
+#plot(var_irf_forw1m_to_forw1m, main = "Shock from 'forw1m' to 'forw1m'")
+
+# Forecast error variance decomposition for each variable
+fevd_results_bvar <- fevd(bvar_model)
+print(fevd_results_bvar)
+str(fevd_results_bvar)
+#plot(fevd_results_bvar, main  = "Forecast Error Variance Decomposition")
+
+
 # VAR
 # Select an appropriate lag order, p. You can use the VARselect function for guidance
 lags <- VARselect(train_diff_ts, type = "const")
@@ -129,6 +255,7 @@ summary(var_model)
 
 # Extract the residuals from the VAR model
 residuals_var <- residuals(var_model)
+residuals_var  #ADDED
 
 # Get the number of equations (variables) in the VAR model
 num_equations <- ncol(residuals_var)
