@@ -131,6 +131,13 @@ lags_bvar
 lag_bvar_order <- VARselect(train_diff_ts, type = "both")$selection["AIC(n)"]
 bvar_model <- bvar(train_diff_ts, lags = lag_bvar_order, type = "both")
 summary(bvar_model)
+str(bvar_model)
+
+bvar_fcs <- predict(bvar_model, horizon = 20)
+bvar_fcs
+summary(bvar_fcs) # This returns two forecasts lists (spot and forward) with different confidence bands
+#bvar_fcs$fcast    # This is just a setting used in the forecasting above
+
 
 # Determining the raw residuals for the BVAR model
 predicted_values <- fitted(bvar_model)
@@ -464,7 +471,13 @@ print(white_test_forw2)
 forecast_horizon <- 10
 #vecm_forecasts <- predict(vecm_model, n.ahead = forecast_horizon)
 bvar_fcs <- predict(bvar_model, horizon = forecast_horizon)
-var_fcs <- predict(var_model, n.ahead = forecast_horizon) 
+bvar_fcs_fcast <- summary(bvar_fcs, digits = 4)
+bvar_fcs_fcast[2]   # This is a more detailed list of the forecast results
+bvar_fcs_fcast$quants
+bvar_fcs_spot <- bvar_fcs_fcast$quants[seq(2, length(bvar_fcs_fcast$quants), by = 3)]
+bvar_fcs_spot
+var_fcs <- predict(var_model, n.ahead = forecast_horizon)
+var_fcs$fcst
 vecm_var <- vec2var(coint_test)
 vecm_fcs <- predict(vecm_var, n.ahead = forecast_horizon)
 
