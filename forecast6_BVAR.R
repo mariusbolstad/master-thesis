@@ -499,20 +499,20 @@ print(num_rounds)
 mse_results <- list(
   BVAR_spot = numeric(),
   BVAR_forwp = numeric(),
-  BVAR_forwc = numeric(),
-  BVAR_forw1m = numeric(),
+  #BVAR_forwc = numeric(),
+  #BVAR_forw1m = numeric(),
   VAR_spot = numeric(),
   VAR_forwp = numeric(),
-  VAR_forwc = numeric(),
-  VAR_forw1m = numeric(),
+  #VAR_forwc = numeric(),
+  #VAR_forw1m = numeric(),
   ARIMA_spot = numeric(),
   ARIMA_forwp = numeric(),
-  ARIMA_forwc = numeric(),
-  ARIMA_forw1m = numeric(),
+  #ARIMA_forwc = numeric(),
+  #ARIMA_forw1m = numeric(),
   RW_spot = numeric(),
   RW_forwp = numeric(),
-  RW_forwc = numeric(),
-  RW_forw1m = numeric(),
+  #RW_forwc = numeric(),
+  #RW_forw1m = numeric(),
   VECM_spot = numeric(),
   VECM_forwp = numeric()
 )
@@ -662,6 +662,8 @@ for (round in 1:num_rounds) {
   mse_results$RW_forwp <- c(mse_results$RW_forwp, mean((rw_fcs_forwp$mean - act_forwp)^2))
   #mse_results$RW_forwc <- c(mse_results$RW_forwc, mean((rw_fcs_forwc$mean - act_forwc)^2))
   #mse_results$RW_forw1m <- c(mse_results$RW_forw1m, mean((rw_fcs_forw1m$mean - act_forw1m)^2))
+  
+  print(mse_results)
 }
 
 # Calculate mean MSE for each model
