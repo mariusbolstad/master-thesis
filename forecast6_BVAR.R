@@ -467,17 +467,19 @@ print(white_test_forw2)
 
 
 
+# Why do we do the first part of step 9? It seems redundant to me
+
 # Step 9: Forecast future values
 forecast_horizon <- 10
 #vecm_forecasts <- predict(vecm_model, n.ahead = forecast_horizon)
 bvar_fcs <- predict(bvar_model, horizon = forecast_horizon)
-bvar_fcs_fcast <- summary(bvar_fcs, digits = 4)
-bvar_fcs_fcast[2]   # This is a more detailed list of the forecast results
-bvar_fcs_fcast$quants
-bvar_fcs_spot <- bvar_fcs_fcast$quants[seq(2, length(bvar_fcs_fcast$quants), by = 3)]
-bvar_fcs_spot
+#bvar_fcs_fcast <- summary(bvar_fcs, digits = 4)
+#bvar_fcs_fcast[2]   # This is a more detailed list of the forecast results
+#t(bvar_fcs_fcast$quants[,,2])[,"50%"]   # This is on the same format as the var_fcs$fcst in step 10
+#bvar_fcs_spot <- bvar_fcs_fcast$quants[seq(2, length(bvar_fcs_fcast$quants), by = 3)]
+#bvar_fcs_spot
 var_fcs <- predict(var_model, n.ahead = forecast_horizon)
-var_fcs$fcst
+#var_fcs$fcst[[2]][, "fcst"]
 vecm_var <- vec2var(coint_test)
 vecm_fcs <- predict(vecm_var, n.ahead = forecast_horizon)
 
@@ -488,7 +490,7 @@ arima_fcs_forwc <- forecast(arima_model_forwc, h = forecast_horizon)
 arima_fcs_forw1m <- forecast(arima_model_forw1m, h = forecast_horizon)
 
 # Determine the number of rounds based on the test set size and forecast horizon
-num_rounds <- min(floor(nrow(test_lev) / forecast_horizon), 30)
+num_rounds <- min(floor(nrow(test_lev) / forecast_horizon), 3)
 #num_rounds <- floor(nrow(test_lev) / forecast_horizon)
 
 print(num_rounds)
@@ -546,17 +548,25 @@ for (round in 1:num_rounds) {
   # Re-fit models with the updated training set
   train_diff_ts <- ts(train_diff[, c(2, 5)])
   
-  # Bayesian VAR
+  # Bayesian VAR 1
+  #lag_order_bvar <- VARselect(train_diff_ts, type = "both")$selection["AIC(n)"]
+  #bvar_model <- bvar(train_diff_ts, lags = lag_order_bvar, type = "both")
+  #bvar_fcs <- predict(bvar_model, horizon = forecast_horizon)
+  
+  # Bayesian VAR 2
   lag_order_bvar <- VARselect(train_diff_ts, type = "both")$selection["AIC(n)"]
-  sink(NULL)
   bvar_model <- bvar(train_diff_ts, lags = lag_order_bvar, type = "both")
-  sink()
   bvar_fcs <- predict(bvar_model, horizon = forecast_horizon)
+  bvar_fcs_fcast <- summary(bvar_fcs)
+  print(t(bvar_fcs_fcast$quants[,,1])[,"50%"])  # With this and the print of VAR below, I confirm that the lists are identically formatted and similar in values
+  # Do not know why the fatal error occurs every time, but I think 
+  
   
   ## VAR
   lag_order <- VARselect(train_diff_ts, type = "both")$selection["AIC(n)"]
   var_model <- VAR(train_diff_ts, p = lag_order, type = "both")
-  var_fcs <- predict(var_model, n.ahead = forecast_horizon)  
+  var_fcs <- predict(var_model, n.ahead = forecast_horizon)
+  print(var_fcs$fcst[[1]][, "fcst"])
   
   # VECM
   coint_test <- ca.jo(train_diff_ts, spec = "longrun", type = "trace", ecdet = "trend", K = lag_order)
@@ -599,13 +609,17 @@ for (round in 1:num_rounds) {
   last_forw1m <- tail(train_lev$forw1m, 1)
   
   # BVAR
-  bvar_rev_fcs_spot <- last_spot + cumsum(bvar_fcs$fcst[[1]][, "fcst"])
-  bvar_rev_fcs_forwp <- last_forwp + cumsum(bvar_fcs$fcst[[2]][, "fcst"])
+  bvar_rev_fcs_spot <- last_spot + cumsum(t(bvar_fcs_fcast$quants[,,1])[,"50%"])
+  bvar_rev_fcs_forwp <- last_forwp + cumsum(t(bvar_fcs_fcast$quants[,,2])[,"50%"])
+  print(bvar_rev_fcs_spot)
+  print(bvar_rev_fcs_forwp)
   
   # VAR
   var_rev_fcs_spot <- last_spot + cumsum(var_fcs$fcst[[1]][, "fcst"])
   var_rev_fcs_forwp <- last_forwp + cumsum(var_fcs$fcst[[2]][, "fcst"])
   #var_rev_fcs_forw1m <- last_forw1m + cumsum(var_fcs$fcst[[3]][, "fcst"])
+  print(var_rev_fcs_spot)
+  print(var_rev_fcs_forwp)
   
   # VECM
   #vecm_rev_fcs_spot <- last_spot + cumsum(vecm_fcs[, 1])
@@ -622,12 +636,16 @@ for (round in 1:num_rounds) {
   # Calculate and append MSE for BVAR forecasts
   mse_results$BVAR_spot <- c(mse_results$BVAR_spot, mean((bvar_rev_fcs_spot - act_spot)^2))
   mse_results$BVAR_forwp <- c(mse_results$BVAR_forwp, mean((bvar_rev_fcs_forwp - act_forwp)^2))
+  print(mean((bvar_rev_fcs_spot - act_spot)^2))
+  print(mean((bvar_rev_fcs_forwp - act_forwp)^2))
   
   # Calculate and append MSE for VAR forecasts
   mse_results$VAR_spot <- c(mse_results$VAR_spot, mean((var_rev_fcs_spot - act_spot)^2))
   mse_results$VAR_forwp <- c(mse_results$VAR_forwp, mean((var_rev_fcs_forwp - act_forwp)^2))
   #mse_results$VAR_forwc <- c(mse_results$VAR_forwc, mean((var_rev_fcs_forwc - act_forwc)^2))
   #mse_results$VAR_forw1m <- c(mse_results$VAR_forw1m, mean((var_rev_fcs_forw1m - act_forw1m)^2))
+  print(mean((var_rev_fcs_spot - act_spot)^2))
+  print(mean((var_rev_fcs_forwp - act_forwp)^2))
   
   # Calculate and append MSE for VECM forecasts
   mse_results$VECM_spot <- c(mse_results$VECM_spot, mean((vecm_rev_fcs_spot - act_spot)^2))
