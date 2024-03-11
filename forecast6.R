@@ -7,6 +7,9 @@
 #install.packages("urca")
 #install.packages("tsDyn")
 #install.packages("tidyverse")
+#install.packages("tempdisagg")
+#install.packages("xts")
+#install.packages("tsbox")
 
 getwd()
 setwd("./master-thesis")
@@ -19,7 +22,10 @@ library(forecast)
 library(urca)
 library(tsDyn)
 library(tidyverse)
-
+library(tempdisagg)
+library(xts)
+library(tsbox)
+library(data.table)
 
 
 # STEP 1: READ CSV
@@ -51,6 +57,54 @@ smx_forw <- read_delim('./data/ffa/SMX_FFA.csv',
                        col_types = cols(Date = col_date(format = "%d.%m.%Y")),
                        trim_ws = TRUE)
 
+# Macro data is reading nicely now
+gbti_dev <- read_delim('./data/other/GBTI_23022024.csv',
+                       delim = ';',
+                       escape_double = FALSE,
+                       col_types = cols(Date = col_date(format = "%b-%Y")),
+                       trim_ws = TRUE,
+                       skip = 4)
+
+oecd_ip_dev <- read_delim('./data/other/OECD_IP_23022024.csv',
+                       delim = ';',
+                       escape_double = FALSE,
+                       col_types = cols(Date = col_date(format = "%d/%m/%Y")),
+                       trim_ws = TRUE)
+
+fleet_age <- read_delim('./data/other/average_fleet_age_23022024.csv',
+                       delim = ';',
+                       escape_double = FALSE,
+                       col_types = cols(Date = col_date(format = "%b-%Y")),
+                       trim_ws = TRUE,
+                       skip = 4)
+
+fleet_dev <- read_delim('./data/other/fleet_development_23022024.csv',
+                       delim = ';',
+                       escape_double = FALSE,
+                       col_types = cols(Date = col_date(format = "%b-%Y")),
+                       trim_ws = TRUE,
+                       skip = 4)
+
+orderbook <- read_delim('./data/other/orderbook_23022024.csv',
+                       delim = ';',
+                       escape_double = FALSE,
+                       col_types = cols(Date = col_date(format = "%b-%Y")),
+                       trim_ws = TRUE,
+                       skip = 4)
+
+steel_prod <- read_delim('./data/other/steel_production_23022024.csv',
+                       delim = ';',
+                       escape_double = FALSE,
+                       col_types = cols(Date = col_date(format = "%b-%Y")),
+                       trim_ws = TRUE,
+                       skip = 4)
+
+vessel_sale_volume <- read_delim('./data/other/vessel_sale_volume_23022024.csv',
+                       delim = ';',
+                       escape_double = FALSE,
+                       col_types = cols(Date = col_date(format = "%b-%Y")),
+                       trim_ws = TRUE,
+                       skip = 4)
 
 
 # STEP 2: CLEAN AND PREPARE DATA
@@ -113,6 +167,63 @@ train_diff_ts <- ts(train_diff[, -1])
 #test_log_levels_ts <- ts(test_log_levels[, -1])
 
 
+# Step 2a: Clean, prepare and refilter macro data
+
+# Note to self: clean and interpolate the data before merging them, as R runs out of memory now
+# As the time series remembers the dates, this should be a simple task
+
+# Remove all unnecessary rows at bottom
+macro_data <- list(gbti_dev,oecd_ip_dev,fleet_age,fleet_dev,orderbook,steel_prod,vessel_sale_volume)
+macro_data_cleaned <- map(macro_data, ~ .x %>% filter(!is.na(Date)))
+start_date <- as.Date(train_lev$Date[1])
+
+# Removing all values older than the start date for FFAs
+macro_data_cleaned <- lapply(macro_data_cleaned, function(dt){
+  dt[, Date := as.Date(Date, format = )]
+  dt[Date >= start_date]
+})
+macro_data_cleaned
+
+# Merge the macro data by date
+macro_data_combined <- Reduce(function(x,y) merge(x,y, by = "Date", all = TRUE), macro_data_cleaned)
+
+# Remove unnecessary columns and get rid of NA values
+macro_data_combined <- macro_data_combined[, !grepl("^\\.\\.\\.3$", colnames(macro_data_combined))]
+macro_data_combined[is.na(macro_data_combined)] <- 0
+
+# Converting the monthly data input to a daily time series
+#macro_data_combined$Date <- as.POSIXct(macro_data_combined$Date)
+macro_combined_monthly <- ts(macro_data_combined[,-1], start = macro_data_combined$Date[1], frequency = 12)
+macro_combined_monthly_xts <- as.xts(macro_combined_monthly)
+
+memory.limit(size = 8000)
+
+daily_macro_list <- list()
+
+for(macro in colnames(macro_combined_monthly_xts)) {
+  macro_data <- macro_combined_monthly_xts[, macro]
+  interpolated_macro <- td(macro_data ~ 1, method = "chow-lin-maxlog", to = "day")
+  interpolated_macro
+  
+  daily_macro_list[[macro]] <- interpolated_macro
+}
+
+macro_combined_daily <- do.call(merge, daily_macro_list)
+
+
+#macro_combined_daily <- td(macro_combined_monthly_xts ~ 1, method = "chow-lin-maxlog", to = "day")
+
+
+#gbti_dev <- gbti_dev %>% filter(!is.na(Date))
+#oecd_ip_dev <- oecd_ip_dev %>% filter(!is.na(Date))
+#fleet_age <- fleet_age %>% filter(!is.na(Date))
+#fleet_dev <- fleet_dev %>% filter(!is.na(Date))
+#orderbook <- orderbook %>% filter(!is.na(Date))
+#steel_prod <- steel_prod %>% filter(!is.na(Date))
+#vessel_sale_volume <- vessel_sale_volume %>% filter(!is.na(Date))
+
+#macro_data_combined <- merge(gbti_dev, fleet_age,fleet_dev, orderbook, steel_prod, vessel_sale_volume, by = "Date", all = TRUE)
+#macro_data_combined
 
 
 
