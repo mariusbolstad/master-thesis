@@ -1,0 +1,71 @@
+ SMX 1day
+ VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp 
+0.002883271 0.166172387 0.003183558 0.164960070 0.022161387 0.164960070 0.003532937 0.166283275 '
+
+SMX 20day
+  VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp 
+   1.105058    1.805852    1.270785    1.680981    1.429274    1.680981    3.294250    3.613517 
+
+smx 20DAY
+ VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp 
+  1.1050583   1.8058518   1.2707847   1.6809807   1.4292736   1.6809807   0.9608672   1.7259066 
+
+
+smx 20day
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp 
+  1.0115237   2.6171197   1.0187503   2.6015743   1.7260409   2.5911142   0.9998404   2.5653116
+
+
+smx 5day, 1Q, 30f:
+
+  VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp 
+ 0.05361169  0.22011261  0.05125644  0.20936586  0.11516572  0.21071813  0.05602767  0.21655986 
+
+
+smx 5day, 1M, 30f:
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp 
+ 0.05934933  0.43657533  0.06269349  0.44033071  0.11990284  0.44033071  0.06027282  0.43281405 
+
+
+smx 5day, ROLL, 30f:
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp 
+ 0.04824382  0.70514457  0.05907920  0.77627478  0.15460914  0.73141839  0.05000661  0.70545479 
+
+pmx 5day, 1M, 30f:
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp 
+  0.4449239   0.4174569   0.4757589   0.4403307   0.5693643   0.4403307   0.5223059   0.4240472 
+
+pmx 5day, 1Q, 30f:
+  VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp 
+  0.2183099   0.2086016   0.2198659   0.2093659   0.5299252   0.2107181   0.2174059   0.2052917 
+
+
+
+smx 5day, ROLL, 10f:
+Mean for MLP_spot: 0.3703446544677444
+Mean for MLP_forwp: 0.2196226787566786
+Mean for LSTM_spot: 1.7329018502096831
+Mean for LSTM_forwp: 0.6132981761901549
+Mean for RW_spot: 0.6867071438057015
+Mean for RW_forwp: 0.2336638539080389
+
+
+smx 5day, 1MON, 10f:
+Mean for MLP_spot: 0.49910409542357126
+Mean for MLP_forwp: 0.6156061114966156
+Mean for LSTM_spot: 0.42342284311999573
+Mean for LSTM_forwp: 0.4721920938819617
+Mean for RW_spot: 0.8870574561858854
+Mean for RW_forwp: 0.5415305330508373
+
+
+smx 5day, 1Q, 10f:
+Mean for MLP_spot: 2.269913169776263
+Mean for MLP_forwp: 0.8765888100901096
+Mean for LSTM_spot: 1.4521761303589906
+Mean for LSTM_forwp: 0.5036735412764418
+Mean for RW_spot: 2.104689725191761
+Mean for RW_forwp: 0.32988766264063507
+
+
+
