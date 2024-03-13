@@ -174,6 +174,9 @@ train_diff_ts <- ts(train_diff[, -1])
 # As the time series remembers the dates, this should be a simple task
 # It seems like the OECD_IP data must be interpolated on its own as this doesnt follow the regular time intervals as the rest
 # As well as GBTI as this doesnt have values before 2015
+# Instead of interpolating for each macro variable, we split it up so that we can choose which to run each time. This is done to improve run time and readibility
+
+
 
 # Remove all unnecessary rows at bottom (now excluding the OECD and GBTI)
 macro_data <- list(fleet_age,fleet_dev,orderbook,steel_prod,vessel_sale_volume)
@@ -185,6 +188,82 @@ for(i in seq_along(macro_data_cleaned)) {
   macro_var <- macro_data_cleaned[[i]]
   filtered_macro_var <- macro_var %>% filter(Date >= start_date)
   macro_data_cleaned[[i]] <- filtered_macro_var
+}
+
+# What follows is the disaggregation of the different macro data sets
+
+# FLEET AGE
+
+fleet_age_clean <- macro_data_cleaned[[1]]
+fleet_age_clean$Date <- as.Date(fleet_age_clean$Date)
+fleet_age_clean <- xts(fleet_age_clean[,-1], order.by = fleet_age_clean$Date)
+
+fleet_age_daily_list <- list()  # Create an empty list to store the daily time series
+
+for (i in seq(1, ncol(fleet_age_clean))) {
+  macro_var <- fleet_age_clean[, i]
+  header <- colnames(fleet_age_clean)[i]  # Get the header corresponding to the column
+  macro_var_daily <- td(macro_var ~ 1, conversion = "mean", method = "chow-lin-maxlog", to = "weekly")
+  macro_var_daily <- setNames(macro_var_daily$values, header)  # Set the name of the time series to the header
+  fleet_age_daily_list[[header]] <- macro_var_daily  # Add the time series to the list with the header as the name
+}
+
+index(fleet_age_daily_list[[1]])   # Continue on this tomorrow
+
+fleet_age_daily_df <- data.frame(Date = index(fleet_age_daily_list[[1]]))
+
+# FLEET DEVELOPMENT
+
+fleet_dev_clean <- macro_data_cleaned[[2]]
+fleet_dev_clean$Date <- as.Date(fleet_dev_clean$Date)
+fleet_dev_clean <- xts(fleet_dev_clean[,-1], order.by = fleet_dev_clean$Date)
+
+fleet_dev_clean[,1]
+
+fleet_dev_daily_list <- list()  # Create an empty list to store the daily time series
+
+for (i in seq(1, ncol(fleet_dev_clean))) {
+  macro_var <- fleet_dev_clean[, i]
+  header <- colnames(fleet_dev_clean)[i]  # Get the header corresponding to the column
+  macro_var_daily <- td(macro_var ~ 1, conversion = "mean", method = "chow-lin-maxlog", to = "weekly")
+  macro_var_daily <- setNames(macro_var_daily$values, header)  # Set the name of the time series to the header
+  fleet_dev_daily_list[[header]] <- macro_var_daily  # Add the time series to the list with the header as the name
+}
+
+
+# ORDERBOOK
+orderbook_clean <- macro_data_cleaned[[3]]
+orderbook_clean$Date <- as.Date(orderbook_clean$Date)
+orderbook_clean <- xts(orderbook_clean[,-1], order.by = orderbook_clean$Date)
+
+orderbook_clean[,1]
+
+orderbook_daily_list <- list()  # Create an empty list to store the daily time series
+
+for (i in seq(1, ncol(orderbook_clean))) {
+  macro_var <- orderbook_clean[, i]
+  header <- colnames(orderbook_clean)[i]  # Get the header corresponding to the column
+  macro_var_daily <- td(macro_var ~ 1, conversion = "mean", method = "chow-lin-maxlog", to = "weekly")
+  macro_var_daily <- setNames(macro_var_daily$values, header)  # Set the name of the time series to the header
+  orderbook_daily_list[[header]] <- macro_var_daily  # Add the time series to the list with the header as the name
+}
+
+
+# STEEL PRODUCTION
+orderbook_clean <- macro_data_cleaned[[3]]
+orderbook_clean$Date <- as.Date(orderbook_clean$Date)
+orderbook_clean <- xts(orderbook_clean[,-1], order.by = orderbook_clean$Date)
+
+orderbook_clean[,1]
+
+orderbook_daily_list <- list()  # Create an empty list to store the daily time series
+
+for (i in seq(1, ncol(orderbook_clean))) {
+  macro_var <- orderbook_clean[, i]
+  header <- colnames(orderbook_clean)[i]  # Get the header corresponding to the column
+  macro_var_daily <- td(macro_var ~ 1, conversion = "mean", method = "chow-lin-maxlog", to = "weekly")
+  macro_var_daily <- setNames(macro_var_daily$values, header)  # Set the name of the time series to the header
+  orderbook_daily_list[[header]] <- macro_var_daily  # Add the time series to the list with the header as the name
 }
 
 # Merge the macro data by date
@@ -200,6 +279,59 @@ macro_data_monthly_xts <- xts(macro_data_combined[-1], order.by = macro_data_com
 macro_data_monthly_xts[macro_data_monthly_xts == 0] <- 1e-2
 
 macro_daily <- ts()
+
+for(i in seq_along(macro_data_monthly_xts)) {
+  macro_var <- macro_data_monthly_xts[[i]]
+  macro_var_daily <- td(macro_var ~ 1, method = "chow-lin-maxlog", to = 365)
+  macro_daily <- cbind(macro_daily, macro_var_daily)
+}
+
+colnames(macro_data[[1]])
+
+macro_daily <- lapply(macro_data_monthly_xts, function(column){
+  column_xts <- xts(column, order.by = index(macro_data_monthly_xts))
+  daily_column <- td(column_xts ~ 1, method = "chow-lin-maxlog", to = "day")
+  return(daily_column)
+})
+
+macro_data_daily <- do.call(merge, macro_daily)
+macro_data_daily
+
+macro_data_daily_xts <- td(macro_data_monthly_xts ~ 1, conversion = "mean", method = "chow-lin-maxlog", to = "day")
+
+
+#macro_data_combined$Date <- as.POSIXct(macro_data_combined$Date)
+macro_combined_monthly <- ts(macro_data_combined[,-1], start = macro_data_combined$Date[1], frequency = 12)
+macro_combined_monthly_xts <- as.xts(macro_combined_monthly)
+
+memory.limit(size = 8000)
+
+daily_macro_list <- list()
+
+for(macro in colnames(macro_combined_monthly_xts)) {
+  macro_data <- macro_combined_monthly_xts[, macro]
+  interpolated_macro <- td(macro_data ~ 1, method = "chow-lin-maxlog", to = "day")
+  interpolated_macro
+  
+  daily_macro_list[[macro]] <- interpolated_macro
+}
+
+macro_combined_daily <- do.call(merge, daily_macro_list)
+
+
+#macro_combined_daily <- td(macro_combined_monthly_xts ~ 1, method = "chow-lin-maxlog", to = "day")
+
+
+#gbti_dev <- gbti_dev %>% filter(!is.na(Date))
+#oecd_ip_dev <- oecd_ip_dev %>% filter(!is.na(Date))
+#fleet_age <- fleet_age %>% filter(!is.na(Date))
+#fleet_dev <- fleet_dev %>% filter(!is.na(Date))
+#orderbook <- orderbook %>% filter(!is.na(Date))
+#steel_prod <- steel_prod %>% filter(!is.na(Date))
+#vessel_sale_volume <- vessel_sale_volume %>% filter(!is.na(Date))
+
+#macro_data_combined <- merge(gbti_dev, fleet_age,fleet_dev, orderbook, steel_prod, vessel_sale_volume, by = "Date", all = TRUE)
+#macro_data_combined
 
 
 
