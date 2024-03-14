@@ -61,18 +61,18 @@ smx_forw <- read_delim('./data/ffa/SMX_FFA.csv',
 
 
 # Merge data frames on the Date column
-data_combined <- merge(spot, smx_forw, by = "Date")
+data_combined <- merge(spot, csz_forw, by = "Date")
 
 
 # Remove rows with NA or 0 in either the S6TC_S10TC column or the 4TC_ROLL column
-data_combined <- subset(data_combined, !(is.na(SMX) | SMX == 0) & !(is.na(`1Q`) | `1Q` == 0))
+data_combined <- subset(data_combined, !(is.na(CSZ) | CSZ == 0) & !(is.na(`CURMON`) | `CURMON` == 0))
 
 
 # Transform data to log levels and create a new data frame for log levels
 data_log_levels <- data.frame(
   Date = data_combined$Date,
-  spot = log(data_combined$SMX),
-  forwp = log(data_combined$`1Q`)
+  spot = log(data_combined$CSZ),
+  forwp = log(data_combined$`CURMON`)
 )
 
 
@@ -332,7 +332,7 @@ print(white_test_forw)
 
 
 # Step 9: Forecast future values
-forecast_horizon <- 20
+forecast_horizon <- 10
 #vecm_forecasts <- predict(vecm_model, n.ahead = forecast_horizon)
 var_fcs <- predict(var_model, n.ahead = forecast_horizon) 
 vecm_var <- vec2var(coint_test)
@@ -344,13 +344,24 @@ arima_fcs_spot <- forecast(arima_model_spot, h = forecast_horizon)
 arima_fcs_forwp <- forecast(arima_model_forwp, h = forecast_horizon)
 
 # Determine the number of rounds based on the test set size and forecast horizon
-num_rounds <- min(floor(nrow(test_lev) / forecast_horizon), 30)
+num_rounds <- min(floor(nrow(test_lev) / forecast_horizon), 50)
 #num_rounds <- floor(nrow(test_lev) / forecast_horizon)
 
 print(num_rounds)
 
 # Initialize lists to store MSE results for each model
-mse_results <- list(
+rmse_results <- list(
+  VAR_spot = numeric(),
+  VAR_forwp = numeric(),
+  ARIMA_spot = numeric(),
+  ARIMA_forwp = numeric(),
+  RW_spot = numeric(),
+  RW_forwp = numeric(),
+  VECM_spot = numeric(),
+  VECM_forwp = numeric()
+)
+
+mae_results <- list(
   VAR_spot = numeric(),
   VAR_forwp = numeric(),
   ARIMA_spot = numeric(),
@@ -362,7 +373,20 @@ mse_results <- list(
 )
 
 
+# Preparing a list for forecasted and actual values for ease of access
+forecasted_values <- list()
+actual_values_list <- list()
 
+direction_accuracy_results <- list(
+  VAR_spot = numeric(),
+  VAR_forwp = numeric(),
+  ARIMA_spot = numeric(),
+  ARIMA_forwp = numeric(),
+  RW_spot = numeric(),
+  RW_forwp = numeric(),
+  VECM_spot = numeric(),
+  VECM_forwp = numeric()
+)
 
 # Loop through each forecasting round
 for (round in 1:num_rounds) {
@@ -424,6 +448,9 @@ for (round in 1:num_rounds) {
   # Last log levels from the training set
   last_spot <- tail(train_lev$spot, 1)
   last_forwp <- tail(train_lev$forwp, 1)
+  
+  last_act_spot <- tail(test_lev$spot, 1)
+  last_act_forwp <- tail(test_lev$forwp, 1)
 
   # VAR
   var_rev_fcs_spot <- last_spot + cumsum(var_fcs$fcst[[1]][, "fcst"])
@@ -439,28 +466,138 @@ for (round in 1:num_rounds) {
   act_spot <- test_lev$spot
   act_forwp <- test_lev$forwp
 
+  # Store forecasted values for this round
+  forecasted_values[[round]] <- list(
+    VAR = list(spot = var_rev_fcs_spot, forwp = var_rev_fcs_forwp),
+    VECM = list(spot = vecm_fcs$fcst[[1]][, "fcst"], forwp = vecm_fcs$fcst[[2]][, "fcst"]),
+    ARIMA = list(spot = arima_fcs_spot$mean, forwp = arima_fcs_forwp$mean),
+    RW = list(spot = rw_fcs_spot$mean, forwp = rw_fcs_forwp$mean)
+  )
+  
+  # Capture actual values for this round
+  actual_values_list[[round]] <- list(
+    spot = test_lev$spot,
+    forwp = test_lev$forwp
+  )
+  
+  # Calculate the actual direction of change
+  act_dir_change_spot <- sign(last_act_spot - last_spot)
+  act_dir_change_forwp <- sign(last_act_forwp - last_forwp)
+  
+  # For each model, calculate and store the direction accuracy
+  for (model in c("VAR", "ARIMA", "RW", "VECM")) {
+    # Calculate the actual direction of change for spot and forwp
+    act_dir_change_spot <- sign(last_act_spot - last_spot)
+    act_dir_change_forwp <- sign(last_act_forwp - last_forwp)
+    
+    # Predicted direction change for spot
+    pred_dir_change_spot <- sign(forecasted_values[[round]][[model]]$spot[1] - last_spot)
+    # Predicted direction change for forwp
+    pred_dir_change_forwp <- sign(forecasted_values[[round]][[model]]$forwp[1] - last_forwp)
+    
+    # Determine if the model's forecasted direction matches the actual direction
+    # For spot
+    correct_dir_spot <- ifelse(pred_dir_change_spot == act_dir_change_spot, 1, 0)
+    # For forwp
+    correct_dir_forwp <- ifelse(pred_dir_change_forwp == act_dir_change_forwp, 1, 0)
+    
+    # Store the results
+    direction_accuracy_results[[paste(model, "_spot", sep = "")]] <- c(direction_accuracy_results[[paste(model, "_spot", sep = "")]], correct_dir_spot)
+    direction_accuracy_results[[paste(model, "_forwp", sep = "")]] <- c(direction_accuracy_results[[paste(model, "_forwp", sep = "")]], correct_dir_forwp)
+  }
+  
+  
+
+
   # Calculate and append MSE for VAR forecasts
-  mse_results$VAR_spot <- c(mse_results$VAR_spot, mean((var_rev_fcs_spot - act_spot)^2))
-  mse_results$VAR_forwp <- c(mse_results$VAR_forwp, mean((var_rev_fcs_forwp - act_forwp)^2))
+  rmse_results$VAR_spot <- c(rmse_results$VAR_spot, sqrt(mean((var_rev_fcs_spot - act_spot)^2)))
+  rmse_results$VAR_forwp <- c(rmse_results$VAR_forwp, sqrt(mean((var_rev_fcs_forwp - act_forwp)^2)))
 
   # Calculate and append MSE for VECM forecasts
-  mse_results$VECM_spot <- c(mse_results$VECM_spot, mean((vecm_fcs$fcst[[1]][, "fcst"] - act_spot)^2))
-  mse_results$VECM_forwp <- c(mse_results$VECM_forwp, mean((vecm_fcs$fcst[[2]][, "fcst"] - act_forwp)^2))
+  rmse_results$VECM_spot <- c(rmse_results$VECM_spot, sqrt(mean((vecm_fcs$fcst[[1]][, "fcst"] - act_spot)^2)))
+  rmse_results$VECM_forwp <- c(rmse_results$VECM_forwp, sqrt(mean((vecm_fcs$fcst[[2]][, "fcst"] - act_forwp)^2)))
   
   # Calculate and append MSE for ARIMA forecasts
-  mse_results$ARIMA_spot <- c(mse_results$ARIMA_spot, mean((arima_fcs_spot$mean - act_spot)^2))
-  mse_results$ARIMA_forwp <- c(mse_results$ARIMA_forwp, mean((arima_fcs_forwp$mean - act_forwp)^2))
+  rmse_results$ARIMA_spot <- c(rmse_results$ARIMA_spot, sqrt(mean((arima_fcs_spot$mean - act_spot)^2)))
+  rmse_results$ARIMA_forwp <- c(rmse_results$ARIMA_forwp, sqrt(mean((arima_fcs_forwp$mean - act_forwp)^2)))
 
   # Calculate and append MSE for Random Walk forecasts
-  mse_results$RW_spot <- c(mse_results$RW_spot, mean((rw_fcs_spot$mean - act_spot)^2))
-  mse_results$RW_forwp <- c(mse_results$RW_forwp, mean((rw_fcs_forwp$mean - act_forwp)^2))
+  rmse_results$RW_spot <- c(rmse_results$RW_spot, sqrt(mean((rw_fcs_spot$mean - act_spot)^2)))
+  rmse_results$RW_forwp <- c(rmse_results$RW_forwp, sqrt(mean((rw_fcs_forwp$mean - act_forwp)^2)))
+  
+  
+  
+  # Calculate and append MAE for VAR forecasts
+  mae_results$VAR_spot <- c(mae_results$VAR_spot, mean(abs(var_rev_fcs_spot - act_spot)))
+  mae_results$VAR_forwp <- c(mae_results$VAR_forwp, mean(abs(var_rev_fcs_forwp - act_forwp)))
+  
+  # Calculate and append MAE for VECM forecasts
+  mae_results$VECM_spot <- c(mae_results$VECM_spot, mean(abs(vecm_fcs$fcst[[1]][, "fcst"] - act_spot)))
+  mae_results$VECM_forwp <- c(mae_results$VECM_forwp, mean(abs(vecm_fcs$fcst[[2]][, "fcst"] - act_forwp)))
+  
+  # Calculate and append MAE for ARIMA forecasts
+  mae_results$ARIMA_spot <- c(mae_results$ARIMA_spot, mean(abs(arima_fcs_spot$mean - act_spot)))
+  mae_results$ARIMA_forwp <- c(mae_results$ARIMA_forwp, mean(abs(arima_fcs_forwp$mean - act_forwp)))
+  
+  # Calculate and append MAE for Random Walk forecasts
+  mae_results$RW_spot <- c(mae_results$RW_spot, mean(abs(rw_fcs_spot$mean - act_spot)))
+  mae_results$RW_forwp <- c(mae_results$RW_forwp, mean(abs(rw_fcs_forwp$mean - act_forwp)))
+  
+  
+  
+}
+
+# Calculate the average direction accuracy for each model and market (spot and forwp)
+average_direction_accuracy <- list()
+for (model_name in names(direction_accuracy_results)) {
+  average_direction_accuracy[[model_name]] <- mean(direction_accuracy_results[[model_name]]) * 100
+}
+
+# Print the average direction accuracy for each model
+print("Average Direction Accuracy for Each Model (%):")
+print(average_direction_accuracy)
+
+
+# After all rounds are complete, calculate % RMSE reduction from RW
+for (model_name in model_names) {
+  if (model_name != "RW_spot" && model_name != "RW_forwp") {
+    rmse_reduction_results[[model_name]] <- (1 - mean(unlist(rmse_results[[model_name]])) / mean(unlist(rmse_results$RW_spot))) * 100
+  }
 }
 
 # Calculate mean MSE for each model
-mean_mse_results <- sapply(mse_results, mean)
+mean_rmse_results <- sapply(rmse_results, mean)
+mean_mae_results <- sapply(mae_results, mean)
 # Now multiply all mean MSE results by 100
 mean_mse_results <- mean_mse_results * 100
 
 # Print mean MSE results
-cat("Mean MSE Results:\n")
-print(mean_mse_results)
+cat("Mean RMSE Results:\n")
+print(mean_rmse_results)
+
+# Print mean MAE results
+cat("Mean MAE Results:\n")
+print(mean_mae_results)
+
+rmse_reduction_from_rw <- list(
+  VAR_spot = numeric(),
+  VAR_forwp = numeric(),
+  ARIMA_spot = numeric(),
+  ARIMA_forwp = numeric(),
+  RW_spot = numeric(),
+  RW_forwp = numeric(),
+  VECM_spot = numeric(),
+  VECM_forwp = numeric()
+)
+
+# Calculate % RMSE Reduction for each model from RW
+for(model_name in names(mean_rmse_results)) {
+  if(model_name != "RW_spot" && model_name != "RW_forwp") { # Exclude RW itself
+    rmse_reduction_from_rw[[model_name]] <- (1 - mean_rmse_results[[model_name]] / mean_rmse_results[["RW_spot"]]) * 100
+  }
+}
+
+# Print results
+cat("RW redecution:\n")
+print(rmse_reduction_from_rw)
+
