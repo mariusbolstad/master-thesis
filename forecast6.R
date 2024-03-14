@@ -342,17 +342,65 @@ write.csv(vessel_sale_daily_df, "./data/other/vessel_sale_daily.csv", row.names 
 
 
 # GLOBAL BULK TRADE INDICATOR
-gbti_cleaned <- map(gbti_dev, ~ .x %>% filter(!is.na(Date)))
+gbti_clean <- gbti_dev[complete.cases(gbti_dev$Date), ]
 start_date <- as.Date(train_lev$Date[1])
+gbti_clean <- gbti_clean[gbti_clean$Date >= start_date, ]
+gbti_clean <- xts(gbti_clean[, -1], order.by = gbti_clean$Date)
 
-# Removing all values older than the start date for FFAs
-for(i in seq_along(gbti_cleaned)) {
-  macro_var <- gbti_cleaned[[i]]
-  filtered_macro_var <- macro_var %>% filter(Date >= start_date)
-  gbti_cleaned[[i]] <- filtered_macro_var
+gbti_daily_list <- list()
+
+for (i in seq(1, ncol(gbti_clean))) {
+  macro_var <- gbti_clean[, i]
+  header <- colnames(gbti_clean)[i]  # Get the header corresponding to the column
+  macro_var_daily <- td(macro_var ~ 1, conversion = "mean", method = "chow-lin-maxlog", to = "day")
+  macro_var_daily <- setNames(macro_var_daily$values, header)  # Set the name of the time series to the header
+  gbti_daily_list[[header]] <- macro_var_daily  # Add the time series to the list with the header as the name
 }
 
+gbti_daily_df <- data.frame(cbind(gbti_daily_list$`Monthly Global Seaborne Iron Ore Trade Indicator [Volume Index]`,
+                                  gbti_daily_list$`Monthly Global Seaborne Coal Trade Indicator [Volume Index]`,
+                                  gbti_daily_list$`Monthly Global Seaborne Grain Trade Indicator [Volume Index]`,
+                                  gbti_daily_list$`Monthly Global Seaborne Minor Bulk Trade Indicator [Volume Index]`,
+                                  gbti_daily_list$`Monthly Global Seaborne Dry Bulk Trade Indicator [Volume Index]`,
+                                  gbti_daily_list$`Monthly Global Seaborne Iron Ore Trade Indicator [% Yr/Yr]`,
+                                  gbti_daily_list$`Monthly Global Seaborne Iron Ore Trade Indicator [% Yr/Yr 3mma]`,
+                                  gbti_daily_list$`Monthly Global Seaborne Coal Trade Indicator [% Yr/Yr]`,
+                                  gbti_daily_list$`Monthly Global Seaborne Coal Trade Indicator [% Yr/Yr 3mma]`,
+                                  gbti_daily_list$`Monthly Global Seaborne Grain Trade Indicator [% Yr/Yr]`,
+                                  gbti_daily_list$`Monthly Global Seaborne Grain Trade Indicator [% Yr/Yr 3mma]`,
+                                  gbti_daily_list$`Monthly Global Seaborne Minor Bulk Trade Indicator [% Yr/Yr]`,
+                                  gbti_daily_list$`Monthly Global Seaborne Minor Bulk Trade Indicator [% Yr/Yr 3mma]`,
+                                  gbti_daily_list$`Monthly Global Seaborne Dry Bulk Trade Indicator [% Yr/Yr]`,
+                                  gbti_daily_list$`Monthly Global Seaborne Dry Bulk Trade Indicator [% Yr/Yr 3mma]`))
 
+rownames(gbti_daily_df) <- format(as.Date(rownames(gbti_daily_df)), "%d-%m-%Y")
+
+write.csv(gbti_daily_df, "./data/other/gbti_daily.csv", row.names = TRUE)
+
+
+# OECD IP
+oecd_clean <- oecd_ip_dev[complete.cases(oecd_ip_dev$Date), ]
+start_date <- as.Date(train_lev$Date[1])
+oecd_clean$Date <- floor_date(oecd_clean$Date, "month")
+oecd_clean <- oecd_clean[oecd_clean$Date >= start_date, ]
+oecd_clean <- xts(oecd_clean[, -1], order.by = oecd_clean$Date)
+
+oecd_daily_list <- list()
+
+for (i in seq(1, ncol(oecd_clean))) {
+  macro_var <- oecd_clean[, i]
+  header <- colnames(oecd_clean)[i]  # Get the header corresponding to the column
+  macro_var_daily <- td(macro_var ~ 1, conversion = "mean", method = "chow-lin-maxlog", to = "day")
+  macro_var_daily <- setNames(macro_var_daily$values, header)  # Set the name of the time series to the header
+  oecd_daily_list[[header]] <- macro_var_daily  # Add the time series to the list with the header as the name
+}
+
+oecd_daily_df <- data.frame(cbind(oecd_daily_list$`OC PRODUCTION - TOTAL INDUSTRY EXCL. CONSTRUCTION VOLA`,
+                                  oecd_daily_list$`OC PRODUCTION - TOTAL INDUSTRY EXCL. CONSTRUCTION SADJ`))
+
+rownames(oecd_daily_df) <- format(as.Date(rownames(oecd_daily_df)), "%d-%m-%Y")
+
+write.csv(oecd_daily_df, "./data/other/oecd_daily.csv", row.names = TRUE)
 
 
 
