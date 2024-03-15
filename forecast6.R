@@ -415,7 +415,6 @@ lapply(train_diff_ts, function(series) adf.test(series, alternative = "stationar
 
 
 
-
 # Step 4: MODEL FITS AND DIAGNOSTIC CHECKS
 
 # VAR
