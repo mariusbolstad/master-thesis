@@ -10,6 +10,9 @@
 #install.packages("tempdisagg")
 #install.packages("xts")
 #install.packages("tsbox")
+#install.packages("MTS")
+install.packages("remotes")
+remotes::install_github("jeffwong/fastVAR")
 
 getwd()
 setwd("./master-thesis")
@@ -27,6 +30,7 @@ library(xts)
 library(tsbox)
 library(data.table)
 library(progress)
+library(MTS)
 
 
 # STEP 1: READ CSV
@@ -82,13 +86,21 @@ orderbook <- read_csv('./data/other/orderbook_daily.csv',
                       trim_ws = TRUE)
 
 steel_prod <- read_csv('./data/other/steel_prod_daily.csv',
-                      col_types = cols(Date = col_date(format = "%d-%m-%Y")),
-                      trim_ws = TRUE)
-
-vessel_sale_volume <- read_csv('./data/other/vessel_sale_daily.csv',
                        col_types = cols(Date = col_date(format = "%d-%m-%Y")),
                        trim_ws = TRUE)
 
+vessel_sale_volume <- read_csv('./data/other/vessel_sale_daily.csv',
+                               col_types = cols(Date = col_date(format = "%d-%m-%Y")),
+                               trim_ws = TRUE)
+
+eur_usd <- read_delim('./data/other/EUR_USD_historical.csv', 
+                       delim = ';', 
+                       escape_double = FALSE, 
+                       col_types = cols(Date = col_date(format = "%d.%m.%Y")),
+                       trim_ws = TRUE)
+# Convert columns from text to numeric, replacing commas with dots
+eur_usd <- eur_usd %>%
+  mutate(across(-Date, ~as.numeric(gsub(",", ".", .x))))
 
 
 # STEP 2: CLEAN AND PREPARE DATA
@@ -98,12 +110,21 @@ vessel_sale_volume <- read_csv('./data/other/vessel_sale_daily.csv',
 # ffa column: ROLL
 
 
-# Merge data frames on the Date column
-data_combined <- merge(spot, csz_forw, by = "Date")
+# Merge data frames on the Date column, include trade volume
+#data_combined <- merge(spot, csz_forw, by = "Date")
+#data_combined <- merge(data_combined, gbti_dev, by = "Date")
+data_combined <- inner_join(spot[, c("Date", "CSZ")], csz_forw[, c("Date", "CURMON")], by = "Date")
+#data_combined <- inner_join(data_combined, gbti_dev[, c("Date", "Iron Ore Trade Vol", "Coal Trade Vol", "Grain Trade Vol", "Minor Bulk Trade Vol", "Dry Bulk Trade Vol")], by = "Date")
+data_combined <- inner_join(data_combined, oecd_ip_dev[, c("Date", "Ind Prod Excl Const VOLA")], by = "Date")
+data_combined <- inner_join(data_combined, fleet_dev[, c("Date", "HSZ fleet", "HMX fleet", "PMX fleet", "CSZ fleet")], by = "Date")
+data_combined <- inner_join(data_combined, eur_usd[, c("Date", "Last")], by = "Date")
+# Removing rows where ColumnA or ColumnB have 0 or NA values
+data_combined <- data_combined %>%
+  filter(if_all(-Date, ~ .x != 0 & !is.na(.x)))
 
 
 # Remove rows with NA or 0 in either the S6TC_S10TC column or the 4TC_ROLL column
-data_combined <- subset(data_combined, !(is.na(CSZ) | CSZ == 0) & !(is.na(`CURMON`) | `CURMON` == 0))
+#data_combined <- subset(data_combined, !(is.na(CSZ) | CSZ == 0) & !(is.na(`CURMON`) | `CURMON` == 0))
 
 
 # Transform data to log levels and create a new data frame for log levels
@@ -113,6 +134,25 @@ data_log_levels <- data.frame(
   forwp = log(data_combined$`CURMON`)
 )
 
+#exog_log_levels <- data.frame(
+#  Date = data_combined$Date,
+#  iron = log(data_combined$`Iron Ore Trade Vol`),  # Assuming you meant to log-transform these as well
+#  coal = log(data_combined$`Coal Trade Vol`),
+#  grain = log(data_combined$`Grain Trade Vol`),
+#  minor_bulk = log(data_combined$`Minor Bulk Trade Vol`),
+#  dry_bulk = log(data_combined$`Dry Bulk Trade Vol`),
+#  eur_usd = data_combined$Last  # Not log-transformed as it's a rate, but adjust according to your needs
+#)
+
+exog_log_levels <- data.frame(
+  Date = data_combined$Date,
+  ind_prod = log(data_combined$`Ind Prod Excl Const VOLA`),  # Assuming you meant to log-transform these as well
+  hsz_dev = log(data_combined$`HSZ fleet`),
+  hmx_dev = log(data_combined$`HMX fleet`),
+  pmx_dev = log(data_combined$`PMX fleet`),
+  csz_dev = log(data_combined$`CSZ fleet`),
+  eur_usd = data_combined$Last  # Not log-transformed as it's a rate, but adjust according to your needs
+)
 
 # Display the first few rows of each new data frame to verify
 print(head(data_log_levels))
@@ -126,7 +166,7 @@ split_index <- round(nrow(data_combined) * 0.8)
 train_lev <- data_log_levels[1:split_index, ]
 test_lev <- data_log_levels[(split_index+1): nrow(data_log_levels), ]
 
-
+exog_lev <- exog_log_levels[1:split_index, ]
 
 # Calculate differences
 
@@ -137,8 +177,31 @@ train_diff <- data.frame(
   forwp = diff(train_lev$forwp)
 )
 
+exog_diff <- data.frame(
+  Date = exog_log_levels$Date[-1],  # Exclude the first date for the same reason
+  iron = diff(exog_log_levels$iron),
+  coal = diff(exog_log_levels$coal),
+  grain = diff(exog_log_levels$grain),
+  minor_bulk = diff(exog_log_levels$minor_bulk),
+  dry_bulk = diff(exog_log_levels$dry_bulk),
+  eur_usd = diff(exog_log_levels$eur_usd)
+)
+
+exog_diff <- data.frame(
+  Date = exog_log_levels$Date[-1],  # Exclude the first date
+  ind_prod = diff(exog_log_levels$ind_prod),
+  hsz_dev = diff(exog_log_levels$hsz_dev),
+  hmx_dev = diff(exog_log_levels$hmx_dev),
+  pmx_dev = diff(exog_log_levels$pmx_dev),
+  csz_dev = diff(exog_log_levels$csz_dev),
+  eur_usd = diff(exog_log_levels$eur_usd)  # Difference of non-logged rate
+)
+
+
+
 # Print the first few rows to verify
 print(head(train_diff))
+print(head(exog_diff))
 
 
 
@@ -151,7 +214,11 @@ train_diff_ts <- ts(train_diff[, -1])
 #test_log_levels_ts <- ts(test_log_levels[, -1])
 
 
+exog_lev_df <- exog_lev[, -1, drop = FALSE]
+exog_lev_ts <- ts(data = exog_lev_df)
 
+exog_diff_df <- exog_diff[, -1, drop = FALSE]
+exog_diff_ts <- ts(data = exog_diff_df)
 
 
 
@@ -170,10 +237,20 @@ lapply(train_diff_ts, function(series) adf.test(series, alternative = "stationar
 
 # VAR
 # Select an appropriate lag order, p. You can use the VARselect function for guidance
-lags <- VARselect(train_diff_ts, type = "const")
+
+# lev
+lags <- VARselect(train_lev_ts, type = "const")
+lag_order <- VARselect(train_lev_ts, type = "both")$selection["AIC(n)"]
+var_model <- VAR(train_lev_ts, p = lag_order, type = "both")
+
+
+
+# diff
+#lags <- VARselect(train_diff_ts, type = "const")
+#lag_order <- VARselect(train_diff_ts, type = "both")$selection["AIC(n)"]
+#var_model <- VAR(train_diff_ts, p = lag_order, type = "both")
+
 lags
-lag_order <- VARselect(train_diff_ts, type = "both")$selection["AIC(n)"]
-var_model <- VAR(train_diff_ts, p = lag_order, type = "both")
 summary(var_model)
 
 # Extract the residuals from the VAR model
@@ -268,6 +345,19 @@ grangerForw
 var_vd1 <- fevd(var_model)
 plot(var_vd1)
 
+
+
+
+# VARX
+
+# lev
+lags <- VARselect(train_lev_ts, type = "const")
+lag_order <- VARselect(train_lev_ts, type = "both")$selection["AIC(n)"]
+varx_model <- VAR(train_lev_ts, p = lag_order, type = "both", exogen = exog_lev_ts)
+
+summary(varx_model)
+
+varx_model3 <- VARX(train_lev_ts, x = exog_lev_ts , p = lag_order)
 
 
 # VECM
@@ -368,7 +458,20 @@ print(white_test_forw)
 
 
 # Step 9: Forecast future values
-forecast_horizon <- 10
+forecast_horizon <- 1
+
+
+
+#varx
+t <- tail(exog_lev["eur_usd"], 1)
+varx_fcs <- predict(varx_model2, n_ahead = forecast_horizon)
+
+last_observation_matrix <- as.matrix(tail(exog_lev["eur_usd"], 1))
+
+# Forecast 1 step ahead using the last known values of the exogenous variables
+varx_fcs <- predict(varx_model, n_ahead = forecast_horizon, dumvar = last_observation_matrix)
+varx_fcs <- VARXpred(varx_model3, newxt = last_observation_matrix, hstep = 1, orig = 0)
+
 #vecm_forecasts <- predict(vecm_model, n.ahead = forecast_horizon)
 var_fcs <- predict(var_model, n.ahead = forecast_horizon) 
 vecm_var <- vec2var(coint_test)
@@ -394,7 +497,9 @@ rmse_results <- list(
   RW_spot = numeric(),
   RW_forwp = numeric(),
   VECM_spot = numeric(),
-  VECM_forwp = numeric()
+  VECM_forwp = numeric(),
+  VARX_spot = numeric(),
+  VARX_forwp = numeric()
 )
 
 mae_results <- list(
@@ -405,7 +510,9 @@ mae_results <- list(
   RW_spot = numeric(),
   RW_forwp = numeric(),
   VECM_spot = numeric(),
-  VECM_forwp = numeric()
+  VECM_forwp = numeric(),
+  VARX_spot = numeric(),
+  VARX_forwp = numeric()
 )
 
 
@@ -421,7 +528,9 @@ direction_accuracy_results <- list(
   RW_spot = numeric(),
   RW_forwp = numeric(),
   VECM_spot = numeric(),
-  VECM_forwp = numeric()
+  VECM_forwp = numeric(),
+  VARX_spot = numeric(),
+  VARX_forwp = numeric()
 )
 
 # Loop through each forecasting round
@@ -455,6 +564,9 @@ for (round in 1:num_rounds) {
   var_model <- VAR(train_diff_ts, p = lag_order, type = "both")
   var_fcs <- predict(var_model, n.ahead = forecast_horizon)  
   
+  ## VARX
+  varx_model <- VAR(train_diff_ts)
+  
   # VECM
   coint_test <- ca.jo(train_lev_ts, spec = "longrun", type = "trace", ecdet = "trend", K = lag_order)
   vecm_model <- vec2var(coint_test)
@@ -466,18 +578,18 @@ for (round in 1:num_rounds) {
   ## ARIMA
   arima_model_spot <- auto.arima(train_lev$spot)
   arima_model_forwp <- auto.arima(train_lev$forwp)
-
+  
   arima_fcs_spot <- forecast(arima_model_spot, h = forecast_horizon)
   arima_fcs_forwp <- forecast(arima_model_forwp, h = forecast_horizon)
-
+  
   
   # Random Walk (ARIMA(0,1,0))
   rw_model_spot <- Arima(train_lev$spot, order = c(0, 1, 0))
   rw_model_forwp <- Arima(train_lev$forwp, order = c(0, 1, 0))
-
+  
   rw_fcs_spot <- forecast(rw_model_spot, h = forecast_horizon)
   rw_fcs_forwp <- forecast(rw_model_forwp, h = forecast_horizon)
-
+  
   
   # Step 10: Convert differenced forecasts back to levels
   
@@ -487,11 +599,11 @@ for (round in 1:num_rounds) {
   
   last_act_spot <- tail(test_lev$spot, 1)
   last_act_forwp <- tail(test_lev$forwp, 1)
-
+  
   # VAR
   var_rev_fcs_spot <- last_spot + cumsum(var_fcs$fcst[[1]][, "fcst"])
   var_rev_fcs_forwp <- last_forwp + cumsum(var_fcs$fcst[[2]][, "fcst"])
-
+  
   # VECM
   #vecm_rev_fcs_spot <- last_spot + cumsum(vecm_fcs[, 1])
   #vecm_rev_fcs_forwp <- last_forwp + cumsum(vecm_fcs[, 2])
@@ -501,7 +613,7 @@ for (round in 1:num_rounds) {
   
   act_spot <- test_lev$spot
   act_forwp <- test_lev$forwp
-
+  
   # Store forecasted values for this round
   forecasted_values[[round]] <- list(
     VAR = list(spot = var_rev_fcs_spot, forwp = var_rev_fcs_forwp),
@@ -543,12 +655,12 @@ for (round in 1:num_rounds) {
   }
   
   
-
-
+  
+  
   # Calculate and append MSE for VAR forecasts
   rmse_results$VAR_spot <- c(rmse_results$VAR_spot, sqrt(mean((var_rev_fcs_spot - act_spot)^2)))
   rmse_results$VAR_forwp <- c(rmse_results$VAR_forwp, sqrt(mean((var_rev_fcs_forwp - act_forwp)^2)))
-
+  
   # Calculate and append MSE for VECM forecasts
   rmse_results$VECM_spot <- c(rmse_results$VECM_spot, sqrt(mean((vecm_fcs$fcst[[1]][, "fcst"] - act_spot)^2)))
   rmse_results$VECM_forwp <- c(rmse_results$VECM_forwp, sqrt(mean((vecm_fcs$fcst[[2]][, "fcst"] - act_forwp)^2)))
@@ -556,7 +668,7 @@ for (round in 1:num_rounds) {
   # Calculate and append MSE for ARIMA forecasts
   rmse_results$ARIMA_spot <- c(rmse_results$ARIMA_spot, sqrt(mean((arima_fcs_spot$mean - act_spot)^2)))
   rmse_results$ARIMA_forwp <- c(rmse_results$ARIMA_forwp, sqrt(mean((arima_fcs_forwp$mean - act_forwp)^2)))
-
+  
   # Calculate and append MSE for Random Walk forecasts
   rmse_results$RW_spot <- c(rmse_results$RW_spot, sqrt(mean((rw_fcs_spot$mean - act_spot)^2)))
   rmse_results$RW_forwp <- c(rmse_results$RW_forwp, sqrt(mean((rw_fcs_forwp$mean - act_forwp)^2)))
