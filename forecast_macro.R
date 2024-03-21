@@ -14,7 +14,7 @@
 install.packages("remotes")
 
 getwd()
-setwd("../VSCode/master-thesis")
+#setwd("../VSCode/master-thesis")
 library(readr)  # For reading CSV files
 library(dplyr)  # For data manipulation
 library(lubridate)  # For date parsing
@@ -146,12 +146,14 @@ data_log_levels <- data.frame(
 
 exog_log_levels <- data.frame(
   Date = data_combined$Date,
-  #ind_prod = log(data_combined$`Ind Prod Excl Const VOLA`),  # Assuming you meant to log-transform these as well
+  ind_prod = log(data_combined$`Ind Prod Excl Const VOLA`),  # Assuming you meant to log-transform these as well
   #hsz_dev = log(data_combined$`HSZ fleet`),
   #hmx_dev = log(data_combined$`HMX fleet`),
   #pmx_dev = log(data_combined$`PMX fleet`),
-  csz_dev = log(data_combined$`CSZ fleet`)
-  #eur_usd = data_combined$Last  # Not log-transformed as it's a rate, but adjust according to your needs
+  csz_dev = log(data_combined$`CSZ fleet`),
+  eur_usd = data_combined$Last  # Not log-transformed as it's a rate, but adjust according to your needs,
+  #iron = log(data_combined$`Iron Ore Trade Vol`),
+  #coal = log(data_combined$`Coal Trade Vol`)
 )
 
 # Display the first few rows of each new data frame to verify
@@ -177,24 +179,17 @@ train_diff <- data.frame(
   forwp = diff(train_lev$forwp)
 )
 
-exog_diff <- data.frame(
-  Date = exog_log_levels$Date[-1],  # Exclude the first date for the same reason
-  iron = diff(exog_log_levels$iron),
-  coal = diff(exog_log_levels$coal),
-  grain = diff(exog_log_levels$grain),
-  minor_bulk = diff(exog_log_levels$minor_bulk),
-  dry_bulk = diff(exog_log_levels$dry_bulk),
-  eur_usd = diff(exog_log_levels$eur_usd)
-)
 
 exog_diff <- data.frame(
-  Date = exog_log_levels$Date[-1],  # Exclude the first date
-  #ind_prod = diff(exog_log_levels$ind_prod),
+  Date = exog_lev$Date[-1],  # Exclude the first date
+  ind_prod = diff(exog_lev$ind_prod),
   #hsz_dev = diff(exog_log_levels$hsz_dev),
   #hmx_dev = diff(exog_log_levels$hmx_dev),
   #pmx_dev = diff(exog_log_levels$pmx_dev),
-  csz_dev = diff(exog_log_levels$csz_dev)
-  #eur_usd = diff(exog_log_levels$eur_usd)  # Difference of non-logged rate
+  csz_dev = diff(exog_lev$csz_dev),
+  eur_usd = diff(exog_lev$eur_usd)
+  #iron = diff(exog_lev$iron),
+  #coal = diff(exog_lev$coal)
 )
 
 
@@ -360,6 +355,15 @@ summary(varx_model)
 
 varx_model3 <- VARX(train_lev_ts, x = exog_lev_ts , p = lag_order)
 
+# diff
+lags <- VARselect(train_diff_ts, type = "const")
+lag_order <- VARselect(train_diff_ts, type = "both")$selection["AIC(n)"]
+varx_model <- vars::VAR(train_diff_ts, p = lag_order, type = "both", exogen = exog_diff_ts)
+
+summary(varx_model)
+
+varx_model3 <- VARX(train_diff_ts, x = exog_diff_ts , p = lag_order)
+
 
 # VECM
 #coint_test <- ca.jo(train_diff_ts, spec = "transitory", type = "eigen", ecdet = "const", K = lag_order)
@@ -464,13 +468,11 @@ forecast_horizon <- 1
 
 
 #varx
-t <- tail(exog_lev["eur_usd"], 1)
-varx_fcs <- predict(varx_model2, n_ahead = forecast_horizon)
+
 
 last_observation_matrix <- as.matrix(tail(exog_lev[-1], 1))
 
 # Forecast 1 step ahead using the last known values of the exogenous variables
-varx_fcs <- predict(varx_model, n_ahead = forecast_horizon, dumvar = last_observation_matrix)
 varx_fcs <- VARXpred(varx_model3, newxt = last_observation_matrix, hstep = 1, orig = 0)
 
 #vecm_forecasts <- predict(vecm_model, n.ahead = forecast_horizon)
@@ -560,14 +562,37 @@ for (round in 1:num_rounds) {
   train_diff_ts <- ts(train_diff[, -1])
   
   
+  exog_lev <- exog_log_levels[1:split_index, ]
+  exog_diff <- data.frame(
+    Date = exog_lev$Date[-1],  # Exclude the first date
+    ind_prod = diff(exog_lev$ind_prod),
+    #hsz_dev = diff(exog_log_levels$hsz_dev),
+    #hmx_dev = diff(exog_log_levels$hmx_dev),
+    #pmx_dev = diff(exog_log_levels$pmx_dev),
+    csz_dev = diff(exog_lev$csz_dev),
+    eur_usd = diff(exog_lev$eur_usd)
+    #iron = diff(exog_lev$iron),
+    #coal = diff(exog_lev$coal)
+  )
+  
+  exog_lev_df <- exog_lev[, -1, drop = FALSE]
+  exog_lev_ts <- ts(data = exog_lev_df)
+  
+  exog_diff_df <- exog_diff[, -1, drop = FALSE]
+  exog_diff_ts <- ts(data = exog_diff_df)
+  
+  
   ## VAR
   lag_order <- VARselect(train_diff_ts, type = "both")$selection["AIC(n)"]
-  var_model <- VAR(train_diff_ts, p = lag_order, type = "both")
+  var_model <- vars::VAR(train_diff_ts, p = lag_order, type = "both")
   var_fcs <- predict(var_model, n.ahead = forecast_horizon)  
   
   ## VARX
-  varx_model <- VAR(train_diff_ts)
-  
+  varx_model <- VARX(train_diff_ts, x = exog_diff_ts , p = lag_order, output = FALSE)
+  last_observation_matrix <- as.matrix(tail(exog_diff[-1], 1))
+  # Forecast 1 step ahead using the last known values of the exogenous variables
+  varx_fcs <- VARXpred(varx_model, newxt = last_observation_matrix, hstep = 1, orig = 0)
+
   # VECM
   coint_test <- ca.jo(train_lev_ts, spec = "longrun", type = "trace", ecdet = "trend", K = lag_order)
   vecm_model <- vec2var(coint_test)
@@ -605,6 +630,10 @@ for (round in 1:num_rounds) {
   var_rev_fcs_spot <- last_spot + cumsum(var_fcs$fcst[[1]][, "fcst"])
   var_rev_fcs_forwp <- last_forwp + cumsum(var_fcs$fcst[[2]][, "fcst"])
   
+  #VARX
+  varx_rev_fcs_spot <- last_spot + cumsum(varx_fcs$pred["spot"])
+  varx_rev_fcs_forwp <- last_forwp + cumsum(varx_fcs$pred["forwp"])
+  
   # VECM
   #vecm_rev_fcs_spot <- last_spot + cumsum(vecm_fcs[, 1])
   #vecm_rev_fcs_forwp <- last_forwp + cumsum(vecm_fcs[, 2])
@@ -620,7 +649,8 @@ for (round in 1:num_rounds) {
     VAR = list(spot = var_rev_fcs_spot, forwp = var_rev_fcs_forwp),
     VECM = list(spot = vecm_fcs$fcst[[1]][, "fcst"], forwp = vecm_fcs$fcst[[2]][, "fcst"]),
     ARIMA = list(spot = arima_fcs_spot$mean, forwp = arima_fcs_forwp$mean),
-    RW = list(spot = rw_fcs_spot$mean, forwp = rw_fcs_forwp$mean)
+    RW = list(spot = rw_fcs_spot$mean, forwp = rw_fcs_forwp$mean),
+    VARX = list(SPOT =  varx_rev_fcs_spot, forwp = varx_rev_fcs_forwp)
   )
   
   # Capture actual values for this round
@@ -634,7 +664,7 @@ for (round in 1:num_rounds) {
   act_dir_change_forwp <- sign(last_act_forwp - last_forwp)
   
   # For each model, calculate and store the direction accuracy
-  for (model in c("VAR", "ARIMA", "RW", "VECM")) {
+  for (model in c("VAR", "ARIMA", "RW", "VECM", "VARX")) {
     # Calculate the actual direction of change for spot and forwp
     act_dir_change_spot <- sign(last_act_spot - last_spot)
     act_dir_change_forwp <- sign(last_act_forwp - last_forwp)
@@ -662,6 +692,11 @@ for (round in 1:num_rounds) {
   rmse_results$VAR_spot <- c(rmse_results$VAR_spot, sqrt(mean((var_rev_fcs_spot - act_spot)^2)))
   rmse_results$VAR_forwp <- c(rmse_results$VAR_forwp, sqrt(mean((var_rev_fcs_forwp - act_forwp)^2)))
   
+  # Calculate and append MSE for VARX forecasts
+  rmse_results$VARX_spot <- c(rmse_results$VARX_spot, sqrt(mean((varx_rev_fcs_spot - act_spot)^2)))
+  rmse_results$VARX_forwp <- c(rmse_results$VARX_forwp, sqrt(mean((varx_rev_fcs_forwp - act_forwp)^2)))
+  
+  
   # Calculate and append MSE for VECM forecasts
   rmse_results$VECM_spot <- c(rmse_results$VECM_spot, sqrt(mean((vecm_fcs$fcst[[1]][, "fcst"] - act_spot)^2)))
   rmse_results$VECM_forwp <- c(rmse_results$VECM_forwp, sqrt(mean((vecm_fcs$fcst[[2]][, "fcst"] - act_forwp)^2)))
@@ -679,6 +714,10 @@ for (round in 1:num_rounds) {
   # Calculate and append MAE for VAR forecasts
   mae_results$VAR_spot <- c(mae_results$VAR_spot, mean(abs(var_rev_fcs_spot - act_spot)))
   mae_results$VAR_forwp <- c(mae_results$VAR_forwp, mean(abs(var_rev_fcs_forwp - act_forwp)))
+  
+  # Calculate and append MAE for VARX forecasts
+  mae_results$VARX_spot <- c(mae_results$VARX_spot, mean(abs(varx_rev_fcs_spot - act_spot)))
+  mae_results$VARX_forwp <- c(mae_results$VARX_forwp, mean(abs(varx_rev_fcs_forwp - act_forwp)))
   
   # Calculate and append MAE for VECM forecasts
   mae_results$VECM_spot <- c(mae_results$VECM_spot, mean(abs(vecm_fcs$fcst[[1]][, "fcst"] - act_spot)))
@@ -707,12 +746,6 @@ print("Average Direction Accuracy for Each Model (%):")
 print(average_direction_accuracy)
 
 
-# After all rounds are complete, calculate % RMSE reduction from RW
-for (model_name in model_names) {
-  if (model_name != "RW_spot" && model_name != "RW_forwp") {
-    rmse_reduction_results[[model_name]] <- (1 - mean(unlist(rmse_results[[model_name]])) / mean(unlist(rmse_results$RW_spot))) * 100
-  }
-}
 
 # Calculate mean MSE for each model
 mean_rmse_results <- sapply(rmse_results, mean)
@@ -736,13 +769,26 @@ rmse_reduction_from_rw <- list(
   RW_spot = numeric(),
   RW_forwp = numeric(),
   VECM_spot = numeric(),
-  VECM_forwp = numeric()
+  VECM_forwp = numeric(),
+  VARX_spot = numeric(),
+  VARX_forwp = numeric()
 )
 
-# Calculate % RMSE Reduction for each model from RW
+# Iterate through each model name in the mean_rmse_results list
 for(model_name in names(mean_rmse_results)) {
-  if(model_name != "RW_spot" && model_name != "RW_forwp") { # Exclude RW itself
-    rmse_reduction_from_rw[[model_name]] <- (1 - mean_rmse_results[[model_name]] / mean_rmse_results[["RW_spot"]]) * 100
+  # Exclude RW models themselves
+  if(model_name != "RW_spot" && model_name != "RW_forwp") {
+    # Determine whether to compare against RW_spot or RW_forwp based on the model name
+    rw_baseline <- if(grepl("spot", model_name)) {
+      "RW_spot"
+    } else if(grepl("forwp", model_name)) {
+      "RW_forwp"
+    } else {
+      stop("Model name does not specify whether it's spot or forwp")
+    }
+    
+    # Calculate % RMSE Reduction from the appropriate RW model
+    rmse_reduction_from_rw[[model_name]] <- (1 - mean_rmse_results[[model_name]] / mean_rmse_results[[rw_baseline]]) * 100
   }
 }
 
