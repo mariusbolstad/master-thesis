@@ -15,7 +15,7 @@ install.packages("remotes")
 remotes::install_github("jeffwong/fastVAR")
 
 getwd()
-setwd("./master-thesis")
+setwd("../VSCode/master-thesis")
 library(readr)  # For reading CSV files
 library(dplyr)  # For data manipulation
 library(lubridate)  # For date parsing
@@ -114,7 +114,7 @@ eur_usd <- eur_usd %>%
 #data_combined <- merge(spot, csz_forw, by = "Date")
 #data_combined <- merge(data_combined, gbti_dev, by = "Date")
 data_combined <- inner_join(spot[, c("Date", "CSZ")], csz_forw[, c("Date", "CURMON")], by = "Date")
-#data_combined <- inner_join(data_combined, gbti_dev[, c("Date", "Iron Ore Trade Vol", "Coal Trade Vol", "Grain Trade Vol", "Minor Bulk Trade Vol", "Dry Bulk Trade Vol")], by = "Date")
+data_combined <- inner_join(data_combined, gbti_dev[, c("Date", "Iron Ore Trade Vol", "Coal Trade Vol", "Grain Trade Vol", "Minor Bulk Trade Vol", "Dry Bulk Trade Vol")], by = "Date")
 data_combined <- inner_join(data_combined, oecd_ip_dev[, c("Date", "Ind Prod Excl Const VOLA")], by = "Date")
 data_combined <- inner_join(data_combined, fleet_dev[, c("Date", "HSZ fleet", "HMX fleet", "PMX fleet", "CSZ fleet")], by = "Date")
 data_combined <- inner_join(data_combined, eur_usd[, c("Date", "Last")], by = "Date")
@@ -229,7 +229,7 @@ exog_diff_ts <- ts(data = exog_diff_df)
 lapply(train_lev_ts, function(series) adf.test(series, alternative = "stationary"))
 lapply(train_diff_ts, function(series) adf.test(series, alternative = "stationary"))
 
-
+lapply(exog_lev_ts, function(series) adf.test(series, alternative = "stationary"))
 
 
 
