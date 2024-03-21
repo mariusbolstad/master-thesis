@@ -11,7 +11,7 @@
 #install.packages("xts")
 #install.packages("tsbox")
 #install.packages("MTS")
-install.packages("remotes")
+install.packages("BVAR")
 
 getwd()
 #setwd("../VSCode/master-thesis")
@@ -30,6 +30,7 @@ library(tsbox)
 library(data.table)
 library(progress)
 library(MTS)
+library(BVAR)
 
 
 # STEP 1: READ CSV
@@ -342,7 +343,18 @@ var_vd1 <- fevd(var_model)
 plot(var_vd1)
 
 
+# BAYESIAN VAR
 
+# Selecting an appropriate lag order using the VARselect
+lags_bvar <- VARselect(train_diff_ts, type = "const")
+lags_bvar
+lag_bvar_order <- VARselect(train_diff_ts, type = "both")$selection["AIC(n)"]
+bvar_model <- bvar(train_diff_ts, lags = lag_bvar_order, type = "both")
+summary(bvar_model)
+bvar_fcs <- predict(bvar_model, horizon = 20)
+bvar_fcs
+summary(bvar_fcs) # This returns two forecasts lists (spot and forward) with different confidence bands
+#bvar_fcs$fcast    # This is just a setting used in the forecasting above
 
 # VARX
 
@@ -502,7 +514,9 @@ rmse_results <- list(
   VECM_spot = numeric(),
   VECM_forwp = numeric(),
   VARX_spot = numeric(),
-  VARX_forwp = numeric()
+  VARX_forwp = numeric(),
+  BVAR_spot = numeric(),
+  BVAR_forwp = numeric(),
 )
 
 mae_results <- list(
@@ -515,7 +529,9 @@ mae_results <- list(
   VECM_spot = numeric(),
   VECM_forwp = numeric(),
   VARX_spot = numeric(),
-  VARX_forwp = numeric()
+  VARX_forwp = numeric(),
+  BVAR_spot = numeric(),
+  BVAR_forwp = numeric(),
 )
 
 
@@ -533,7 +549,9 @@ direction_accuracy_results <- list(
   VECM_spot = numeric(),
   VECM_forwp = numeric(),
   VARX_spot = numeric(),
-  VARX_forwp = numeric()
+  VARX_forwp = numeric(),
+  BVAR_spot = numeric(),
+  BVAR_forwp = numeric(),
 )
 
 # Loop through each forecasting round
@@ -592,7 +610,11 @@ for (round in 1:num_rounds) {
   last_observation_matrix <- as.matrix(tail(exog_diff[-1], 1))
   # Forecast 1 step ahead using the last known values of the exogenous variables
   varx_fcs <- VARXpred(varx_model, newxt = last_observation_matrix, hstep = 1, orig = 0)
-
+  
+  ## BVAR
+  bvar_model <- bvar(train_diff_ts, lags = lag_order, type = "both")
+  bvar_fcs <- predict(bvar_model, horizon = forecast_horizon)
+  bvar_fcs$fcast
   # VECM
   coint_test <- ca.jo(train_lev_ts, spec = "longrun", type = "trace", ecdet = "trend", K = lag_order)
   vecm_model <- vec2var(coint_test)
@@ -771,7 +793,9 @@ rmse_reduction_from_rw <- list(
   VECM_spot = numeric(),
   VECM_forwp = numeric(),
   VARX_spot = numeric(),
-  VARX_forwp = numeric()
+  VARX_forwp = numeric(),
+  BVAR_spot = numeric(),
+  BVAR_forwp = numeric(),
 )
 
 # Iterate through each model name in the mean_rmse_results list
