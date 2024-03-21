@@ -12,7 +12,6 @@
 #install.packages("tsbox")
 #install.packages("MTS")
 install.packages("remotes")
-remotes::install_github("jeffwong/fastVAR")
 
 getwd()
 setwd("../VSCode/master-thesis")
@@ -114,9 +113,10 @@ eur_usd <- eur_usd %>%
 #data_combined <- merge(spot, csz_forw, by = "Date")
 #data_combined <- merge(data_combined, gbti_dev, by = "Date")
 data_combined <- inner_join(spot[, c("Date", "CSZ")], csz_forw[, c("Date", "CURMON")], by = "Date")
-data_combined <- inner_join(data_combined, gbti_dev[, c("Date", "Iron Ore Trade Vol", "Coal Trade Vol", "Grain Trade Vol", "Minor Bulk Trade Vol", "Dry Bulk Trade Vol")], by = "Date")
+#data_combined <- inner_join(data_combined, gbti_dev[, c("Date", "Iron Ore Trade Vol", "Coal Trade Vol", "Grain Trade Vol", "Minor Bulk Trade Vol", "Dry Bulk Trade Vol")], by = "Date")
 data_combined <- inner_join(data_combined, oecd_ip_dev[, c("Date", "Ind Prod Excl Const VOLA")], by = "Date")
-data_combined <- inner_join(data_combined, fleet_dev[, c("Date", "HSZ fleet", "HMX fleet", "PMX fleet", "CSZ fleet")], by = "Date")
+#data_combined <- inner_join(data_combined, fleet_dev[, c("Date", "HSZ fleet", "HMX fleet", "PMX fleet", "CSZ fleet")], by = "Date")
+data_combined <- inner_join(data_combined, fleet_dev[, c("Date", "CSZ fleet")], by = "Date")
 data_combined <- inner_join(data_combined, eur_usd[, c("Date", "Last")], by = "Date")
 # Removing rows where ColumnA or ColumnB have 0 or NA values
 data_combined <- data_combined %>%
@@ -146,12 +146,12 @@ data_log_levels <- data.frame(
 
 exog_log_levels <- data.frame(
   Date = data_combined$Date,
-  ind_prod = log(data_combined$`Ind Prod Excl Const VOLA`),  # Assuming you meant to log-transform these as well
-  hsz_dev = log(data_combined$`HSZ fleet`),
-  hmx_dev = log(data_combined$`HMX fleet`),
-  pmx_dev = log(data_combined$`PMX fleet`),
-  csz_dev = log(data_combined$`CSZ fleet`),
-  eur_usd = data_combined$Last  # Not log-transformed as it's a rate, but adjust according to your needs
+  #ind_prod = log(data_combined$`Ind Prod Excl Const VOLA`),  # Assuming you meant to log-transform these as well
+  #hsz_dev = log(data_combined$`HSZ fleet`),
+  #hmx_dev = log(data_combined$`HMX fleet`),
+  #pmx_dev = log(data_combined$`PMX fleet`),
+  csz_dev = log(data_combined$`CSZ fleet`)
+  #eur_usd = data_combined$Last  # Not log-transformed as it's a rate, but adjust according to your needs
 )
 
 # Display the first few rows of each new data frame to verify
@@ -189,12 +189,12 @@ exog_diff <- data.frame(
 
 exog_diff <- data.frame(
   Date = exog_log_levels$Date[-1],  # Exclude the first date
-  ind_prod = diff(exog_log_levels$ind_prod),
-  hsz_dev = diff(exog_log_levels$hsz_dev),
-  hmx_dev = diff(exog_log_levels$hmx_dev),
-  pmx_dev = diff(exog_log_levels$pmx_dev),
-  csz_dev = diff(exog_log_levels$csz_dev),
-  eur_usd = diff(exog_log_levels$eur_usd)  # Difference of non-logged rate
+  #ind_prod = diff(exog_log_levels$ind_prod),
+  #hsz_dev = diff(exog_log_levels$hsz_dev),
+  #hmx_dev = diff(exog_log_levels$hmx_dev),
+  #pmx_dev = diff(exog_log_levels$pmx_dev),
+  csz_dev = diff(exog_log_levels$csz_dev)
+  #eur_usd = diff(exog_log_levels$eur_usd)  # Difference of non-logged rate
 )
 
 
@@ -230,6 +230,7 @@ lapply(train_lev_ts, function(series) adf.test(series, alternative = "stationary
 lapply(train_diff_ts, function(series) adf.test(series, alternative = "stationary"))
 
 lapply(exog_lev_ts, function(series) adf.test(series, alternative = "stationary"))
+lapply(exog_diff_ts, function(series) adf.test(series, alternative = "stationary"))
 
 
 
@@ -241,7 +242,7 @@ lapply(exog_lev_ts, function(series) adf.test(series, alternative = "stationary"
 # lev
 lags <- VARselect(train_lev_ts, type = "const")
 lag_order <- VARselect(train_lev_ts, type = "both")$selection["AIC(n)"]
-var_model <- VAR(train_lev_ts, p = lag_order, type = "both")
+var_model <- vars::VAR(train_lev_ts, p = lag_order)
 
 
 
@@ -353,7 +354,7 @@ plot(var_vd1)
 # lev
 lags <- VARselect(train_lev_ts, type = "const")
 lag_order <- VARselect(train_lev_ts, type = "both")$selection["AIC(n)"]
-varx_model <- VAR(train_lev_ts, p = lag_order, type = "both", exogen = exog_lev_ts)
+varx_model <- vars::VAR(train_lev_ts, p = lag_order, type = "both", exogen = exog_lev_ts)
 
 summary(varx_model)
 
@@ -466,7 +467,7 @@ forecast_horizon <- 1
 t <- tail(exog_lev["eur_usd"], 1)
 varx_fcs <- predict(varx_model2, n_ahead = forecast_horizon)
 
-last_observation_matrix <- as.matrix(tail(exog_lev["eur_usd"], 1))
+last_observation_matrix <- as.matrix(tail(exog_lev[-1], 1))
 
 # Forecast 1 step ahead using the last known values of the exogenous variables
 varx_fcs <- predict(varx_model, n_ahead = forecast_horizon, dumvar = last_observation_matrix)
