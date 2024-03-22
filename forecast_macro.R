@@ -113,7 +113,7 @@ eur_usd <- eur_usd %>%
 # Merge data frames on the Date column, include trade volume
 #data_combined <- merge(spot, csz_forw, by = "Date")
 #data_combined <- merge(data_combined, gbti_dev, by = "Date")
-data_combined <- inner_join(spot[, c("Date", "CSZ")], csz_forw[, c("Date", "CURMON")], by = "Date")
+data_combined <- inner_join(spot[, c("Date", "CSZ")], csz_forw[, c("Date", "1MON")], by = "Date")
 #data_combined <- inner_join(data_combined, gbti_dev[, c("Date", "Iron Ore Trade Vol", "Coal Trade Vol", "Grain Trade Vol", "Minor Bulk Trade Vol", "Dry Bulk Trade Vol")], by = "Date")
 data_combined <- inner_join(data_combined, oecd_ip_dev[, c("Date", "Ind Prod Excl Const VOLA")], by = "Date")
 #data_combined <- inner_join(data_combined, fleet_dev[, c("Date", "HSZ fleet", "HMX fleet", "PMX fleet", "CSZ fleet")], by = "Date")
@@ -132,7 +132,7 @@ data_combined <- data_combined %>%
 data_log_levels <- data.frame(
   Date = data_combined$Date,
   spot = log(data_combined$CSZ),
-  forwp = log(data_combined$`CURMON`)
+  forwp = log(data_combined$`1MON`)
 )
 
 #exog_log_levels <- data.frame(
@@ -168,6 +168,7 @@ split_index <- round(nrow(data_combined) * 0.8)
 # Split the data into training and test sets
 train_lev <- data_log_levels[1:split_index, ]
 test_lev <- data_log_levels[(split_index+1): nrow(data_log_levels), ]
+len_test <- nrow(test_lev)
 
 exog_lev <- exog_log_levels[1:split_index, ]
 
@@ -339,8 +340,8 @@ grangerForw
 
 # Variance decomposition
 
-var_vd1 <- fevd(var_model)
-plot(var_vd1)
+#var_vd1 <- fevd(var_model)
+#plot(var_vd1)
 
 
 # BAYESIAN VAR
@@ -498,7 +499,7 @@ arima_fcs_spot <- forecast(arima_model_spot, h = forecast_horizon)
 arima_fcs_forwp <- forecast(arima_model_forwp, h = forecast_horizon)
 
 # Determine the number of rounds based on the test set size and forecast horizon
-num_rounds <- min(floor(nrow(test_lev) / forecast_horizon), 50)
+num_rounds <- min(floor(len_test / forecast_horizon), 10)
 #num_rounds <- floor(nrow(test_lev) / forecast_horizon)
 
 print(num_rounds)
@@ -516,7 +517,7 @@ rmse_results <- list(
   VARX_spot = numeric(),
   VARX_forwp = numeric(),
   BVAR_spot = numeric(),
-  BVAR_forwp = numeric(),
+  BVAR_forwp = numeric()
 )
 
 mae_results <- list(
@@ -531,9 +532,23 @@ mae_results <- list(
   VARX_spot = numeric(),
   VARX_forwp = numeric(),
   BVAR_spot = numeric(),
-  BVAR_forwp = numeric(),
+  BVAR_forwp = numeric()
 )
 
+mape_results <- list(
+  VAR_spot = numeric(),
+  VAR_forwp = numeric(),
+  ARIMA_spot = numeric(),
+  ARIMA_forwp = numeric(),
+  RW_spot = numeric(),
+  RW_forwp = numeric(),
+  VECM_spot = numeric(),
+  VECM_forwp = numeric(),
+  VARX_spot = numeric(),
+  VARX_forwp = numeric(),
+  BVAR_spot = numeric(),
+  BVAR_forwp = numeric()
+)
 
 # Preparing a list for forecasted and actual values for ease of access
 forecasted_values <- list()
@@ -551,8 +566,52 @@ direction_accuracy_results <- list(
   VARX_spot = numeric(),
   VARX_forwp = numeric(),
   BVAR_spot = numeric(),
-  BVAR_forwp = numeric(),
+  BVAR_forwp = numeric()
 )
+
+theil_results <- list(
+  VAR_spot = numeric(),
+  VAR_forwp = numeric(),
+  ARIMA_spot = numeric(),
+  ARIMA_forwp = numeric(),
+  RW_spot = numeric(),
+  RW_forwp = numeric(),
+  VECM_spot = numeric(),
+  VECM_forwp = numeric(),
+  VARX_spot = numeric(),
+  VARX_forwp = numeric(),
+  BVAR_spot = numeric(),
+  BVAR_forwp = numeric()
+)
+
+calculate_theils_u <- function(actual, forecast) {
+  # Ensure the input vectors are of the same length
+  if(length(actual) != length(forecast)) {
+    stop("Actual and forecast vectors must be of the same length")
+  }
+  
+  # Calculate the numerator (Root Mean Squared Error, RMSE)
+  rmse <- sqrt(mean((actual - forecast)^2))
+  
+  # Calculate the denominator components
+  rmse_actual <- sqrt(mean(actual^2))
+  rmse_forecast <- sqrt(mean(forecast^2))
+  
+  # Calculate Theil's U
+  theils_u <- rmse / (rmse_actual + rmse_forecast)
+  
+  return(theils_u)
+}
+
+calculate_mape <- function(actual, forecast) {
+  # Ensure no zero values in actual to avoid division by zero
+  if(any(actual == 0)) stop("Actual values contain zeros, cannot calculate MAPE.")
+  
+  mape <- mean(abs((actual - forecast) / actual)) * 100
+  return(mape)
+}
+
+
 
 # Loop through each forecasting round
 for (round in 1:num_rounds) {
@@ -614,7 +673,16 @@ for (round in 1:num_rounds) {
   ## BVAR
   bvar_model <- bvar(train_diff_ts, lags = lag_order, type = "both")
   bvar_fcs <- predict(bvar_model, horizon = forecast_horizon)
-  bvar_fcs$fcast
+  bvar_fcs_fcast <- summary(bvar_fcs)
+  print(t(bvar_fcs_fcast$quants[,,1])[,"50%"])  # With this and the print of VAR below, I confirm that the lists are identically formatted and similar in values
+  
+  # Bayesian VAR 2
+  bvar_model <- bvar(train_diff_ts, lags = lag_order_bvar, type = "both")
+  bvar_fcs <- predict(bvar_model, horizon = forecast_horizon)
+  bvar_fcs_fcast <- summary(bvar_fcs)
+  print(t(bvar_fcs_fcast$quants[,,1])[,"50%"])  # With this and the print of VAR below, I confirm that the lists are identically formatted and similar in values
+  # Do not know why the fatal error occurs every time, but I think 
+  
   # VECM
   coint_test <- ca.jo(train_lev_ts, spec = "longrun", type = "trace", ecdet = "trend", K = lag_order)
   vecm_model <- vec2var(coint_test)
@@ -656,6 +724,10 @@ for (round in 1:num_rounds) {
   varx_rev_fcs_spot <- last_spot + cumsum(varx_fcs$pred["spot"])
   varx_rev_fcs_forwp <- last_forwp + cumsum(varx_fcs$pred["forwp"])
   
+  #BVAR
+  bvar_rev_fcs_spot <- last_spot + cumsum(t(bvar_fcs_fcast$quants[,,1])[,"50%"])
+  bvar_rev_fcs_forwp <- last_forwp + cumsum(t(bvar_fcs_fcast$quants[,,2])[,"50%"])
+  
   # VECM
   #vecm_rev_fcs_spot <- last_spot + cumsum(vecm_fcs[, 1])
   #vecm_rev_fcs_forwp <- last_forwp + cumsum(vecm_fcs[, 2])
@@ -672,7 +744,8 @@ for (round in 1:num_rounds) {
     VECM = list(spot = vecm_fcs$fcst[[1]][, "fcst"], forwp = vecm_fcs$fcst[[2]][, "fcst"]),
     ARIMA = list(spot = arima_fcs_spot$mean, forwp = arima_fcs_forwp$mean),
     RW = list(spot = rw_fcs_spot$mean, forwp = rw_fcs_forwp$mean),
-    VARX = list(SPOT =  varx_rev_fcs_spot, forwp = varx_rev_fcs_forwp)
+    VARX = list(spot =  varx_rev_fcs_spot, forwp = varx_rev_fcs_forwp),
+    BVAR = list(spot =  bvar_rev_fcs_spot, forwp = bvar_rev_fcs_forwp)
   )
   
   # Capture actual values for this round
@@ -686,7 +759,7 @@ for (round in 1:num_rounds) {
   act_dir_change_forwp <- sign(last_act_forwp - last_forwp)
   
   # For each model, calculate and store the direction accuracy
-  for (model in c("VAR", "ARIMA", "RW", "VECM", "VARX")) {
+  for (model in c("VAR", "ARIMA", "RW", "VECM", "VARX", "BVAR")) {
     # Calculate the actual direction of change for spot and forwp
     act_dir_change_spot <- sign(last_act_spot - last_spot)
     act_dir_change_forwp <- sign(last_act_forwp - last_forwp)
@@ -718,6 +791,10 @@ for (round in 1:num_rounds) {
   rmse_results$VARX_spot <- c(rmse_results$VARX_spot, sqrt(mean((varx_rev_fcs_spot - act_spot)^2)))
   rmse_results$VARX_forwp <- c(rmse_results$VARX_forwp, sqrt(mean((varx_rev_fcs_forwp - act_forwp)^2)))
   
+  # Calculate and append MSE for BVAR forecasts
+  rmse_results$BVAR_spot <- c(rmse_results$BVAR_spot, sqrt(mean((bvar_rev_fcs_spot - act_spot)^2)))
+  rmse_results$BVAR_forwp <- c(rmse_results$BVAR_forwp, sqrt(mean((bvar_rev_fcs_forwp - act_forwp)^2)))
+  
   
   # Calculate and append MSE for VECM forecasts
   rmse_results$VECM_spot <- c(rmse_results$VECM_spot, sqrt(mean((vecm_fcs$fcst[[1]][, "fcst"] - act_spot)^2)))
@@ -741,6 +818,10 @@ for (round in 1:num_rounds) {
   mae_results$VARX_spot <- c(mae_results$VARX_spot, mean(abs(varx_rev_fcs_spot - act_spot)))
   mae_results$VARX_forwp <- c(mae_results$VARX_forwp, mean(abs(varx_rev_fcs_forwp - act_forwp)))
   
+  # Calculate and append MAE for BVAR forecasts
+  mae_results$BVAR_spot <- c(mae_results$BVAR_spot, mean(abs(bvar_rev_fcs_spot - act_spot)))
+  mae_results$BVAR_forwp <- c(mae_results$BVAR_forwp, mean(abs(bvar_rev_fcs_forwp - act_forwp)))
+  
   # Calculate and append MAE for VECM forecasts
   mae_results$VECM_spot <- c(mae_results$VECM_spot, mean(abs(vecm_fcs$fcst[[1]][, "fcst"] - act_spot)))
   mae_results$VECM_forwp <- c(mae_results$VECM_forwp, mean(abs(vecm_fcs$fcst[[2]][, "fcst"] - act_forwp)))
@@ -753,6 +834,59 @@ for (round in 1:num_rounds) {
   mae_results$RW_spot <- c(mae_results$RW_spot, mean(abs(rw_fcs_spot$mean - act_spot)))
   mae_results$RW_forwp <- c(mae_results$RW_forwp, mean(abs(rw_fcs_forwp$mean - act_forwp)))
   
+  
+  # Calculate Theil
+  
+  theil_results$VAR_spot <- c(theil_results$VAR_spot, calculate_theils_u(forecast = var_rev_fcs_spot, actual = act_spot))
+  
+  # Continuing Theil's U calculations for other models
+  # VAR forwp
+  theil_results$VAR_forwp <- c(theil_results$VAR_forwp, calculate_theils_u(forecast = var_rev_fcs_forwp, actual = act_forwp))
+  # VARX spot
+  theil_results$VARX_spot <- c(theil_results$VARX_spot, calculate_theils_u(forecast = varx_rev_fcs_spot, actual = act_spot))
+  # VARX forwp
+  theil_results$VARX_forwp <- c(theil_results$VARX_forwp, calculate_theils_u(forecast = varx_rev_fcs_forwp, actual = act_forwp))
+  # BVAR spot
+  theil_results$BVAR_spot <- c(theil_results$BVAR_spot, calculate_theils_u(forecast = bvar_rev_fcs_spot, actual = act_spot))
+  # BVAR forwp
+  theil_results$BVAR_forwp <- c(theil_results$BVAR_forwp, calculate_theils_u(forecast = bvar_rev_fcs_forwp, actual = act_forwp))
+  # VECM spot
+  theil_results$VECM_spot <- c(theil_results$VECM_spot, calculate_theils_u(forecast = vecm_fcs$fcst[[1]][, "fcst"], actual = act_spot))
+  # VECM forwp
+  theil_results$VECM_forwp <- c(theil_results$VECM_forwp, calculate_theils_u(forecast = vecm_fcs$fcst[[2]][, "fcst"], actual = act_forwp))
+  # ARIMA spot
+  theil_results$ARIMA_spot <- c(theil_results$ARIMA_spot, calculate_theils_u(forecast = arima_fcs_spot$mean, actual = act_spot))
+  # ARIMA forwp
+  theil_results$ARIMA_forwp <- c(theil_results$ARIMA_forwp, calculate_theils_u(forecast = arima_fcs_forwp$mean, actual = act_forwp))
+  # Random Walk spot
+  theil_results$RW_spot <- c(theil_results$RW_spot, calculate_theils_u(forecast = rw_fcs_spot$mean, actual = act_spot))
+  # Random Walk forwp
+  theil_results$RW_forwp <- c(theil_results$RW_forwp, calculate_theils_u(forecast = rw_fcs_forwp$mean, actual = act_forwp))
+  
+  
+  # Calculate and append MAPE for VAR forecasts
+  mape_results$VAR_spot <- c(mape_results$VAR_spot, calculate_mape(act_spot, var_rev_fcs_spot))
+  mape_results$VAR_forwp <- c(mape_results$VAR_forwp, calculate_mape(act_forwp, var_rev_fcs_forwp))
+  
+  # Calculate and append MAPE for VARX forecasts
+  mape_results$VARX_spot <- c(mape_results$VARX_spot, calculate_mape(act_spot, varx_rev_fcs_spot))
+  mape_results$VARX_forwp <- c(mape_results$VARX_forwp, calculate_mape(act_forwp, varx_rev_fcs_forwp))
+  
+  # Calculate and append MAPE for BVAR forecasts
+  mape_results$BVAR_spot <- c(mape_results$BVAR_spot, calculate_mape(act_spot, bvar_rev_fcs_spot))
+  mape_results$BVAR_forwp <- c(mape_results$BVAR_forwp, calculate_mape(act_forwp, bvar_rev_fcs_forwp))
+  
+  # Calculate and append MAPE for VECM forecasts
+  mape_results$VECM_spot <- c(mape_results$VECM_spot, calculate_mape(act_spot, vecm_fcs$fcst[[1]][, "fcst"]))
+  mape_results$VECM_forwp <- c(mape_results$VECM_forwp, calculate_mape(act_forwp, vecm_fcs$fcst[[2]][, "fcst"]))
+  
+  # Calculate and append MAPE for ARIMA forecasts
+  mape_results$ARIMA_spot <- c(mape_results$ARIMA_spot, calculate_mape(act_spot, arima_fcs_spot$mean))
+  mape_results$ARIMA_forwp <- c(mape_results$ARIMA_forwp, calculate_mape(act_forwp, arima_fcs_forwp$mean))
+  
+  # Calculate and append MAPE for Random Walk forecasts
+  mape_results$RW_spot <- c(mape_results$RW_spot, calculate_mape(act_spot, rw_fcs_spot$mean))
+  mape_results$RW_forwp <- c(mape_results$RW_forwp, calculate_mape(act_forwp, rw_fcs_forwp$mean))
   
   
 }
@@ -772,8 +906,10 @@ print(average_direction_accuracy)
 # Calculate mean MSE for each model
 mean_rmse_results <- sapply(rmse_results, mean)
 mean_mae_results <- sapply(mae_results, mean)
+mean_theil_results <- sapply(theil_results, mean)
+mean_mape_results <- sapply(mape_results, mean)
 # Now multiply all mean MSE results by 100
-mean_mse_results <- mean_mse_results * 100
+#mean_mse_results <- mean_mse_results * 100
 
 # Print mean MSE results
 cat("Mean RMSE Results:\n")
@@ -782,6 +918,14 @@ print(mean_rmse_results)
 # Print mean MAE results
 cat("Mean MAE Results:\n")
 print(mean_mae_results)
+
+# Print Theil results
+cat("Mean Theil results")
+print(mean_theil_results)
+
+# Print mean MAPE results
+cat("Mean MAPE Results:\n")
+print(mean_mape_results)
 
 rmse_reduction_from_rw <- list(
   VAR_spot = numeric(),
@@ -795,7 +939,7 @@ rmse_reduction_from_rw <- list(
   VARX_spot = numeric(),
   VARX_forwp = numeric(),
   BVAR_spot = numeric(),
-  BVAR_forwp = numeric(),
+  BVAR_forwp = numeric()
 )
 
 # Iterate through each model name in the mean_rmse_results list
