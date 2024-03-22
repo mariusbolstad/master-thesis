@@ -14,7 +14,7 @@
 install.packages("BVAR")
 
 getwd()
-#setwd("../VSCode/master-thesis")
+setwd("./VSCode/master-thesis")
 library(readr)  # For reading CSV files
 library(dplyr)  # For data manipulation
 library(lubridate)  # For date parsing
@@ -499,7 +499,7 @@ arima_fcs_spot <- forecast(arima_model_spot, h = forecast_horizon)
 arima_fcs_forwp <- forecast(arima_model_forwp, h = forecast_horizon)
 
 # Determine the number of rounds based on the test set size and forecast horizon
-num_rounds <- min(floor(len_test / forecast_horizon), 10)
+num_rounds <- min(floor(len_test / forecast_horizon), 2)
 #num_rounds <- floor(nrow(test_lev) / forecast_horizon)
 
 print(num_rounds)
@@ -674,14 +674,7 @@ for (round in 1:num_rounds) {
   bvar_model <- bvar(train_diff_ts, lags = lag_order, type = "both")
   bvar_fcs <- predict(bvar_model, horizon = forecast_horizon)
   bvar_fcs_fcast <- summary(bvar_fcs)
-  print(t(bvar_fcs_fcast$quants[,,1])[,"50%"])  # With this and the print of VAR below, I confirm that the lists are identically formatted and similar in values
-  
-  # Bayesian VAR 2
-  bvar_model <- bvar(train_diff_ts, lags = lag_order_bvar, type = "both")
-  bvar_fcs <- predict(bvar_model, horizon = forecast_horizon)
-  bvar_fcs_fcast <- summary(bvar_fcs)
-  print(t(bvar_fcs_fcast$quants[,,1])[,"50%"])  # With this and the print of VAR below, I confirm that the lists are identically formatted and similar in values
-  # Do not know why the fatal error occurs every time, but I think 
+
   
   # VECM
   coint_test <- ca.jo(train_lev_ts, spec = "longrun", type = "trace", ecdet = "trend", K = lag_order)
