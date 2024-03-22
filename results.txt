@@ -590,3 +590,177 @@ Correlation matrix of residuals:
        spot forwp
 spot  1.000 0.378
 forwp 0.378 1.000
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CSZ: 1 step ahead, all possible forecasts 80%train set:
+
+
+
+[1] "Average Direction Accuracy for Each Model (%):"
+> print(average_direction_accuracy)
+$VAR_spot
+[1] 75.91549
+
+$VAR_forwp
+[1] 54.3662
+
+$ARIMA_spot
+[1] 74.50704
+
+$ARIMA_forwp
+[1] 55.91549
+
+$RW_spot
+[1] 0.1408451
+
+$RW_forwp
+[1] 0
+
+$VECM_spot
+[1] 76.47887
+
+$VECM_forwp
+[1] 52.25352
+
+$VARX_spot
+[1] 76.61972
+
+$VARX_forwp
+[1] 54.3662
+
+$BVAR_spot
+[1] 75.77465
+
+$BVAR_forwp
+[1] 54.22535
+
+> 
+> 
+> 
+> # Calculate mean MSE for each model
+> mean_rmse_results <- sapply(rmse_results, mean)
+> mean_mae_results <- sapply(mae_results, mean)
+> mean_theil_results <- sapply(theil_results, mean)
+> mean_mape_results <- sapply(mape_results, mean)
+> # Now multiply all mean MSE results by 100
+> #mean_mse_results <- mean_mse_results * 100
+> 
+> # Print mean MSE results
+> cat("Mean RMSE Results:\n")
+Mean RMSE Results:
+> print(mean_rmse_results)
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot 
+ 0.04481473  0.06109528  0.04827947  0.06073976  0.05959801  0.06108853  0.04447908  0.06076414  0.04474105 
+ VARX_forwp   BVAR_spot  BVAR_forwp 
+ 0.06101887  0.04484655  0.06085609 
+> 
+> # Print mean MAE results
+> cat("Mean MAE Results:\n")
+Mean MAE Results:
+> print(mean_mae_results)
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot 
+ 0.04481473  0.06109528  0.04827947  0.06073976  0.05959801  0.06108853  0.04447908  0.06076414  0.04474105 
+ VARX_forwp   BVAR_spot  BVAR_forwp 
+ 0.06101887  0.04484655  0.06085609 
+> 
+> # Print Theil results
+> cat("Mean Theil results")
+Mean Theil results> print(mean_theil_results)
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot 
+0.002347616 0.003109630 0.002525281 0.003090357 0.003115205 0.003107781 0.002327478 0.003092723 0.002343497 
+ VARX_forwp   BVAR_spot  BVAR_forwp 
+0.003105757 0.002349203 0.003097578 
+> 
+> # Print mean MAPE results
+> cat("Mean MAPE Results:\n")
+Mean MAPE Results:
+> print(mean_mape_results)
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot 
+  0.4694048   0.6216525   0.5048524   0.6177856   0.6224605   0.6212703   0.4655487   0.6182875   0.4686179 
+ VARX_forwp   BVAR_spot  BVAR_forwp 
+  0.6208735   0.4697258   0.6192018 
+> 
+> rmse_reduction_from_rw <- list(
++   VAR_spot = numeric(),
++   VAR_forwp = numeric(),
++   ARIMA_spot = numeric(),
++   ARIMA_forwp = numeric(),
++   RW_spot = numeric(),
++   RW_forwp = numeric(),
++   VECM_spot = numeric(),
++   VECM_forwp = numeric(),
++   VARX_spot = numeric(),
++   VARX_forwp = numeric(),
++   BVAR_spot = numeric(),
++   BVAR_forwp = numeric()
++ )
+> 
+> # Iterate through each model name in the mean_rmse_results list
+> for(model_name in names(mean_rmse_results)) {
++   # Exclude RW models themselves
++   if(model_name != "RW_spot" && model_name != "RW_forwp") {
++     # Determine whether to compare against RW_spot or RW_forwp based on the model name
++     rw_baseline <- if(grepl("spot", model_name)) {
++       "RW_spot"
++     } else if(grepl("forwp", model_name)) {
++       "RW_forwp"
++     } else {
++       stop("Model name does not specify whether it's spot or forwp")
++     }
++     
++     # Calculate % RMSE Reduction from the appropriate RW model
++     rmse_reduction_from_rw[[model_name]] <- (1 - mean_rmse_results[[model_name]] / mean_rmse_results[[rw_baseline]]) * 100
++   }
++ }
+> 
+> # Print results
+> cat("RW redecution:\n")
+RW redecution:
+> print(rmse_reduction_from_rw)
+$VAR_spot
+[1] 24.805
+
+$VAR_forwp
+[1] -0.01104809
+
+$ARIMA_spot
+[1] 18.99148
+
+$ARIMA_forwp
+[1] 0.5709219
+
+$RW_spot
+numeric(0)
+
+$RW_forwp
+numeric(0)
+
+$VECM_spot
+[1] 25.36818
+
+$VECM_forwp
+[1] 0.5310147
+
+$VARX_spot
+[1] 24.92862
+
+$VARX_forwp
+[1] 0.1140339
+
+$BVAR_spot
+[1] 24.7516
+
+$BVAR_forwp
+[1] 0.380485

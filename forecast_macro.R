@@ -11,10 +11,10 @@
 #install.packages("xts")
 #install.packages("tsbox")
 #install.packages("MTS")
-install.packages("BVAR")
+#install.packages("BVAR")
 
-getwd()
-setwd("./VSCode/master-thesis")
+#getwd()
+#setwd("./VSCode/master-thesis")
 library(readr)  # For reading CSV files
 library(dplyr)  # For data manipulation
 library(lubridate)  # For date parsing
@@ -347,14 +347,14 @@ grangerForw
 # BAYESIAN VAR
 
 # Selecting an appropriate lag order using the VARselect
-lags_bvar <- VARselect(train_diff_ts, type = "const")
-lags_bvar
-lag_bvar_order <- VARselect(train_diff_ts, type = "both")$selection["AIC(n)"]
-bvar_model <- bvar(train_diff_ts, lags = lag_bvar_order, type = "both")
-summary(bvar_model)
-bvar_fcs <- predict(bvar_model, horizon = 20)
-bvar_fcs
-summary(bvar_fcs) # This returns two forecasts lists (spot and forward) with different confidence bands
+#lags_bvar <- VARselect(train_diff_ts, type = "const")
+##lags_bvar
+#lag_bvar_order <- VARselect(train_diff_ts, type = "both")$selection["AIC(n)"]
+#bvar_model <- bvar(train_diff_ts, lags = lag_bvar_order, type = "both")
+#summary(bvar_model)
+#bvar_fcs <- predict(bvar_model, horizon = 20)
+#bvar_fcs
+#summary(bvar_fcs) # This returns two forecasts lists (spot and forward) with different confidence bands
 #bvar_fcs$fcast    # This is just a setting used in the forecasting above
 
 # VARX
@@ -499,7 +499,7 @@ arima_fcs_spot <- forecast(arima_model_spot, h = forecast_horizon)
 arima_fcs_forwp <- forecast(arima_model_forwp, h = forecast_horizon)
 
 # Determine the number of rounds based on the test set size and forecast horizon
-num_rounds <- min(floor(len_test / forecast_horizon), 2)
+num_rounds <- floor(len_test / forecast_horizon)
 #num_rounds <- floor(nrow(test_lev) / forecast_horizon)
 
 print(num_rounds)
