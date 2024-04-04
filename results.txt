@@ -750,3 +750,448 @@ $BVAR_spot
 
 $BVAR_forwp
 [1] 0.380485
+
+
+
+
+
+CSZ 1DAY CURMON, 887 F:
+
+> # Calculate the average direction accuracy for each model and market (spot and forwp)
+> average_direction_accuracy <- list()
+> for (model_name in names(direction_accuracy_results)) {
++   average_direction_accuracy[[model_name]] <- mean(direction_accuracy_results[[model_name]]) * 100
++ }
+> 
+> # Print the average direction accuracy for each model
+> print("Average Direction Accuracy for Each Model (%):")
+[1] "Average Direction Accuracy for Each Model (%):"
+> print(average_direction_accuracy)
+$VAR_spot
+[1] 75.22523
+
+$VAR_forwp
+[1] 59.12162
+
+$ARIMA_spot
+[1] 74.43694
+
+$ARIMA_forwp
+[1] 56.08108
+
+$RW_spot
+[1] 0.1126126
+
+$RW_forwp
+[1] 0.2252252
+
+$VECM_spot
+[1] 74.32432
+
+$VECM_forwp
+[1] 58.44595
+
+$VARX_spot
+[1] 75.22523
+
+$VARX_forwp
+[1] 58.44595
+
+$BVAR_spot
+[1] NaN
+
+$BVAR_forwp
+[1] NaN
+
+> 
+> 
+> 
+> # Calculate mean MSE for each model
+> mean_rmse_results <- sapply(rmse_results, mean)
+> mean_mae_results <- sapply(mae_results, mean)
+> mean_theil_results <- sapply(theil_results, mean)
+> mean_mape_results <- sapply(mape_results, mean)
+> # Now multiply all mean MSE results by 100
+> #mean_mse_results <- mean_mse_results * 100
+> 
+> # Print mean MSE results
+> cat("Mean RMSE Results:\n")
+Mean RMSE Results:
+> print(mean_rmse_results)
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot  VARX_forwp 
+ 0.04544231  0.04900162  0.04635757  0.04613655  0.05804799  0.04657795  0.04483631  0.05027806  0.04543640  0.04889956 
+  BVAR_spot  BVAR_forwp 
+        NaN         NaN 
+> 
+> # Print mean MAE results
+> cat("Mean MAE Results:\n")
+Mean MAE Results:
+> print(mean_mae_results)
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot  VARX_forwp 
+ 0.04544231  0.04900162  0.04635757  0.04613655  0.05804799  0.04657795  0.04483631  0.05027806  0.04543640  0.04889956 
+  BVAR_spot  BVAR_forwp 
+        NaN         NaN 
+> 
+> # Print Theil results
+> cat("Mean Theil results")
+Mean Theil results> print(mean_theil_results)
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot  VARX_forwp 
+0.002380388 0.002526357 0.002429244 0.002377570 0.003041292 0.002401326 0.002346002 0.002594787 0.002380196 0.002521014 
+  BVAR_spot  BVAR_forwp 
+        NaN         NaN 
+> 
+> # Print mean MAPE results
+> cat("Mean MAPE Results:\n")
+Mean MAPE Results:
+> print(mean_mape_results)
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot  VARX_forwp 
+  0.4757863   0.5049982   0.4855679   0.4752538   0.6074772   0.4800263   0.4690995   0.5183910   0.4757512   0.5039559 
+  BVAR_spot  BVAR_forwp 
+        NaN         NaN 
+> 
+> rmse_reduction_from_rw <- list(
++   VAR_spot = numeric(),
++   VAR_forwp = numeric(),
++   ARIMA_spot = numeric(),
++   ARIMA_forwp = numeric(),
++   RW_spot = numeric(),
++   RW_forwp = numeric(),
++   VECM_spot = numeric(),
++   VECM_forwp = numeric(),
++   VARX_spot = numeric(),
++   VARX_forwp = numeric()
++   #BVAR_spot = numeric(),
++   #BVAR_forwp = numeric()
++ )
+> 
+> # Iterate through each model name in the mean_rmse_results list
+> for(model_name in names(mean_rmse_results)) {
++   # Exclude RW models themselves
++   if(model_name != "RW_spot" && model_name != "RW_forwp") {
++     # Determine whether to compare against RW_spot or RW_forwp based on the model name
++     rw_baseline <- if(grepl("spot", model_name)) {
++       "RW_spot"
++     } else if(grepl("forwp", model_name)) {
++       "RW_forwp"
++     } else {
++       stop("Model name does not specify whether it's spot or forwp")
++     }
++     
++     # Calculate % RMSE Reduction from the appropriate RW model
++     rmse_reduction_from_rw[[model_name]] <- (1 - mean_rmse_results[[model_name]] / mean_rmse_results[[rw_baseline]]) * 100
++   }
++ }
+> 
+> # Print results
+> cat("RW redecution:\n")
+RW redecution:
+> print(rmse_reduction_from_rw)
+$VAR_spot
+[1] 21.71595
+
+$VAR_forwp
+[1] -5.203469
+
+$ARIMA_spot
+[1] 20.13923
+
+$ARIMA_forwp
+[1] 0.9476706
+
+$RW_spot
+numeric(0)
+
+$RW_forwp
+numeric(0)
+
+$VECM_spot
+[1] 22.75992
+
+$VECM_forwp
+[1] -7.943891
+
+$VARX_spot
+[1] 21.72614
+
+$VARX_forwp
+[1] -4.984353
+
+$BVAR_spot
+[1] NaN
+
+$BVAR_forwp
+[1] NaN
+
+> 
+> 
+> # Initialize lists to store aggregated forecasts and actual values
+> aggregated_forecasts <- list()
+> aggregated_actuals <- list(spot = unlist(lapply(actual_values_list, `[[`, "spot")),
++                            forwp = unlist(lapply(actual_values_list, `[[`, "forwp")))
+> 
+> # Aggregate forecasts for each model
+> models <- c("VAR", "ARIMA", "VECM", "VARX", "RW")
+> for(model in models) {
++   aggregated_forecasts[[model]] <- list(
++     spot = unlist(lapply(forecasted_values, function(x) x[[model]][["spot"]])),
++     forwp = unlist(lapply(forecasted_values, function(x) x[[model]][["forwp"]]))
++   )
++ }
+> 
+> # Perform DM test for each model against RW
+> dm_test_results <- list()
+> for(model in models) {
++   if(model != "RW") { # Exclude RW since it's our baseline
++     for(market in c("spot", "forwp")) {
++       forecast1 <- aggregated_forecasts[[model]][[market]]
++       forecast2 <- aggregated_forecasts[["RW"]][[market]]
++       actual <- aggregated_actuals[[market]]
++       
++       # Calculate errors for DM test
++       errors1 <- forecast1 - actual
++       errors2 <- forecast2 - actual
++       
++       # Perform DM test and store results
++       dm_test_results[[paste(model, market, "vs_RW", market, sep = "_")]] <- dm.test(errors1, errors2)
++     }
++   }
++ }
+> 
+> # Print DM test results
+> cat("Diebold-Mariano Test Results (Statistic and P-Value):\n")
+Diebold-Mariano Test Results (Statistic and P-Value):
+> for(result in names(dm_test_results)) {
++   cat(result, ": Statistic =", dm_test_results[[result]]$statistic, 
++       ", P-Value =", dm_test_results[[result]]$p.value, "\n")
++ }
+VAR_spot_vs_RW_spot : Statistic = -6.245653 , P-Value = 6.539736e-10 
+VAR_forwp_vs_RW_forwp : Statistic = -2.309605 , P-Value = 0.02113893 
+ARIMA_spot_vs_RW_spot : Statistic = -5.76595 , P-Value = 1.120602e-08 
+ARIMA_forwp_vs_RW_forwp : Statistic = -1.433661 , P-Value = 0.1520213 
+VECM_spot_vs_RW_spot : Statistic = -6.410895 , P-Value = 2.347992e-10 
+VECM_forwp_vs_RW_forwp : Statistic = -1.71478 , P-Value = 0.08673479 
+VARX_spot_vs_RW_spot : Statistic = -6.26055 , P-Value = 5.968563e-10 
+VARX_forwp_vs_RW_forwp : Statistic = -2.420354 , P-Value = 0.01570535 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CSZ 1DAY WITH 1Q:
+
+[1] "Average Direction Accuracy for Each Model (%):"
+> print(average_direction_accuracy)
+$VAR_spot
+[1] 75.19641
+
+$VAR_forwp
+[1] 56.56566
+
+$ARIMA_spot
+[1] 74.63524
+
+$ARIMA_forwp
+[1] 54.99439
+
+$RW_spot
+[1] 0.1122334
+
+$RW_forwp
+[1] 0.5611672
+
+$VECM_spot
+[1] 75.30864
+
+$VECM_forwp
+[1] 57.68799
+
+$VARX_spot
+[1] 75.42088
+
+$VARX_forwp
+[1] 56.11672
+
+$BVAR_spot
+[1] NaN
+
+$BVAR_forwp
+[1] NaN
+
+> 
+> 
+> 
+> # Calculate mean MSE for each model
+> mean_rmse_results <- sapply(rmse_results, mean)
+> mean_mae_results <- sapply(mae_results, mean)
+> mean_theil_results <- sapply(theil_results, mean)
+> mean_mape_results <- sapply(mape_results, mean)
+> # Now multiply all mean MSE results by 100
+> #mean_mse_results <- mean_mse_results * 100
+> 
+> # Print mean MSE results
+> cat("Mean RMSE Results:\n")
+Mean RMSE Results:
+> print(mean_rmse_results)
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot  VARX_forwp 
+ 0.04564164  0.03613739  0.04673350  0.03611328  0.05880349  0.03603792  0.04510007  0.03595528  0.04561184  0.03603312 
+  BVAR_spot  BVAR_forwp 
+        NaN         NaN 
+> 
+> # Print mean MAE results
+> cat("Mean MAE Results:\n")
+Mean MAE Results:
+> print(mean_mae_results)
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot  VARX_forwp 
+ 0.04564164  0.03613739  0.04673350  0.03611328  0.05880349  0.03603792  0.04510007  0.03595528  0.04561184  0.03603312 
+  BVAR_spot  BVAR_forwp 
+        NaN         NaN 
+> 
+> # Print Theil results
+> cat("Mean Theil results")
+Mean Theil results> print(mean_theil_results)
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot  VARX_forwp 
+0.002397245 0.001850980 0.002453996 0.001849140 0.003090058 0.001843857 0.002367472 0.001841679 0.002395494 0.001845563 
+  BVAR_spot  BVAR_forwp 
+        NaN         NaN 
+> 
+> # Print mean MAPE results
+> cat("Mean MAPE Results:\n")
+Mean MAPE Results:
+> print(mean_mape_results)
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot  VARX_forwp 
+  0.4791825   0.3712535   0.4905901   0.3708863   0.6174493   0.3698529   0.4733213   0.3693830   0.4788405   0.3701876 
+  BVAR_spot  BVAR_forwp 
+        NaN         NaN 
+> 
+> rmse_reduction_from_rw <- list(
++   VAR_spot = numeric(),
++   VAR_forwp = numeric(),
++   ARIMA_spot = numeric(),
++   ARIMA_forwp = numeric(),
++   RW_spot = numeric(),
++   RW_forwp = numeric(),
++   VECM_spot = numeric(),
++   VECM_forwp = numeric(),
++   VARX_spot = numeric(),
++   VARX_forwp = numeric()
++   #BVAR_spot = numeric(),
++   #BVAR_forwp = numeric()
++ )
+> 
+> # Iterate through each model name in the mean_rmse_results list
+> for(model_name in names(mean_rmse_results)) {
++   # Exclude RW models themselves
++   if(model_name != "RW_spot" && model_name != "RW_forwp") {
++     # Determine whether to compare against RW_spot or RW_forwp based on the model name
++     rw_baseline <- if(grepl("spot", model_name)) {
++       "RW_spot"
++     } else if(grepl("forwp", model_name)) {
++       "RW_forwp"
++     } else {
++       stop("Model name does not specify whether it's spot or forwp")
++     }
++     
++     # Calculate % RMSE Reduction from the appropriate RW model
++     rmse_reduction_from_rw[[model_name]] <- (1 - mean_rmse_results[[model_name]] / mean_rmse_results[[rw_baseline]]) * 100
++   }
++ }
+> 
+> # Print results
+> cat("RW redecution:\n")
+RW redecution:
+> print(rmse_reduction_from_rw)
+$VAR_spot
+[1] 22.38277
+
+$VAR_forwp
+[1] -0.2760157
+
+$ARIMA_spot
+[1] 20.52597
+
+$ARIMA_forwp
+[1] -0.2091371
+
+$RW_spot
+numeric(0)
+
+$RW_forwp
+numeric(0)
+
+$VECM_spot
+[1] 23.30375
+
+$VECM_forwp
+[1] 0.2293145
+
+$VARX_spot
+[1] 22.43345
+
+$VARX_forwp
+[1] 0.01329821
+
+$BVAR_spot
+[1] NaN
+
+$BVAR_forwp
+[1] NaN
+
+> 
+> 
+> # Initialize lists to store aggregated forecasts and actual values
+> aggregated_forecasts <- list()
+> aggregated_actuals <- list(spot = unlist(lapply(actual_values_list, `[[`, "spot")),
++                            forwp = unlist(lapply(actual_values_list, `[[`, "forwp")))
+> 
+> # Aggregate forecasts for each model
+> models <- c("VAR", "ARIMA", "VECM", "VARX", "RW")
+> for(model in models) {
++   aggregated_forecasts[[model]] <- list(
++     spot = unlist(lapply(forecasted_values, function(x) x[[model]][["spot"]])),
++     forwp = unlist(lapply(forecasted_values, function(x) x[[model]][["forwp"]]))
++   )
++ }
+> 
+> # Perform DM test for each model against RW
+> dm_test_results <- list()
+> for(model in models) {
++   if(model != "RW") { # Exclude RW since it's our baseline
++     for(market in c("spot", "forwp")) {
++       forecast1 <- aggregated_forecasts[[model]][[market]]
++       forecast2 <- aggregated_forecasts[["RW"]][[market]]
++       actual <- aggregated_actuals[[market]]
++       
++       # Calculate errors for DM test
++       errors1 <- forecast1 - actual
++       errors2 <- forecast2 - actual
++       
++       # Perform DM test and store results
++       dm_test_results[[paste(model, market, "vs_RW", market, sep = "_")]] <- dm.test(errors1, errors2)
++     }
++   }
++ }
+> 
+> # Print DM test results
+> cat("Diebold-Mariano Test Results (Statistic and P-Value):\n")
+Diebold-Mariano Test Results (Statistic and P-Value):
+> for(result in names(dm_test_results)) {
++   cat(result, ": Statistic =", dm_test_results[[result]]$statistic, 
++       ", P-Value =", dm_test_results[[result]]$p.value, "\n")
++ }
+VAR_spot_vs_RW_spot : Statistic = -6.319549 , P-Value = 4.142042e-10 
+VAR_forwp_vs_RW_forwp : Statistic = 0.1361416 , P-Value = 0.8917401 
+ARIMA_spot_vs_RW_spot : Statistic = -5.959696 , P-Value = 3.638625e-09 
+ARIMA_forwp_vs_RW_forwp : Statistic = 0.3013962 , P-Value = 0.7631828 
+VECM_spot_vs_RW_spot : Statistic = -6.316616 , P-Value = 4.217938e-10 
+VECM_forwp_vs_RW_forwp : Statistic = -0.207337 , P-Value = 0.8357941 
+VARX_spot_vs_RW_spot : Statistic = -6.333893 , P-Value = 3.789646e-10 
+VARX_forwp_vs_RW_forwp : Statistic = -0.08300614 , P-Value = 0.9338653 
