@@ -646,21 +646,7 @@ $BVAR_spot
 $BVAR_forwp
 [1] 54.22535
 
-> 
-> 
-> 
-> # Calculate mean MSE for each model
-> mean_rmse_results <- sapply(rmse_results, mean)
-> mean_mae_results <- sapply(mae_results, mean)
-> mean_theil_results <- sapply(theil_results, mean)
-> mean_mape_results <- sapply(mape_results, mean)
-> # Now multiply all mean MSE results by 100
-> #mean_mse_results <- mean_mse_results * 100
-> 
-> # Print mean MSE results
-> cat("Mean RMSE Results:\n")
-Mean RMSE Results:
-> print(mean_rmse_results)
+
    VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot 
  0.04481473  0.06109528  0.04827947  0.06073976  0.05959801  0.06108853  0.04447908  0.06076414  0.04474105 
  VARX_forwp   BVAR_spot  BVAR_forwp 

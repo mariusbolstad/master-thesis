@@ -13,8 +13,8 @@
 #install.packages("MTS")
 #install.packages("BVAR")
 
-#getwd()
-#setwd("./VSCode/master-thesis")
+getwd()
+setwd("./VSCode/master-thesis")
 library(readr)  # For reading CSV files
 library(dplyr)  # For data manipulation
 library(lubridate)  # For date parsing
