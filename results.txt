@@ -69,3 +69,1129 @@ Mean for RW_forwp: 0.32988766264063507
 
 
 
+
+
+
+FITTING VARX MODEL:
+
+CSZ:
+
+VAR Estimation Results:
+========================= 
+Endogenous variables: spot, forwp 
+Deterministic variables: both 
+Sample size: 1775 
+Log Likelihood: 5260.86 
+Roots of the characteristic polynomial:
+0.9759 0.8042 0.7922 0.7922 0.6704 0.6704 0.6282 0.6282 0.5902 0.5897 0.5897 0.508 0.508 0.1803
+Call:
+vars::VAR(y = train_lev_ts, p = lag_order, type = "both", exogen = exog_lev_ts)
+
+
+Estimation results for equation spot: 
+===================================== 
+spot = spot.l1 + forwp.l1 + spot.l2 + forwp.l2 + spot.l3 + forwp.l3 + spot.l4 + forwp.l4 + spot.l5 + forwp.l5 + spot.l6 + forwp.l6 + spot.l7 + forwp.l7 + const + trend + ind_prod + hsz_dev + hmx_dev + pmx_dev + csz_dev + eur_usd 
+
+           Estimate Std. Error t value Pr(>|t|)    
+spot.l1   1.596e+00  2.695e-02  59.213  < 2e-16 ***
+forwp.l1  1.452e-01  1.744e-02   8.326  < 2e-16 ***
+spot.l2  -7.916e-01  4.939e-02 -16.028  < 2e-16 ***
+forwp.l2 -8.306e-02  2.315e-02  -3.589 0.000341 ***
+spot.l3   2.258e-01  5.315e-02   4.248 2.27e-05 ***
+forwp.l3 -1.781e-02  2.317e-02  -0.768 0.442295    
+spot.l4  -1.156e-01  5.352e-02  -2.159 0.030952 *  
+forwp.l4  2.226e-02  2.319e-02   0.960 0.337404    
+spot.l5   3.623e-02  5.350e-02   0.677 0.498327    
+forwp.l5 -6.885e-03  2.316e-02  -0.297 0.766282    
+spot.l6   6.126e-02  4.864e-02   1.260 0.207989    
+forwp.l6 -1.910e-02  2.281e-02  -0.837 0.402639    
+spot.l7  -6.713e-02  2.558e-02  -2.624 0.008755 ** 
+forwp.l7  1.004e-02  1.680e-02   0.598 0.550169    
+const     9.103e-01  3.301e+00   0.276 0.782725    
+trend     9.006e-06  3.391e-05   0.266 0.790598    
+ind_prod  3.534e-03  4.296e-02   0.082 0.934450    
+hsz_dev  -4.054e-02  3.952e-01  -0.103 0.918303    
+hmx_dev   1.928e-02  2.014e-01   0.096 0.923736    
+pmx_dev   1.527e-01  1.531e-01   0.998 0.318546    
+csz_dev  -2.659e-01  2.140e-01  -1.243 0.214212    
+eur_usd   5.637e-02  3.584e-02   1.573 0.115974    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+Residual standard error: 0.0473 on 1753 degrees of freedom
+Multiple R-Squared: 0.9958,	Adjusted R-squared: 0.9958 
+F-statistic: 1.984e+04 on 21 and 1753 DF,  p-value: < 2.2e-16 
+
+
+Estimation results for equation forwp: 
+====================================== 
+forwp = spot.l1 + forwp.l1 + spot.l2 + forwp.l2 + spot.l3 + forwp.l3 + spot.l4 + forwp.l4 + spot.l5 + forwp.l5 + spot.l6 + forwp.l6 + spot.l7 + forwp.l7 + const + trend + ind_prod + hsz_dev + hmx_dev + pmx_dev + csz_dev + eur_usd 
+
+           Estimate Std. Error t value Pr(>|t|)    
+spot.l1   2.148e-01  4.168e-02   5.153 2.85e-07 ***
+forwp.l1  9.546e-01  2.697e-02  35.397  < 2e-16 ***
+spot.l2  -2.597e-01  7.637e-02  -3.400 0.000690 ***
+forwp.l2 -2.515e-02  3.579e-02  -0.703 0.482285    
+spot.l3   3.024e-01  8.219e-02   3.679 0.000242 ***
+forwp.l3 -9.633e-02  3.583e-02  -2.688 0.007249 ** 
+spot.l4  -2.720e-01  8.277e-02  -3.286 0.001037 ** 
+forwp.l4  2.451e-02  3.587e-02   0.683 0.494487    
+spot.l5   2.054e-01  8.272e-02   2.483 0.013115 *  
+forwp.l5  2.056e-02  3.581e-02   0.574 0.565990    
+spot.l6  -7.661e-02  7.521e-02  -1.019 0.308538    
+forwp.l6 -3.922e-02  3.527e-02  -1.112 0.266300    
+spot.l7   4.237e-02  3.956e-02   1.071 0.284242    
+forwp.l7 -1.876e-02  2.598e-02  -0.722 0.470295    
+const     3.691e+00  5.104e+00   0.723 0.469638    
+trend     3.001e-05  5.244e-05   0.572 0.567225    
+ind_prod  4.424e-02  6.644e-02   0.666 0.505550    
+hsz_dev  -6.981e-01  6.112e-01  -1.142 0.253521    
+hmx_dev   3.791e-02  3.115e-01   0.122 0.903124    
+pmx_dev   4.944e-02  2.367e-01   0.209 0.834579    
+csz_dev   1.750e-01  3.309e-01   0.529 0.596909    
+eur_usd   3.674e-02  5.543e-02   0.663 0.507533    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+Residual standard error: 0.07315 on 1753 degrees of freedom
+Multiple R-Squared: 0.9888,	Adjusted R-squared: 0.9887 
+F-statistic:  7383 on 21 and 1753 DF,  p-value: < 2.2e-16 
+
+
+
+Covariance matrix of residuals:
+          spot    forwp
+spot  0.002238 0.001615
+forwp 0.001615 0.005351
+
+Correlation matrix of residuals:
+        spot  forwp
+spot  1.0000 0.4668
+forwp 0.4668 1.0000
+
+
+
+
+FLEET DEV
+
+VAR Estimation Results:
+========================= 
+Endogenous variables: spot, forwp 
+Deterministic variables: both 
+Sample size: 3581 
+Log Likelihood: 11260.97 
+Roots of the characteristic polynomial:
+0.9783 0.8749 0.7787 0.7787 0.7439 0.7429 0.7429 0.7429 0.7429 0.7329 0.7329 0.7309 0.7309 0.6655 0.6622 0.6622 0.659 0.659 0.6302 0.6302
+Call:
+vars::VAR(y = train_lev_ts, p = lag_order, type = "both", exogen = exog_lev_ts)
+
+
+Estimation results for equation spot: 
+===================================== 
+spot = spot.l1 + forwp.l1 + spot.l2 + forwp.l2 + spot.l3 + forwp.l3 + spot.l4 + forwp.l4 + spot.l5 + forwp.l5 + spot.l6 + forwp.l6 + spot.l7 + forwp.l7 + spot.l8 + forwp.l8 + spot.l9 + forwp.l9 + spot.l10 + forwp.l10 + const + trend + csz_dev 
+
+            Estimate Std. Error t value Pr(>|t|)    
+spot.l1    1.630e+00  1.852e-02  87.997  < 2e-16 ***
+forwp.l1   1.275e-01  1.112e-02  11.473  < 2e-16 ***
+spot.l2   -7.757e-01  3.451e-02 -22.480  < 2e-16 ***
+forwp.l2  -6.349e-02  1.497e-02  -4.240 2.29e-05 ***
+spot.l3    1.162e-01  3.698e-02   3.141  0.00170 ** 
+forwp.l3  -1.697e-02  1.501e-02  -1.131  0.25825    
+spot.l4   -2.863e-03  3.706e-02  -0.077  0.93842    
+forwp.l4   2.448e-02  1.501e-02   1.631  0.10302    
+spot.l5   -7.539e-03  3.709e-02  -0.203  0.83896    
+forwp.l5  -2.054e-02  1.506e-02  -1.364  0.17275    
+spot.l6    1.154e-02  3.712e-02   0.311  0.75598    
+forwp.l6   3.759e-03  1.510e-02   0.249  0.80337    
+spot.l7   -3.214e-03  3.712e-02  -0.087  0.93101    
+forwp.l7   6.961e-03  1.509e-02   0.461  0.64460    
+spot.l8   -1.377e-02  3.709e-02  -0.371  0.71053    
+forwp.l8   5.597e-03  1.508e-02   0.371  0.71059    
+spot.l9    5.003e-02  3.413e-02   1.466  0.14277    
+forwp.l9  -3.632e-02  1.494e-02  -2.430  0.01513 *  
+spot.l10  -5.629e-02  1.780e-02  -3.162  0.00158 ** 
+forwp.l10  1.789e-02  1.079e-02   1.658  0.09744 .  
+const      1.370e-01  5.493e-02   2.494  0.01266 *  
+trend      3.335e-06  1.928e-06   1.730  0.08378 .  
+csz_dev   -1.640e-02  7.061e-03  -2.323  0.02025 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+Residual standard error: 0.04105 on 3558 degrees of freedom
+Multiple R-Squared: 0.9985,	Adjusted R-squared: 0.9985 
+F-statistic: 1.057e+05 on 22 and 3558 DF,  p-value: < 2.2e-16 
+
+
+Estimation results for equation forwp: 
+====================================== 
+forwp = spot.l1 + forwp.l1 + spot.l2 + forwp.l2 + spot.l3 + forwp.l3 + spot.l4 + forwp.l4 + spot.l5 + forwp.l5 + spot.l6 + forwp.l6 + spot.l7 + forwp.l7 + spot.l8 + forwp.l8 + spot.l9 + forwp.l9 + spot.l10 + forwp.l10 + const + trend + csz_dev 
+
+            Estimate Std. Error t value Pr(>|t|)    
+spot.l1    2.507e-01  3.090e-02   8.112 6.80e-16 ***
+forwp.l1   9.741e-01  1.855e-02  52.526  < 2e-16 ***
+spot.l2   -2.877e-01  5.757e-02  -4.997 6.10e-07 ***
+forwp.l2  -6.949e-02  2.498e-02  -2.782 0.005437 ** 
+spot.l3    2.143e-01  6.170e-02   3.474 0.000519 ***
+forwp.l3  -3.557e-02  2.504e-02  -1.420 0.155638    
+spot.l4   -1.477e-01  6.183e-02  -2.388 0.016975 *  
+forwp.l4   2.700e-02  2.505e-02   1.078 0.281067    
+spot.l5    1.100e-01  6.189e-02   1.778 0.075534 .  
+forwp.l5  -1.886e-02  2.513e-02  -0.751 0.452908    
+spot.l6   -5.520e-02  6.194e-02  -0.891 0.372890    
+forwp.l6   3.555e-03  2.519e-02   0.141 0.887778    
+spot.l7    3.501e-02  6.193e-02   0.565 0.571935    
+forwp.l7  -9.038e-03  2.517e-02  -0.359 0.719610    
+spot.l8    1.131e-01  6.188e-02   1.828 0.067561 .  
+forwp.l8  -2.868e-02  2.516e-02  -1.140 0.254462    
+spot.l9   -1.331e-01  5.694e-02  -2.337 0.019500 *  
+forwp.l9  -8.492e-03  2.493e-02  -0.341 0.733444    
+spot.l10   3.125e-02  2.970e-02   1.052 0.292813    
+forwp.l10  2.024e-02  1.800e-02   1.124 0.261050    
+const      4.728e-01  9.164e-02   5.159 2.62e-07 ***
+trend      6.249e-06  3.217e-06   1.942 0.052182 .  
+csz_dev   -4.733e-02  1.178e-02  -4.018 5.99e-05 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+Residual standard error: 0.06849 on 3558 degrees of freedom
+Multiple R-Squared: 0.9954,	Adjusted R-squared: 0.9954 
+F-statistic: 3.498e+04 on 22 and 3558 DF,  p-value: < 2.2e-16 
+
+
+
+Covariance matrix of residuals:
+          spot    forwp
+spot  0.001685 0.001208
+forwp 0.001208 0.004691
+
+Correlation matrix of residuals:
+        spot  forwp
+spot  1.0000 0.4298
+forwp 0.4298 1.0000
+
+
+FLEET DEV + USDEUR DIFF
+
+VAR Estimation Results:
+========================= 
+Endogenous variables: spot, forwp 
+Deterministic variables: both 
+Sample size: 3580 
+Log Likelihood: 11096.317 
+Roots of the characteristic polynomial:
+0.836 0.836 0.8297 0.7589 0.7589 0.7478 0.7478 0.7239 0.7239 0.7087 0.7087 0.7049 0.7049 0.6727 0.6727 0.6402 0.6402 0.5666 0.5666 0.4897
+Call:
+vars::VAR(y = train_diff_ts, p = lag_order, type = "both", exogen = exog_diff_ts)
+
+
+Estimation results for equation spot: 
+===================================== 
+spot = spot.l1 + forwp.l1 + spot.l2 + forwp.l2 + spot.l3 + forwp.l3 + spot.l4 + forwp.l4 + spot.l5 + forwp.l5 + spot.l6 + forwp.l6 + spot.l7 + forwp.l7 + spot.l8 + forwp.l8 + spot.l9 + forwp.l9 + spot.l10 + forwp.l10 + const + trend + csz_dev + eur_usd 
+
+            Estimate Std. Error t value Pr(>|t|)    
+spot.l1    6.660e-01  1.827e-02  36.451  < 2e-16 ***
+forwp.l1   1.078e-01  1.086e-02   9.924  < 2e-16 ***
+spot.l2   -1.296e-01  2.160e-02  -6.001 2.15e-09 ***
+forwp.l2   3.960e-02  1.100e-02   3.600 0.000323 ***
+spot.l3   -9.507e-03  2.167e-02  -0.439 0.660926    
+forwp.l3   1.805e-02  1.097e-02   1.645 0.100008    
+spot.l4   -7.230e-03  2.172e-02  -0.333 0.739319    
+forwp.l4   3.855e-02  1.094e-02   3.524 0.000431 ***
+spot.l5   -1.639e-02  2.174e-02  -0.754 0.450762    
+forwp.l5   1.507e-02  1.100e-02   1.370 0.170717    
+spot.l6   -8.383e-04  2.176e-02  -0.039 0.969266    
+forwp.l6   1.665e-02  1.097e-02   1.518 0.129063    
+spot.l7   -3.014e-03  2.173e-02  -0.139 0.889681    
+forwp.l7   2.079e-02  1.096e-02   1.898 0.057821 .  
+spot.l8   -1.311e-02  2.173e-02  -0.603 0.546285    
+forwp.l8   2.334e-02  1.091e-02   2.139 0.032516 *  
+spot.l9    3.118e-02  2.168e-02   1.438 0.150593    
+forwp.l9  -1.396e-02  1.092e-02  -1.279 0.201066    
+spot.l10  -2.355e-02  1.730e-02  -1.362 0.173412    
+forwp.l10  5.451e-03  1.081e-02   0.504 0.614243    
+const      1.101e-03  1.671e-03   0.659 0.510170    
+trend     -1.597e-07  7.135e-07  -0.224 0.822877    
+csz_dev   -2.912e+00  1.739e+00  -1.675 0.094026 .  
+eur_usd    2.499e-02  9.006e-02   0.278 0.781407    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+Residual standard error: 0.04152 on 3556 degrees of freedom
+Multiple R-Squared: 0.4736,	Adjusted R-squared: 0.4702 
+F-statistic: 139.1 on 23 and 3556 DF,  p-value: < 2.2e-16 
+
+
+Estimation results for equation forwp: 
+====================================== 
+forwp = spot.l1 + forwp.l1 + spot.l2 + forwp.l2 + spot.l3 + forwp.l3 + spot.l4 + forwp.l4 + spot.l5 + forwp.l5 + spot.l6 + forwp.l6 + spot.l7 + forwp.l7 + spot.l8 + forwp.l8 + spot.l9 + forwp.l9 + spot.l10 + forwp.l10 + const + trend + csz_dev + eur_usd 
+
+            Estimate Std. Error t value Pr(>|t|)    
+spot.l1    1.803e-01  3.070e-02   5.874 4.65e-09 ***
+forwp.l1   3.189e-02  1.824e-02   1.748 0.080560 .  
+spot.l2   -7.261e-02  3.629e-02  -2.001 0.045493 *  
+forwp.l2  -2.746e-02  1.848e-02  -1.485 0.137502    
+spot.l3    1.313e-01  3.641e-02   3.606 0.000316 ***
+forwp.l3  -5.307e-02  1.843e-02  -2.880 0.004005 ** 
+spot.l4   -1.948e-02  3.650e-02  -0.534 0.593615    
+forwp.l4  -1.932e-02  1.838e-02  -1.051 0.293379    
+spot.l5    8.334e-02  3.652e-02   2.282 0.022547 *  
+forwp.l5  -2.855e-02  1.848e-02  -1.545 0.122434    
+spot.l6    2.169e-02  3.655e-02   0.593 0.552963    
+forwp.l6  -1.783e-02  1.842e-02  -0.968 0.333190    
+spot.l7    5.054e-02  3.651e-02   1.384 0.166372    
+forwp.l7  -2.105e-02  1.841e-02  -1.143 0.252922    
+spot.l8    1.559e-01  3.651e-02   4.270 2.00e-05 ***
+forwp.l8  -4.197e-02  1.833e-02  -2.289 0.022135 *  
+spot.l9    5.586e-02  3.644e-02   1.533 0.125305    
+forwp.l9  -4.792e-02  1.835e-02  -2.612 0.009033 ** 
+spot.l10   3.325e-02  2.906e-02   1.144 0.252762    
+forwp.l10 -3.793e-02  1.817e-02  -2.087 0.036915 *  
+const      1.405e-03  2.808e-03   0.501 0.616751    
+trend     -2.056e-07  1.199e-06  -0.171 0.863876    
+csz_dev   -3.909e+00  2.921e+00  -1.338 0.180956    
+eur_usd    4.651e-01  1.513e-01   3.073 0.002132 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+Residual standard error: 0.06977 on 3556 degrees of freedom
+Multiple R-Squared: 0.06389,	Adjusted R-squared: 0.05784 
+F-statistic: 10.55 on 23 and 3556 DF,  p-value: < 2.2e-16 
+
+
+
+Covariance matrix of residuals:
+          spot    forwp
+spot  0.001724 0.001155
+forwp 0.001155 0.004867
+
+Correlation matrix of residuals:
+        spot  forwp
+spot  1.0000 0.3987
+forwp 0.3987 1.0000
+
+
+
+
+INDPROD+EURUSD+FLEET
+
+VAR Estimation Results:
+========================= 
+Endogenous variables: spot, forwp 
+Deterministic variables: both 
+Sample size: 3543 
+Log Likelihood: 11050.875 
+Roots of the characteristic polynomial:
+0.8331 0.8331 0.8119 0.753 0.753 0.752 0.752 0.7264 0.7264 0.7161 0.7161 0.7033 0.7033 0.656 0.656 0.6449 0.6449 0.5486 0.5405 0.5405
+Call:
+vars::VAR(y = train_diff_ts, p = lag_order, type = "both", exogen = exog_diff_ts)
+
+
+Estimation results for equation spot: 
+===================================== 
+spot = spot.l1 + forwp.l1 + spot.l2 + forwp.l2 + spot.l3 + forwp.l3 + spot.l4 + forwp.l4 + spot.l5 + forwp.l5 + spot.l6 + forwp.l6 + spot.l7 + forwp.l7 + spot.l8 + forwp.l8 + spot.l9 + forwp.l9 + spot.l10 + forwp.l10 + const + trend + ind_prod + csz_dev + eur_usd 
+
+            Estimate Std. Error t value Pr(>|t|)    
+spot.l1    6.591e-01  1.839e-02  35.850  < 2e-16 ***
+forwp.l1   1.074e-01  1.081e-02   9.934  < 2e-16 ***
+spot.l2   -1.167e-01  2.167e-02  -5.386 7.66e-08 ***
+forwp.l2   3.660e-02  1.096e-02   3.341 0.000845 ***
+spot.l3   -9.275e-03  2.174e-02  -0.427 0.669726    
+forwp.l3   1.450e-02  1.093e-02   1.327 0.184638    
+spot.l4   -7.459e-03  2.183e-02  -0.342 0.732574    
+forwp.l4   3.690e-02  1.091e-02   3.383 0.000726 ***
+spot.l5   -1.560e-02  2.183e-02  -0.715 0.474807    
+forwp.l5   1.388e-02  1.090e-02   1.274 0.202923    
+spot.l6    8.296e-03  2.184e-02   0.380 0.704098    
+forwp.l6   1.743e-02  1.086e-02   1.604 0.108840    
+spot.l7   -5.307e-03  2.182e-02  -0.243 0.807898    
+forwp.l7   2.091e-02  1.086e-02   1.926 0.054196 .  
+spot.l8   -1.465e-02  2.186e-02  -0.670 0.502837    
+forwp.l8   1.850e-02  1.081e-02   1.711 0.087149 .  
+spot.l9    2.531e-02  2.177e-02   1.163 0.245091    
+forwp.l9  -1.435e-02  1.082e-02  -1.326 0.184800    
+spot.l10  -2.775e-02  1.747e-02  -1.588 0.112314    
+forwp.l10  8.134e-03  1.072e-02   0.759 0.448047    
+const      1.806e-03  1.657e-03   1.090 0.275737    
+trend     -7.681e-07  7.153e-07  -1.074 0.282995    
+ind_prod  -1.504e+00  6.601e-01  -2.278 0.022759 *  
+csz_dev   -2.802e+00  1.720e+00  -1.629 0.103399    
+eur_usd    1.731e-02  8.893e-02   0.195 0.845655    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+Residual standard error: 0.04092 on 3518 degrees of freedom
+Multiple R-Squared: 0.4701,	Adjusted R-squared: 0.4665 
+F-statistic:   130 on 24 and 3518 DF,  p-value: < 2.2e-16 
+
+
+Estimation results for equation forwp: 
+====================================== 
+forwp = spot.l1 + forwp.l1 + spot.l2 + forwp.l2 + spot.l3 + forwp.l3 + spot.l4 + forwp.l4 + spot.l5 + forwp.l5 + spot.l6 + forwp.l6 + spot.l7 + forwp.l7 + spot.l8 + forwp.l8 + spot.l9 + forwp.l9 + spot.l10 + forwp.l10 + const + trend + ind_prod + csz_dev + eur_usd 
+
+            Estimate Std. Error t value Pr(>|t|)    
+spot.l1    1.803e-01  3.121e-02   5.779 8.18e-09 ***
+forwp.l1   3.099e-02  1.835e-02   1.689 0.091253 .  
+spot.l2   -6.813e-02  3.678e-02  -1.853 0.064022 .  
+forwp.l2  -3.228e-02  1.859e-02  -1.736 0.082650 .  
+spot.l3    1.329e-01  3.691e-02   3.600 0.000323 ***
+forwp.l3  -5.584e-02  1.855e-02  -3.011 0.002625 ** 
+spot.l4   -1.947e-02  3.705e-02  -0.525 0.599304    
+forwp.l4  -2.106e-02  1.851e-02  -1.138 0.255319    
+spot.l5    8.646e-02  3.705e-02   2.334 0.019675 *  
+forwp.l5  -3.093e-02  1.850e-02  -1.672 0.094618 .  
+spot.l6    2.993e-02  3.707e-02   0.807 0.419546    
+forwp.l6  -1.821e-02  1.844e-02  -0.987 0.323504    
+spot.l7    5.750e-02  3.704e-02   1.552 0.120653    
+forwp.l7  -2.362e-02  1.842e-02  -1.282 0.199971    
+spot.l8    1.428e-01  3.710e-02   3.850 0.000120 ***
+forwp.l8  -4.384e-02  1.835e-02  -2.388 0.016979 *  
+spot.l9    4.432e-02  3.696e-02   1.199 0.230495    
+forwp.l9  -4.414e-02  1.837e-02  -2.403 0.016297 *  
+spot.l10   4.007e-02  2.965e-02   1.351 0.176640    
+forwp.l10 -3.674e-02  1.820e-02  -2.019 0.043570 *  
+const      2.152e-03  2.812e-03   0.765 0.444115    
+trend     -8.412e-07  1.214e-06  -0.693 0.488434    
+ind_prod  -4.544e-01  1.120e+00  -0.406 0.685118    
+csz_dev   -3.856e+00  2.919e+00  -1.321 0.186580    
+eur_usd    4.521e-01  1.509e-01   2.995 0.002762 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+Residual standard error: 0.06945 on 3518 degrees of freedom
+Multiple R-Squared: 0.06053,	Adjusted R-squared: 0.05412 
+F-statistic: 9.444 on 24 and 3518 DF,  p-value: < 2.2e-16 
+
+
+
+Covariance matrix of residuals:
+          spot    forwp
+spot  0.001674 0.001132
+forwp 0.001132 0.004823
+
+Correlation matrix of residuals:
+        spot  forwp
+spot  1.0000 0.3984
+forwp 0.3984 1.0000
+
+
+
+
+INDPROD+EURUSD+CSZ FLEET+IRON+COAL
+
+VAR Estimation Results:
+========================= 
+Endogenous variables: spot, forwp 
+Deterministic variables: both 
+Sample size: 1771 
+Log Likelihood: 5939.567 
+Roots of the characteristic polynomial:
+0.8392 0.8392 0.8283 0.8234 0.8234 0.7823 0.7823 0.773 0.773 0.7597 0.7597 0.7559 0.7559 0.7402 0.7402 0.6749 0.6672 0.6672 0.5115 0.1596
+Call:
+vars::VAR(y = train_diff_ts, p = lag_order, type = "both", exogen = exog_diff_ts)
+
+
+Estimation results for equation spot: 
+===================================== 
+spot = spot.l1 + forwp.l1 + spot.l2 + forwp.l2 + spot.l3 + forwp.l3 + spot.l4 + forwp.l4 + spot.l5 + forwp.l5 + spot.l6 + forwp.l6 + spot.l7 + forwp.l7 + spot.l8 + forwp.l8 + spot.l9 + forwp.l9 + spot.l10 + forwp.l10 + const + trend + ind_prod + csz_dev + eur_usd + iron + coal 
+
+            Estimate Std. Error t value Pr(>|t|)    
+spot.l1    7.414e-01  2.575e-02  28.788  < 2e-16 ***
+forwp.l1   8.881e-02  1.376e-02   6.454 1.41e-10 ***
+spot.l2   -1.335e-01  3.149e-02  -4.241 2.34e-05 ***
+forwp.l2   4.848e-02  1.393e-02   3.480 0.000514 ***
+spot.l3   -5.910e-02  3.159e-02  -1.871 0.061486 .  
+forwp.l3   2.120e-02  1.394e-02   1.521 0.128543    
+spot.l4    4.651e-02  3.163e-02   1.471 0.141595    
+forwp.l4   2.647e-02  1.392e-02   1.901 0.057407 .  
+spot.l5   -2.170e-02  3.162e-02  -0.686 0.492530    
+forwp.l5   1.213e-02  1.391e-02   0.872 0.383260    
+spot.l6   -4.254e-02  3.166e-02  -1.344 0.179241    
+forwp.l6   2.633e-02  1.394e-02   1.889 0.059002 .  
+spot.l7    3.277e-02  3.177e-02   1.032 0.302365    
+forwp.l7   1.282e-02  1.395e-02   0.919 0.358118    
+spot.l8   -9.290e-03  3.159e-02  -0.294 0.768700    
+forwp.l8   3.119e-02  1.390e-02   2.245 0.024907 *  
+spot.l9    3.083e-02  3.146e-02   0.980 0.327348    
+forwp.l9  -2.861e-02  1.391e-02  -2.057 0.039799 *  
+spot.l10  -4.745e-02  2.436e-02  -1.948 0.051555 .  
+forwp.l10  2.639e-02  1.381e-02   1.911 0.056232 .  
+const      1.886e-04  1.665e-03   0.113 0.909842    
+trend     -8.389e-07  1.673e-06  -0.501 0.616148    
+ind_prod  -3.495e-01  5.723e-01  -0.611 0.541492    
+csz_dev    2.937e+00  4.235e+00   0.694 0.487982    
+eur_usd   -1.491e-01  1.466e-01  -1.017 0.309433    
+iron      -7.758e-02  1.185e-01  -0.655 0.512706    
+coal       9.858e-02  1.262e-01   0.781 0.434985    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+Residual standard error: 0.03465 on 1744 degrees of freedom
+Multiple R-Squared: 0.5463,	Adjusted R-squared: 0.5395 
+F-statistic: 80.76 on 26 and 1744 DF,  p-value: < 2.2e-16 
+
+
+Estimation results for equation forwp: 
+====================================== 
+forwp = spot.l1 + forwp.l1 + spot.l2 + forwp.l2 + spot.l3 + forwp.l3 + spot.l4 + forwp.l4 + spot.l5 + forwp.l5 + spot.l6 + forwp.l6 + spot.l7 + forwp.l7 + spot.l8 + forwp.l8 + spot.l9 + forwp.l9 + spot.l10 + forwp.l10 + const + trend + ind_prod + csz_dev + eur_usd + iron + coal 
+
+            Estimate Std. Error t value Pr(>|t|)    
+spot.l1    2.294e-01  4.813e-02   4.765 2.04e-06 ***
+forwp.l1   6.461e-02  2.572e-02   2.512  0.01208 *  
+spot.l2   -8.756e-02  5.885e-02  -1.488  0.13694    
+forwp.l2  -3.398e-02  2.604e-02  -1.305  0.19208    
+spot.l3    1.010e-01  5.903e-02   1.711  0.08718 .  
+forwp.l3  -5.126e-02  2.606e-02  -1.967  0.04933 *  
+spot.l4    2.621e-04  5.911e-02   0.004  0.99646    
+forwp.l4  -2.602e-03  2.601e-02  -0.100  0.92033    
+spot.l5    4.189e-02  5.909e-02   0.709  0.47844    
+forwp.l5  -3.710e-02  2.599e-02  -1.428  0.15360    
+spot.l6    5.944e-03  5.917e-02   0.100  0.91999    
+forwp.l6   9.711e-03  2.605e-02   0.373  0.70931    
+spot.l7    8.407e-02  5.937e-02   1.416  0.15698    
+forwp.l7  -2.524e-02  2.607e-02  -0.968  0.33306    
+spot.l8    1.651e-01  5.904e-02   2.797  0.00522 ** 
+forwp.l8  -4.216e-02  2.597e-02  -1.623  0.10470    
+spot.l9   -4.245e-02  5.880e-02  -0.722  0.47048    
+forwp.l9  -2.630e-02  2.600e-02  -1.012  0.31177    
+spot.l10   8.620e-02  4.553e-02   1.893  0.05846 .  
+forwp.l10 -6.144e-02  2.582e-02  -2.380  0.01742 *  
+const      8.476e-04  3.112e-03   0.272  0.78537    
+trend     -2.433e-06  3.127e-06  -0.778  0.43671    
+ind_prod  -1.596e+00  1.070e+00  -1.492  0.13577    
+csz_dev    7.845e+00  7.915e+00   0.991  0.32175    
+eur_usd   -2.267e-01  2.740e-01  -0.827  0.40829    
+iron       2.106e-01  2.214e-01   0.951  0.34164    
+coal      -1.072e-01  2.359e-01  -0.454  0.64976    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+Residual standard error: 0.06477 on 1744 degrees of freedom
+Multiple R-Squared: 0.07131,	Adjusted R-squared: 0.05747 
+F-statistic: 5.151 on 26 and 1744 DF,  p-value: 8.886e-16 
+
+
+
+Covariance matrix of residuals:
+           spot     forwp
+spot  0.0012010 0.0008484
+forwp 0.0008484 0.0041952
+
+Correlation matrix of residuals:
+       spot forwp
+spot  1.000 0.378
+forwp 0.378 1.000
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CSZ: 1 step ahead, all possible forecasts 80%train set:
+
+
+
+[1] "Average Direction Accuracy for Each Model (%):"
+> print(average_direction_accuracy)
+$VAR_spot
+[1] 75.91549
+
+$VAR_forwp
+[1] 54.3662
+
+$ARIMA_spot
+[1] 74.50704
+
+$ARIMA_forwp
+[1] 55.91549
+
+$RW_spot
+[1] 0.1408451
+
+$RW_forwp
+[1] 0
+
+$VECM_spot
+[1] 76.47887
+
+$VECM_forwp
+[1] 52.25352
+
+$VARX_spot
+[1] 76.61972
+
+$VARX_forwp
+[1] 54.3662
+
+$BVAR_spot
+[1] 75.77465
+
+$BVAR_forwp
+[1] 54.22535
+
+
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot 
+ 0.04481473  0.06109528  0.04827947  0.06073976  0.05959801  0.06108853  0.04447908  0.06076414  0.04474105 
+ VARX_forwp   BVAR_spot  BVAR_forwp 
+ 0.06101887  0.04484655  0.06085609 
+> 
+> # Print mean MAE results
+> cat("Mean MAE Results:\n")
+Mean MAE Results:
+> print(mean_mae_results)
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot 
+ 0.04481473  0.06109528  0.04827947  0.06073976  0.05959801  0.06108853  0.04447908  0.06076414  0.04474105 
+ VARX_forwp   BVAR_spot  BVAR_forwp 
+ 0.06101887  0.04484655  0.06085609 
+> 
+> # Print Theil results
+> cat("Mean Theil results")
+Mean Theil results> print(mean_theil_results)
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot 
+0.002347616 0.003109630 0.002525281 0.003090357 0.003115205 0.003107781 0.002327478 0.003092723 0.002343497 
+ VARX_forwp   BVAR_spot  BVAR_forwp 
+0.003105757 0.002349203 0.003097578 
+> 
+> # Print mean MAPE results
+> cat("Mean MAPE Results:\n")
+Mean MAPE Results:
+> print(mean_mape_results)
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot 
+  0.4694048   0.6216525   0.5048524   0.6177856   0.6224605   0.6212703   0.4655487   0.6182875   0.4686179 
+ VARX_forwp   BVAR_spot  BVAR_forwp 
+  0.6208735   0.4697258   0.6192018 
+> 
+> rmse_reduction_from_rw <- list(
++   VAR_spot = numeric(),
++   VAR_forwp = numeric(),
++   ARIMA_spot = numeric(),
++   ARIMA_forwp = numeric(),
++   RW_spot = numeric(),
++   RW_forwp = numeric(),
++   VECM_spot = numeric(),
++   VECM_forwp = numeric(),
++   VARX_spot = numeric(),
++   VARX_forwp = numeric(),
++   BVAR_spot = numeric(),
++   BVAR_forwp = numeric()
++ )
+> 
+> # Iterate through each model name in the mean_rmse_results list
+> for(model_name in names(mean_rmse_results)) {
++   # Exclude RW models themselves
++   if(model_name != "RW_spot" && model_name != "RW_forwp") {
++     # Determine whether to compare against RW_spot or RW_forwp based on the model name
++     rw_baseline <- if(grepl("spot", model_name)) {
++       "RW_spot"
++     } else if(grepl("forwp", model_name)) {
++       "RW_forwp"
++     } else {
++       stop("Model name does not specify whether it's spot or forwp")
++     }
++     
++     # Calculate % RMSE Reduction from the appropriate RW model
++     rmse_reduction_from_rw[[model_name]] <- (1 - mean_rmse_results[[model_name]] / mean_rmse_results[[rw_baseline]]) * 100
++   }
++ }
+> 
+> # Print results
+> cat("RW redecution:\n")
+RW redecution:
+> print(rmse_reduction_from_rw)
+$VAR_spot
+[1] 24.805
+
+$VAR_forwp
+[1] -0.01104809
+
+$ARIMA_spot
+[1] 18.99148
+
+$ARIMA_forwp
+[1] 0.5709219
+
+$RW_spot
+numeric(0)
+
+$RW_forwp
+numeric(0)
+
+$VECM_spot
+[1] 25.36818
+
+$VECM_forwp
+[1] 0.5310147
+
+$VARX_spot
+[1] 24.92862
+
+$VARX_forwp
+[1] 0.1140339
+
+$BVAR_spot
+[1] 24.7516
+
+$BVAR_forwp
+[1] 0.380485
+
+
+
+
+
+CSZ 1DAY CURMON, 887 F:
+
+> # Calculate the average direction accuracy for each model and market (spot and forwp)
+> average_direction_accuracy <- list()
+> for (model_name in names(direction_accuracy_results)) {
++   average_direction_accuracy[[model_name]] <- mean(direction_accuracy_results[[model_name]]) * 100
++ }
+> 
+> # Print the average direction accuracy for each model
+> print("Average Direction Accuracy for Each Model (%):")
+[1] "Average Direction Accuracy for Each Model (%):"
+> print(average_direction_accuracy)
+$VAR_spot
+[1] 75.22523
+
+$VAR_forwp
+[1] 59.12162
+
+$ARIMA_spot
+[1] 74.43694
+
+$ARIMA_forwp
+[1] 56.08108
+
+$RW_spot
+[1] 0.1126126
+
+$RW_forwp
+[1] 0.2252252
+
+$VECM_spot
+[1] 74.32432
+
+$VECM_forwp
+[1] 58.44595
+
+$VARX_spot
+[1] 75.22523
+
+$VARX_forwp
+[1] 58.44595
+
+$BVAR_spot
+[1] NaN
+
+$BVAR_forwp
+[1] NaN
+
+> 
+> 
+> 
+> # Calculate mean MSE for each model
+> mean_rmse_results <- sapply(rmse_results, mean)
+> mean_mae_results <- sapply(mae_results, mean)
+> mean_theil_results <- sapply(theil_results, mean)
+> mean_mape_results <- sapply(mape_results, mean)
+> # Now multiply all mean MSE results by 100
+> #mean_mse_results <- mean_mse_results * 100
+> 
+> # Print mean MSE results
+> cat("Mean RMSE Results:\n")
+Mean RMSE Results:
+> print(mean_rmse_results)
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot  VARX_forwp 
+ 0.04544231  0.04900162  0.04635757  0.04613655  0.05804799  0.04657795  0.04483631  0.05027806  0.04543640  0.04889956 
+  BVAR_spot  BVAR_forwp 
+        NaN         NaN 
+> 
+> # Print mean MAE results
+> cat("Mean MAE Results:\n")
+Mean MAE Results:
+> print(mean_mae_results)
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot  VARX_forwp 
+ 0.04544231  0.04900162  0.04635757  0.04613655  0.05804799  0.04657795  0.04483631  0.05027806  0.04543640  0.04889956 
+  BVAR_spot  BVAR_forwp 
+        NaN         NaN 
+> 
+> # Print Theil results
+> cat("Mean Theil results")
+Mean Theil results> print(mean_theil_results)
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot  VARX_forwp 
+0.002380388 0.002526357 0.002429244 0.002377570 0.003041292 0.002401326 0.002346002 0.002594787 0.002380196 0.002521014 
+  BVAR_spot  BVAR_forwp 
+        NaN         NaN 
+> 
+> # Print mean MAPE results
+> cat("Mean MAPE Results:\n")
+Mean MAPE Results:
+> print(mean_mape_results)
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot  VARX_forwp 
+  0.4757863   0.5049982   0.4855679   0.4752538   0.6074772   0.4800263   0.4690995   0.5183910   0.4757512   0.5039559 
+  BVAR_spot  BVAR_forwp 
+        NaN         NaN 
+> 
+> rmse_reduction_from_rw <- list(
++   VAR_spot = numeric(),
++   VAR_forwp = numeric(),
++   ARIMA_spot = numeric(),
++   ARIMA_forwp = numeric(),
++   RW_spot = numeric(),
++   RW_forwp = numeric(),
++   VECM_spot = numeric(),
++   VECM_forwp = numeric(),
++   VARX_spot = numeric(),
++   VARX_forwp = numeric()
++   #BVAR_spot = numeric(),
++   #BVAR_forwp = numeric()
++ )
+> 
+> # Iterate through each model name in the mean_rmse_results list
+> for(model_name in names(mean_rmse_results)) {
++   # Exclude RW models themselves
++   if(model_name != "RW_spot" && model_name != "RW_forwp") {
++     # Determine whether to compare against RW_spot or RW_forwp based on the model name
++     rw_baseline <- if(grepl("spot", model_name)) {
++       "RW_spot"
++     } else if(grepl("forwp", model_name)) {
++       "RW_forwp"
++     } else {
++       stop("Model name does not specify whether it's spot or forwp")
++     }
++     
++     # Calculate % RMSE Reduction from the appropriate RW model
++     rmse_reduction_from_rw[[model_name]] <- (1 - mean_rmse_results[[model_name]] / mean_rmse_results[[rw_baseline]]) * 100
++   }
++ }
+> 
+> # Print results
+> cat("RW redecution:\n")
+RW redecution:
+> print(rmse_reduction_from_rw)
+$VAR_spot
+[1] 21.71595
+
+$VAR_forwp
+[1] -5.203469
+
+$ARIMA_spot
+[1] 20.13923
+
+$ARIMA_forwp
+[1] 0.9476706
+
+$RW_spot
+numeric(0)
+
+$RW_forwp
+numeric(0)
+
+$VECM_spot
+[1] 22.75992
+
+$VECM_forwp
+[1] -7.943891
+
+$VARX_spot
+[1] 21.72614
+
+$VARX_forwp
+[1] -4.984353
+
+$BVAR_spot
+[1] NaN
+
+$BVAR_forwp
+[1] NaN
+
+> 
+> 
+> # Initialize lists to store aggregated forecasts and actual values
+> aggregated_forecasts <- list()
+> aggregated_actuals <- list(spot = unlist(lapply(actual_values_list, `[[`, "spot")),
++                            forwp = unlist(lapply(actual_values_list, `[[`, "forwp")))
+> 
+> # Aggregate forecasts for each model
+> models <- c("VAR", "ARIMA", "VECM", "VARX", "RW")
+> for(model in models) {
++   aggregated_forecasts[[model]] <- list(
++     spot = unlist(lapply(forecasted_values, function(x) x[[model]][["spot"]])),
++     forwp = unlist(lapply(forecasted_values, function(x) x[[model]][["forwp"]]))
++   )
++ }
+> 
+> # Perform DM test for each model against RW
+> dm_test_results <- list()
+> for(model in models) {
++   if(model != "RW") { # Exclude RW since it's our baseline
++     for(market in c("spot", "forwp")) {
++       forecast1 <- aggregated_forecasts[[model]][[market]]
++       forecast2 <- aggregated_forecasts[["RW"]][[market]]
++       actual <- aggregated_actuals[[market]]
++       
++       # Calculate errors for DM test
++       errors1 <- forecast1 - actual
++       errors2 <- forecast2 - actual
++       
++       # Perform DM test and store results
++       dm_test_results[[paste(model, market, "vs_RW", market, sep = "_")]] <- dm.test(errors1, errors2)
++     }
++   }
++ }
+> 
+> # Print DM test results
+> cat("Diebold-Mariano Test Results (Statistic and P-Value):\n")
+Diebold-Mariano Test Results (Statistic and P-Value):
+> for(result in names(dm_test_results)) {
++   cat(result, ": Statistic =", dm_test_results[[result]]$statistic, 
++       ", P-Value =", dm_test_results[[result]]$p.value, "\n")
++ }
+VAR_spot_vs_RW_spot : Statistic = -6.245653 , P-Value = 6.539736e-10 
+VAR_forwp_vs_RW_forwp : Statistic = -2.309605 , P-Value = 0.02113893 
+ARIMA_spot_vs_RW_spot : Statistic = -5.76595 , P-Value = 1.120602e-08 
+ARIMA_forwp_vs_RW_forwp : Statistic = -1.433661 , P-Value = 0.1520213 
+VECM_spot_vs_RW_spot : Statistic = -6.410895 , P-Value = 2.347992e-10 
+VECM_forwp_vs_RW_forwp : Statistic = -1.71478 , P-Value = 0.08673479 
+VARX_spot_vs_RW_spot : Statistic = -6.26055 , P-Value = 5.968563e-10 
+VARX_forwp_vs_RW_forwp : Statistic = -2.420354 , P-Value = 0.01570535 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CSZ 1DAY WITH 1Q:
+
+[1] "Average Direction Accuracy for Each Model (%):"
+> print(average_direction_accuracy)
+$VAR_spot
+[1] 75.19641
+
+$VAR_forwp
+[1] 56.56566
+
+$ARIMA_spot
+[1] 74.63524
+
+$ARIMA_forwp
+[1] 54.99439
+
+$RW_spot
+[1] 0.1122334
+
+$RW_forwp
+[1] 0.5611672
+
+$VECM_spot
+[1] 75.30864
+
+$VECM_forwp
+[1] 57.68799
+
+$VARX_spot
+[1] 75.42088
+
+$VARX_forwp
+[1] 56.11672
+
+$BVAR_spot
+[1] NaN
+
+$BVAR_forwp
+[1] NaN
+
+> 
+> 
+> 
+> # Calculate mean MSE for each model
+> mean_rmse_results <- sapply(rmse_results, mean)
+> mean_mae_results <- sapply(mae_results, mean)
+> mean_theil_results <- sapply(theil_results, mean)
+> mean_mape_results <- sapply(mape_results, mean)
+> # Now multiply all mean MSE results by 100
+> #mean_mse_results <- mean_mse_results * 100
+> 
+> # Print mean MSE results
+> cat("Mean RMSE Results:\n")
+Mean RMSE Results:
+> print(mean_rmse_results)
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot  VARX_forwp 
+ 0.04564164  0.03613739  0.04673350  0.03611328  0.05880349  0.03603792  0.04510007  0.03595528  0.04561184  0.03603312 
+  BVAR_spot  BVAR_forwp 
+        NaN         NaN 
+> 
+> # Print mean MAE results
+> cat("Mean MAE Results:\n")
+Mean MAE Results:
+> print(mean_mae_results)
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot  VARX_forwp 
+ 0.04564164  0.03613739  0.04673350  0.03611328  0.05880349  0.03603792  0.04510007  0.03595528  0.04561184  0.03603312 
+  BVAR_spot  BVAR_forwp 
+        NaN         NaN 
+> 
+> # Print Theil results
+> cat("Mean Theil results")
+Mean Theil results> print(mean_theil_results)
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot  VARX_forwp 
+0.002397245 0.001850980 0.002453996 0.001849140 0.003090058 0.001843857 0.002367472 0.001841679 0.002395494 0.001845563 
+  BVAR_spot  BVAR_forwp 
+        NaN         NaN 
+> 
+> # Print mean MAPE results
+> cat("Mean MAPE Results:\n")
+Mean MAPE Results:
+> print(mean_mape_results)
+   VAR_spot   VAR_forwp  ARIMA_spot ARIMA_forwp     RW_spot    RW_forwp   VECM_spot  VECM_forwp   VARX_spot  VARX_forwp 
+  0.4791825   0.3712535   0.4905901   0.3708863   0.6174493   0.3698529   0.4733213   0.3693830   0.4788405   0.3701876 
+  BVAR_spot  BVAR_forwp 
+        NaN         NaN 
+> 
+> rmse_reduction_from_rw <- list(
++   VAR_spot = numeric(),
++   VAR_forwp = numeric(),
++   ARIMA_spot = numeric(),
++   ARIMA_forwp = numeric(),
++   RW_spot = numeric(),
++   RW_forwp = numeric(),
++   VECM_spot = numeric(),
++   VECM_forwp = numeric(),
++   VARX_spot = numeric(),
++   VARX_forwp = numeric()
++   #BVAR_spot = numeric(),
++   #BVAR_forwp = numeric()
++ )
+> 
+> # Iterate through each model name in the mean_rmse_results list
+> for(model_name in names(mean_rmse_results)) {
++   # Exclude RW models themselves
++   if(model_name != "RW_spot" && model_name != "RW_forwp") {
++     # Determine whether to compare against RW_spot or RW_forwp based on the model name
++     rw_baseline <- if(grepl("spot", model_name)) {
++       "RW_spot"
++     } else if(grepl("forwp", model_name)) {
++       "RW_forwp"
++     } else {
++       stop("Model name does not specify whether it's spot or forwp")
++     }
++     
++     # Calculate % RMSE Reduction from the appropriate RW model
++     rmse_reduction_from_rw[[model_name]] <- (1 - mean_rmse_results[[model_name]] / mean_rmse_results[[rw_baseline]]) * 100
++   }
++ }
+> 
+> # Print results
+> cat("RW redecution:\n")
+RW redecution:
+> print(rmse_reduction_from_rw)
+$VAR_spot
+[1] 22.38277
+
+$VAR_forwp
+[1] -0.2760157
+
+$ARIMA_spot
+[1] 20.52597
+
+$ARIMA_forwp
+[1] -0.2091371
+
+$RW_spot
+numeric(0)
+
+$RW_forwp
+numeric(0)
+
+$VECM_spot
+[1] 23.30375
+
+$VECM_forwp
+[1] 0.2293145
+
+$VARX_spot
+[1] 22.43345
+
+$VARX_forwp
+[1] 0.01329821
+
+$BVAR_spot
+[1] NaN
+
+$BVAR_forwp
+[1] NaN
+
+> 
+> 
+> # Initialize lists to store aggregated forecasts and actual values
+> aggregated_forecasts <- list()
+> aggregated_actuals <- list(spot = unlist(lapply(actual_values_list, `[[`, "spot")),
++                            forwp = unlist(lapply(actual_values_list, `[[`, "forwp")))
+> 
+> # Aggregate forecasts for each model
+> models <- c("VAR", "ARIMA", "VECM", "VARX", "RW")
+> for(model in models) {
++   aggregated_forecasts[[model]] <- list(
++     spot = unlist(lapply(forecasted_values, function(x) x[[model]][["spot"]])),
++     forwp = unlist(lapply(forecasted_values, function(x) x[[model]][["forwp"]]))
++   )
++ }
+> 
+> # Perform DM test for each model against RW
+> dm_test_results <- list()
+> for(model in models) {
++   if(model != "RW") { # Exclude RW since it's our baseline
++     for(market in c("spot", "forwp")) {
++       forecast1 <- aggregated_forecasts[[model]][[market]]
++       forecast2 <- aggregated_forecasts[["RW"]][[market]]
++       actual <- aggregated_actuals[[market]]
++       
++       # Calculate errors for DM test
++       errors1 <- forecast1 - actual
++       errors2 <- forecast2 - actual
++       
++       # Perform DM test and store results
++       dm_test_results[[paste(model, market, "vs_RW", market, sep = "_")]] <- dm.test(errors1, errors2)
++     }
++   }
++ }
+> 
+> # Print DM test results
+> cat("Diebold-Mariano Test Results (Statistic and P-Value):\n")
+Diebold-Mariano Test Results (Statistic and P-Value):
+> for(result in names(dm_test_results)) {
++   cat(result, ": Statistic =", dm_test_results[[result]]$statistic, 
++       ", P-Value =", dm_test_results[[result]]$p.value, "\n")
++ }
+VAR_spot_vs_RW_spot : Statistic = -6.319549 , P-Value = 4.142042e-10 
+VAR_forwp_vs_RW_forwp : Statistic = 0.1361416 , P-Value = 0.8917401 
+ARIMA_spot_vs_RW_spot : Statistic = -5.959696 , P-Value = 3.638625e-09 
+ARIMA_forwp_vs_RW_forwp : Statistic = 0.3013962 , P-Value = 0.7631828 
+VECM_spot_vs_RW_spot : Statistic = -6.316616 , P-Value = 4.217938e-10 
+VECM_forwp_vs_RW_forwp : Statistic = -0.207337 , P-Value = 0.8357941 
+VARX_spot_vs_RW_spot : Statistic = -6.333893 , P-Value = 3.789646e-10 
+VARX_forwp_vs_RW_forwp : Statistic = -0.08300614 , P-Value = 0.9338653 
