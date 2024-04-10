@@ -116,9 +116,9 @@ eur_usd <- eur_usd %>%
 #data_combined <- merge(data_combined, gbti_dev, by = "Date")
 data_combined <- inner_join(spot[, c("Date", "PMX")], pmx_forw[, c("Date", "1MON")], by = "Date")
 #data_combined <- inner_join(data_combined, gbti_dev[, c("Date", "Iron Ore Trade Vol", "Coal Trade Vol", "Grain Trade Vol", "Minor Bulk Trade Vol", "Dry Bulk Trade Vol")], by = "Date")
-data_combined <- inner_join(data_combined, oecd_ip_dev[, c("Date", "Ind Prod Excl Const VOLA")], by = "Date")
+#data_combined <- inner_join(data_combined, oecd_ip_dev[, c("Date", "Ind Prod Excl Const VOLA")], by = "Date")
 #data_combined <- inner_join(data_combined, fleet_dev[, c("Date", "HSZ fleet", "HMX fleet", "PMX fleet", "CSZ fleet")], by = "Date")
-data_combined <- inner_join(data_combined, fleet_dev[, c("Date", "PMX fleet")], by = "Date")
+#data_combined <- inner_join(data_combined, fleet_dev[, c("Date", "PMX fleet")], by = "Date")
 data_combined <- inner_join(data_combined, eur_usd[, c("Date", "Last")], by = "Date")
 # Removing rows where ColumnA or ColumnB have 0 or NA values
 data_combined <- data_combined %>%
@@ -148,11 +148,11 @@ data_log_levels <- data.frame(
 
 exog_log_levels <- data.frame(
   Date = data_combined$Date,
-  ind_prod = log(data_combined$`Ind Prod Excl Const VOLA`),  # Assuming you meant to log-transform these as well
+  #ind_prod = log(data_combined$`Ind Prod Excl Const VOLA`),  # Assuming you meant to log-transform these as well
   #hsz_dev = log(data_combined$`HSZ fleet`),
   #hmx_dev = log(data_combined$`HMX fleet`),
   #pmx_dev = log(data_combined$`PMX fleet`),
-  csz_dev = log(data_combined$`PMX fleet`),
+  #csz_dev = log(data_combined$`PMX fleet`),
   eur_usd = data_combined$Last  # Not log-transformed as it's a rate, but adjust according to your needs,
   #iron = log(data_combined$`Iron Ore Trade Vol`),
   #coal = log(data_combined$`Coal Trade Vol`)
@@ -185,11 +185,11 @@ train_diff <- data.frame(
 
 exog_diff <- data.frame(
   Date = exog_lev$Date[-1],  # Exclude the first date
-  ind_prod = diff(exog_lev$ind_prod),
+  #ind_prod = diff(exog_lev$ind_prod),
   #hsz_dev = diff(exog_log_levels$hsz_dev),
   #hmx_dev = diff(exog_log_levels$hmx_dev),
   #pmx_dev = diff(exog_log_levels$pmx_dev),
-  csz_dev = diff(exog_lev$csz_dev),
+  #csz_dev = diff(exog_lev$csz_dev),
   eur_usd = diff(exog_lev$eur_usd)
   #iron = diff(exog_lev$iron),
   #coal = diff(exog_lev$coal)
@@ -644,11 +644,11 @@ for (round in 1:num_rounds) {
   exog_lev <- exog_log_levels[1:split_index, ]
   exog_diff <- data.frame(
     Date = exog_lev$Date[-1],  # Exclude the first date
-    ind_prod = diff(exog_lev$ind_prod),
+    #ind_prod = diff(exog_lev$ind_prod),
     #hsz_dev = diff(exog_log_levels$hsz_dev),
     #hmx_dev = diff(exog_log_levels$hmx_dev),
     #pmx_dev = diff(exog_log_levels$pmx_dev),
-    csz_dev = diff(exog_lev$csz_dev),
+    #csz_dev = diff(exog_lev$csz_dev),
     eur_usd = diff(exog_lev$eur_usd)
     #iron = diff(exog_lev$iron),
     #coal = diff(exog_lev$coal)
@@ -887,42 +887,20 @@ for (round in 1:num_rounds) {
   
 }
 
-# Calculate the average direction accuracy for each model and market (spot and forwp)
+
+# Average Direction Accuracy Calculation
 average_direction_accuracy <- list()
 for (model_name in names(direction_accuracy_results)) {
   average_direction_accuracy[[model_name]] <- mean(direction_accuracy_results[[model_name]]) * 100
 }
 
-# Print the average direction accuracy for each model
-print("Average Direction Accuracy for Each Model (%):")
-print(average_direction_accuracy)
-
-
-
-# Calculate mean MSE for each model
+# Error Metrics Calculation
 mean_rmse_results <- sapply(rmse_results, mean)
 mean_mae_results <- sapply(mae_results, mean)
 mean_theil_results <- sapply(theil_results, mean)
 mean_mape_results <- sapply(mape_results, mean)
-# Now multiply all mean MSE results by 100
-#mean_mse_results <- mean_mse_results * 100
 
-# Print mean MSE results
-cat("Mean RMSE Results:\n")
-print(mean_rmse_results)
-
-# Print mean MAE results
-cat("Mean MAE Results:\n")
-print(mean_mae_results)
-
-# Print Theil results
-cat("Mean Theil results")
-print(mean_theil_results)
-
-# Print mean MAPE results
-cat("Mean MAPE Results:\n")
-print(mean_mape_results)
-
+# RMSE Reduction from RW Calculation
 rmse_reduction_from_rw <- list(
   VAR_spot = numeric(),
   VAR_forwp = numeric(),
@@ -934,40 +912,23 @@ rmse_reduction_from_rw <- list(
   VECM_forwp = numeric(),
   VARX_spot = numeric(),
   VARX_forwp = numeric()
-  #BVAR_spot = numeric(),
-  #BVAR_forwp = numeric()
 )
 
-# Iterate through each model name in the mean_rmse_results list
 for(model_name in names(mean_rmse_results)) {
-  # Exclude RW models themselves
-  if(model_name != "RW_spot" && model_name != "RW_forwp") {
-    # Determine whether to compare against RW_spot or RW_forwp based on the model name
-    rw_baseline <- if(grepl("spot", model_name)) {
-      "RW_spot"
-    } else if(grepl("forwp", model_name)) {
-      "RW_forwp"
-    } else {
-      stop("Model name does not specify whether it's spot or forwp")
-    }
-    
-    # Calculate % RMSE Reduction from the appropriate RW model
+  if(!model_name %in% c("RW_spot", "RW_forwp")) {
+    rw_baseline <- ifelse(grepl("spot", model_name), "RW_spot", "RW_forwp")
     rmse_reduction_from_rw[[model_name]] <- (1 - mean_rmse_results[[model_name]] / mean_rmse_results[[rw_baseline]]) * 100
   }
 }
 
-# Print results
-cat("RW redecution:\n")
-print(rmse_reduction_from_rw)
-
-
-# Initialize lists to store aggregated forecasts and actual values
+# Aggregating Forecasts and Actuals
 aggregated_forecasts <- list()
-aggregated_actuals <- list(spot = unlist(lapply(actual_values_list, `[[`, "spot")),
-                           forwp = unlist(lapply(actual_values_list, `[[`, "forwp")))
+aggregated_actuals <- list(
+  spot = unlist(lapply(actual_values_list, `[[`, "spot")),
+  forwp = unlist(lapply(actual_values_list, `[[`, "forwp"))
+)
 
-# Aggregate forecasts for each model
-models <- c("VAR", "ARIMA", "VECM", "VARX", "RW")
+models <- c("VAR", "ARIMA", "VECM", "RW", "VARX")
 for(model in models) {
   aggregated_forecasts[[model]] <- list(
     spot = unlist(lapply(forecasted_values, function(x) x[[model]][["spot"]])),
@@ -975,28 +936,55 @@ for(model in models) {
   )
 }
 
-# Perform DM test for each model against RW
+# Diebold-Mariano Test
 dm_test_results <- list()
 for(model in models) {
-  if(model != "RW") { # Exclude RW since it's our baseline
+  if(model != "RW") {
     for(market in c("spot", "forwp")) {
       forecast1 <- aggregated_forecasts[[model]][[market]]
       forecast2 <- aggregated_forecasts[["RW"]][[market]]
       actual <- aggregated_actuals[[market]]
-      
-      # Calculate errors for DM test
       errors1 <- forecast1 - actual
       errors2 <- forecast2 - actual
-      
-      # Perform DM test and store results
       dm_test_results[[paste(model, market, "vs_RW", market, sep = "_")]] <- dm.test(errors1, errors2)
     }
   }
 }
 
-# Print DM test results
-cat("Diebold-Mariano Test Results (Statistic and P-Value):\n")
-for(result in names(dm_test_results)) {
-  cat(result, ": Statistic =", dm_test_results[[result]]$statistic, 
-      ", P-Value =", dm_test_results[[result]]$p.value, "\n")
+# Printing Results
+cat("=== Average Direction Accuracy for Each Model (%) ===\n")
+for(model_name in names(average_direction_accuracy)) {
+  cat(model_name, ":", sprintf("%.2f%%", average_direction_accuracy[[model_name]]), "\n")
 }
+
+cat("\n=== Mean RMSE Results ===\n")
+for(model_name in names(mean_rmse_results)) {
+  cat(model_name, ":", sprintf("%.4f", mean_rmse_results[[model_name]]), "\n")
+}
+
+cat("\n=== Mean MAE Results ===\n")
+for(model_name in names(mean_mae_results)) {
+  cat(model_name, ":", sprintf("%.4f", mean_mae_results[[model_name]]), "\n")
+}
+
+cat("\n=== Mean Theil Results ===\n")
+for(model_name in names(mean_theil_results)) {
+  cat(model_name, ":", sprintf("%.4f", mean_theil_results[[model_name]]), "\n")
+}
+
+cat("\n=== Mean MAPE Results ===\n")
+for(model_name in names(mean_mape_results)) {
+  cat(model_name, ":", sprintf("%.2f%%", mean_mape_results[[model_name]]*100), "\n")
+}
+
+cat("\n=== RMSE Reduction from RW (%) ===\n")
+for(model_name in names(rmse_reduction_from_rw)) {
+  cat(model_name, ":", sprintf("%.2f%%", rmse_reduction_from_rw[[model_name]]), "\n")
+}
+
+cat("\n=== Diebold-Mariano Test Results (Statistic and P-Value) ===\n")
+for(result in names(dm_test_results)) {
+  cat(result, ": Statistic =", sprintf("%.4f", dm_test_results[[result]]$statistic),
+      ", P-Value =", sprintf("%.4f", dm_test_results[[result]]$p.value), "\n")
+}
+
