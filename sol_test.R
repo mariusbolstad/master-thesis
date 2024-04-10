@@ -1,3 +1,6 @@
+
+installed.packages()
+
 install.packages("readr")
 install.packages("dplyr")
 install.packages("lubridate")
@@ -13,23 +16,26 @@ install.packages("tsbox")
 install.packages("MTS")
 install.packages("BVAR")
 
+installed.packages()
+
 getwd()
-library(readr)  # For reading CSV files
-library(dplyr)  # For data manipulation
-library(lubridate)  # For date parsing
-library(tseries)
-library(vars)
-library(forecast)
-library(urca)
-library(tsDyn)
-library(tidyverse)
-library(tempdisagg)
-library(xts)
-library(tsbox)
-library(data.table)
-library(progress)
-library(MTS)
-library(BVAR)
+library(readr, lib.loc=lib_path)
+library(dplyr, lib.loc=lib_path)
+library(lubridate, lib.loc=lib_path)
+library(tseries, lib.loc=lib_path)
+library(vars, lib.loc=lib_path)
+library(forecast, lib.loc=lib_path)
+library(urca, lib.loc=lib_path)
+library(tsDyn, lib.loc=lib_path)
+library(tidyverse, lib.loc=lib_path)
+library(tempdisagg, lib.loc=lib_path)
+library(xts, lib.loc=lib_path)
+library(tsbox, lib.loc=lib_path)
+library(data.table, lib.loc=lib_path)
+library(progress, lib.loc=lib_path)
+library(MTS, lib.loc=lib_path)
+
+installed.packages(lib.loc = "R_lib")
 
 
 # STEP 1: READ CSV
@@ -184,8 +190,8 @@ train_diff_ts <- ts(train_diff[, -1])
 # Step 3: STATIONARITY CHECKS
 
 # Perform Augmented Dickey-Fuller Test
-lapply(train_lev_ts, function(series) adf.test(series, alternative = "stationary"))
-lapply(train_diff_ts, function(series) adf.test(series, alternative = "stationary"))
+#lapply(train_lev_ts, function(series) adf.test(series, alternative = "stationary"))
+#lapply(train_diff_ts, function(series) adf.test(series, alternative = "stationary"))
 
 
 
