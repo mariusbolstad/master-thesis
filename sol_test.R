@@ -1,22 +1,22 @@
 
-installed.packages()
+#installed.packages()
 
-install.packages("readr")
-install.packages("dplyr")
-install.packages("lubridate")
-install.packages("tseries")
-install.packages("forecast")
-install.packages("vars")
-install.packages("urca")
-install.packages("tsDyn")
-install.packages("tidyverse")
-install.packages("tempdisagg")
-install.packages("xts")
-install.packages("tsbox")
-install.packages("MTS")
-install.packages("BVAR")
+#install.packages("readr")
+#install.packages("dplyr")
+#install.packages("lubridate")
+#install.packages("tseries")
+#install.packages("forecast")
+#install.packages("vars")
+#install.packages("urca")
+#install.packages("tsDyn")
+#install.packages("tidyverse")
+#install.packages("tempdisagg")
+#install.packages("xts")
+#install.packages("tsbox")
+#install.packages("MTS")
+#install.packages("BVAR")
 
-installed.packages()
+#installed.packages()
 
 getwd()
 library(readr)
@@ -190,8 +190,8 @@ train_diff_ts <- ts(train_diff[, -1])
 # Step 3: STATIONARITY CHECKS
 
 # Perform Augmented Dickey-Fuller Test
-#lapply(train_lev_ts, function(series) adf.test(series, alternative = "stationary"))
-#lapply(train_diff_ts, function(series) adf.test(series, alternative = "stationary"))
+lapply(train_lev_ts, function(series) adf.test(series, alternative = "stationary"))
+lapply(train_diff_ts, function(series) adf.test(series, alternative = "stationary"))
 
 
 
@@ -201,8 +201,8 @@ train_diff_ts <- ts(train_diff[, -1])
 # Select an appropriate lag order, p. You can use the VARselect function for guidance
 
 # lev
-lags <- VARselect(train_lev_ts, type = "const")
-lag_order <- VARselect(train_lev_ts, type = "both")$selection["AIC(n)"]
+lags <- vars::VARselect(train_lev_ts, type = "const")
+lag_order <- vars::VARselect(train_lev_ts, type = "both")$selection["AIC(n)"]
 var_model <- vars::VAR(train_lev_ts, p = lag_order)
 
 
