@@ -149,7 +149,7 @@ def create_even_odd_array(arr):
     return arr.reshape(-1, 2)
 
 
-def create_dataset(dataset, look_back=10, hor=1, is_test=False, exog_col=None):
+def create_dataset(dataset, look_back, hor, is_test=False, exog_col=None):
     X, Y = [], []
     if is_test:  # for test data, we just need the last entry for 1-step ahead forecast
         X = dataset[-1:,:,]
@@ -157,7 +157,7 @@ def create_dataset(dataset, look_back=10, hor=1, is_test=False, exog_col=None):
     else:
         for i in range(look_back, len(dataset) - hor + 1):
             X.append(dataset[i - look_back:i])
-            if exog_col is not None:
+            if len(exog_col) != 0:
                 # Exclude specified columns from Y
                 y = np.delete(dataset[i:i + hor], exog_col, axis=1)
             else:
@@ -273,7 +273,7 @@ def mlp_point_forecast(train_scal, look_back, last_train_values, scaler, exog_co
 
 
 
-def lstm_point_forecast(train_scal, look_back, last_train_values, scaler, exog_col, combined_testPredict_point, hor, epochs, batch_size, verbose, nodes=32, layers=2):
+def lstm_point_forecast(train_scal, look_back, last_train_values, scaler, exog_col, combined_testPredict_point, hor, epochs, batch_size, verbose, nodes, layers):
     for step_ahead in range(1, hor + 1):
         # Create dataset for current horizon
         trainX, trainY = create_dataset_point(train_scal, look_back=look_back, hor=step_ahead, exog_col=exog_col)
@@ -299,7 +299,7 @@ def lstm_point_forecast(train_scal, look_back, last_train_values, scaler, exog_c
     return testPredict
         
     
-def train_and_evaluate(data_log_levels, models, split_index, look_back=10, hor=1, exog_col=[2], epochs=30, batch_size=1, verbose=0, nodes=16, layers=2):
+def train_and_evaluate(data_log_levels, models, split_index, look_back, hor, exog_col, epochs, batch_size, verbose, nodes, layers):
     # Update train and test sets
     train = data_log_levels.iloc[:split_index]
     test = data_log_levels.iloc[split_index:split_index+hor]
@@ -518,7 +518,7 @@ def main():
     
     
     epochs = 100
-    batch_size = 8
+    batch_size = 32
     verbose = 0
     nodes = 16
     layers = 1
