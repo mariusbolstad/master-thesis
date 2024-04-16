@@ -12,5 +12,6 @@ screen -rd <session number from screen -ls>
 ssh compute-2-40
 module load R
 R CMD BATCH yourscript.R
+cd ../../storage/users/mariumbo
 ```
 
