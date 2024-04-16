@@ -1195,3 +1195,384 @@ VECM_spot_vs_RW_spot : Statistic = -6.316616 , P-Value = 4.217938e-10
 VECM_forwp_vs_RW_forwp : Statistic = -0.207337 , P-Value = 0.8357941 
 VARX_spot_vs_RW_spot : Statistic = -6.333893 , P-Value = 3.789646e-10 
 VARX_forwp_vs_RW_forwp : Statistic = -0.08300614 , P-Value = 0.9338653 
+
+
+
+
+
+
+
+
+
+
+CSZ 2-day ahead CURMON, 444 rounds:
+
+=== Average Direction Accuracy for Each Model (%) ===
+> for(model_name in names(average_direction_accuracy)) {
++   cat(model_name, ":", sprintf("%.2f%%", average_direction_accuracy[[model_name]]), "\n")
++ }
+VAR_spot : 70.50% 
+VAR_forwp : 53.15% 
+ARIMA_spot : 69.59% 
+ARIMA_forwp : 56.98% 
+RW_spot : 0.00% 
+RW_forwp : 0.45% 
+VECM_spot : 70.05% 
+VECM_forwp : 52.93% 
+BVAR_spot : NaN% 
+BVAR_forwp : NaN% 
+> 
+> cat("\n=== Mean RMSE Results ===\n")
+
+=== Mean RMSE Results ===
+> for(model_name in names(mean_rmse_results)) {
++   cat(model_name, ":", sprintf("%.4f", mean_rmse_results[[model_name]]), "\n")
++ }
+VAR_spot : 0.0743 
+VAR_forwp : 0.0360 
+ARIMA_spot : 0.0753 
+ARIMA_forwp : 0.0348 
+RW_spot : 0.0875 
+RW_forwp : 0.0344 
+VECM_spot : 0.0728 
+VECM_forwp : 0.0358 
+BVAR_spot : NaN 
+BVAR_forwp : NaN 
+> 
+> cat("\n=== Mean MAE Results ===\n")
+
+=== Mean MAE Results ===
+> for(model_name in names(mean_mae_results)) {
++   cat(model_name, ":", sprintf("%.4f", mean_mae_results[[model_name]]), "\n")
++ }
+VAR_spot : 0.0682 
+VAR_forwp : 0.0327 
+ARIMA_spot : 0.0693 
+ARIMA_forwp : 0.0316 
+RW_spot : 0.0821 
+RW_forwp : 0.0311 
+VECM_spot : 0.0669 
+VECM_forwp : 0.0324 
+BVAR_spot : NaN 
+BVAR_forwp : NaN 
+> 
+> cat("\n=== Mean Theil Results ===\n")
+
+=== Mean Theil Results ===
+> for(model_name in names(mean_theil_results)) {
++   cat(model_name, ":", sprintf("%.4f", mean_theil_results[[model_name]]), "\n")
++ }
+VAR_spot : 0.0039 
+VAR_forwp : 0.0019 
+ARIMA_spot : 0.0039 
+ARIMA_forwp : 0.0018 
+RW_spot : 0.0046 
+RW_forwp : 0.0018 
+VECM_spot : 0.0038 
+VECM_forwp : 0.0019 
+BVAR_spot : NaN 
+BVAR_forwp : NaN 
+> 
+> cat("\n=== Mean MAPE Results ===\n")
+
+=== Mean MAPE Results ===
+> for(model_name in names(mean_mape_results)) {
++   cat(model_name, ":", sprintf("%.2f%%", mean_mape_results[[model_name]]*100), "\n")
++ }
+VAR_spot : 71.39% 
+VAR_forwp : 34.14% 
+ARIMA_spot : 72.49% 
+ARIMA_forwp : 32.89% 
+RW_spot : 86.14% 
+RW_forwp : 32.41% 
+VECM_spot : 69.98% 
+VECM_forwp : 33.80% 
+BVAR_spot : NaN% 
+BVAR_forwp : NaN% 
+> 
+> cat("\n=== RMSE Reduction from RW (%) ===\n")
+
+=== RMSE Reduction from RW (%) ===
+> for(model_name in names(rmse_reduction_from_rw)) {
++   cat(model_name, ":", sprintf("%.2f%%", rmse_reduction_from_rw[[model_name]]), "\n")
++ }
+VAR_spot : 15.16% 
+VAR_forwp : -4.73% 
+ARIMA_spot : 13.91% 
+ARIMA_forwp : -1.25% 
+RW_spot :  
+RW_forwp :  
+VECM_spot : 16.81% 
+VECM_forwp : -3.96% 
+BVAR_spot : NaN% 
+BVAR_forwp : NaN% 
+> 
+> cat("\n=== Diebold-Mariano Test Results (Statistic and P-Value) ===\n")
+
+=== Diebold-Mariano Test Results (Statistic and P-Value) ===
+> for(result in names(dm_test_results)) {
++   cat(result, ": Statistic =", sprintf("%.4f", dm_test_results[[result]]$statistic),
++       ", P-Value =", sprintf("%.4f", dm_test_results[[result]]$p.value), "\n")
++ }
+VAR_spot_vs_RW_spot : Statistic = -4.9322 , P-Value = 0.0000 
+VAR_forwp_vs_RW_forwp : Statistic = 1.3571 , P-Value = 0.1751 
+ARIMA_spot_vs_RW_spot : Statistic = -5.1029 , P-Value = 0.0000 
+ARIMA_forwp_vs_RW_forwp : Statistic = 1.7091 , P-Value = 0.0878 
+VECM_spot_vs_RW_spot : Statistic = -5.4565 , P-Value = 0.0000 
+VECM_forwp_vs_RW_forwp : Statistic = 1.2743 , P-Value = 0.2029 
+
+
+
+
+
+
+
+
+
+
+
+
+
+CSZ 2-DAY AHEAD, 1MON:
+
+=== Average Direction Accuracy for Each Model (%) ===
+> for(model_name in names(average_direction_accuracy)) {
++   cat(model_name, ":", sprintf("%.2f%%", average_direction_accuracy[[model_name]]), "\n")
++ }
+VAR_spot : 70.56% 
+VAR_forwp : 55.28% 
+ARIMA_spot : 69.89% 
+ARIMA_forwp : 55.51% 
+RW_spot : 0.00% 
+RW_forwp : 0.22% 
+VECM_spot : 70.11% 
+VECM_forwp : 56.85% 
+BVAR_spot : NaN% 
+BVAR_forwp : NaN% 
+> 
+> cat("\n=== Mean RMSE Results ===\n")
+
+=== Mean RMSE Results ===
+> for(model_name in names(mean_rmse_results)) {
++   cat(model_name, ":", sprintf("%.4f", mean_rmse_results[[model_name]]), "\n")
++ }
+VAR_spot : 0.0734 
+VAR_forwp : 0.0395 
+ARIMA_spot : 0.0759 
+ARIMA_forwp : 0.0396 
+RW_spot : 0.0882 
+RW_forwp : 0.0398 
+VECM_spot : 0.0727 
+VECM_forwp : 0.0397 
+BVAR_spot : NaN 
+BVAR_forwp : NaN 
+> 
+> cat("\n=== Mean MAE Results ===\n")
+
+=== Mean MAE Results ===
+> for(model_name in names(mean_mae_results)) {
++   cat(model_name, ":", sprintf("%.4f", mean_mae_results[[model_name]]), "\n")
++ }
+VAR_spot : 0.0673 
+VAR_forwp : 0.0368 
+ARIMA_spot : 0.0698 
+ARIMA_forwp : 0.0369 
+RW_spot : 0.0828 
+RW_forwp : 0.0371 
+VECM_spot : 0.0668 
+VECM_forwp : 0.0369 
+BVAR_spot : NaN 
+BVAR_forwp : NaN 
+> 
+> cat("\n=== Mean Theil Results ===\n")
+
+=== Mean Theil Results ===
+> for(model_name in names(mean_theil_results)) {
++   cat(model_name, ":", sprintf("%.4f", mean_theil_results[[model_name]]), "\n")
++ }
+VAR_spot : 0.0039 
+VAR_forwp : 0.0020 
+ARIMA_spot : 0.0040 
+ARIMA_forwp : 0.0020 
+RW_spot : 0.0046 
+RW_forwp : 0.0021 
+VECM_spot : 0.0038 
+VECM_forwp : 0.0020 
+BVAR_spot : NaN 
+BVAR_forwp : NaN 
+> 
+> cat("\n=== Mean MAPE Results ===\n")
+
+=== Mean MAPE Results ===
+> for(model_name in names(mean_mape_results)) {
++   cat(model_name, ":", sprintf("%.2f%%", mean_mape_results[[model_name]]*100), "\n")
++ }
+VAR_spot : 70.58% 
+VAR_forwp : 37.98% 
+ARIMA_spot : 73.16% 
+ARIMA_forwp : 38.01% 
+RW_spot : 87.00% 
+RW_forwp : 38.26% 
+VECM_spot : 70.06% 
+VECM_forwp : 38.12% 
+BVAR_spot : NaN% 
+BVAR_forwp : NaN% 
+> 
+> cat("\n=== RMSE Reduction from RW (%) ===\n")
+
+=== RMSE Reduction from RW (%) ===
+> for(model_name in names(rmse_reduction_from_rw)) {
++   cat(model_name, ":", sprintf("%.2f%%", rmse_reduction_from_rw[[model_name]]), "\n")
++ }
+VAR_spot : 16.86% 
+VAR_forwp : 0.80% 
+ARIMA_spot : 13.99% 
+ARIMA_forwp : 0.70% 
+RW_spot :  
+RW_forwp :  
+VECM_spot : 17.54% 
+VECM_forwp : 0.47% 
+BVAR_spot : NaN% 
+BVAR_forwp : NaN% 
+> 
+> cat("\n=== Diebold-Mariano Test Results (Statistic and P-Value) ===\n")
+
+=== Diebold-Mariano Test Results (Statistic and P-Value) ===
+> for(result in names(dm_test_results)) {
++   cat(result, ": Statistic =", sprintf("%.4f", dm_test_results[[result]]$statistic),
++       ", P-Value =", sprintf("%.4f", dm_test_results[[result]]$p.value), "\n")
++ }
+VAR_spot_vs_RW_spot : Statistic = -6.1884 , P-Value = 0.0000 
+VAR_forwp_vs_RW_forwp : Statistic = -0.4607 , P-Value = 0.6451 
+ARIMA_spot_vs_RW_spot : Statistic = -5.2207 , P-Value = 0.0000 
+ARIMA_forwp_vs_RW_forwp : Statistic = -0.8553 , P-Value = 0.3926 
+VECM_spot_vs_RW_spot : Statistic = -6.4233 , P-Value = 0.0000 
+VECM_forwp_vs_RW_forwp : Statistic = -0.4245 , P-Value = 0.6713 
+
+
+
+
+
+
+
+
+
+
+
+
+
+CSZ 2-day 1Q:
+
+=== Average Direction Accuracy for Each Model (%) ===
+> for(model_name in names(average_direction_accuracy)) {
++   cat(model_name, ":", sprintf("%.2f%%", average_direction_accuracy[[model_name]]), "\n")
++ }
+VAR_spot : 69.89% 
+VAR_forwp : 52.13% 
+ARIMA_spot : 69.66% 
+ARIMA_forwp : 51.69% 
+RW_spot : 0.00% 
+RW_forwp : 0.45% 
+VECM_spot : 69.66% 
+VECM_forwp : 52.58% 
+BVAR_spot : NaN% 
+BVAR_forwp : NaN% 
+> 
+> cat("\n=== Mean RMSE Results ===\n")
+
+=== Mean RMSE Results ===
+> for(model_name in names(mean_rmse_results)) {
++   cat(model_name, ":", sprintf("%.4f", mean_rmse_results[[model_name]]), "\n")
++ }
+VAR_spot : 0.0732 
+VAR_forwp : 0.0504 
+ARIMA_spot : 0.0759 
+ARIMA_forwp : 0.0502 
+RW_spot : 0.0882 
+RW_forwp : 0.0505 
+VECM_spot : 0.0722 
+VECM_forwp : 0.0501 
+BVAR_spot : NaN 
+BVAR_forwp : NaN 
+> 
+> cat("\n=== Mean MAE Results ===\n")
+
+=== Mean MAE Results ===
+> for(model_name in names(mean_mae_results)) {
++   cat(model_name, ":", sprintf("%.4f", mean_mae_results[[model_name]]), "\n")
++ }
+VAR_spot : 0.0671 
+VAR_forwp : 0.0468 
+ARIMA_spot : 0.0698 
+ARIMA_forwp : 0.0467 
+RW_spot : 0.0828 
+RW_forwp : 0.0470 
+VECM_spot : 0.0662 
+VECM_forwp : 0.0465 
+BVAR_spot : NaN 
+BVAR_forwp : NaN 
+> 
+> cat("\n=== Mean Theil Results ===\n")
+
+=== Mean Theil Results ===
+> for(model_name in names(mean_theil_results)) {
++   cat(model_name, ":", sprintf("%.4f", mean_theil_results[[model_name]]), "\n")
++ }
+VAR_spot : 0.0038 
+VAR_forwp : 0.0026 
+ARIMA_spot : 0.0040 
+ARIMA_forwp : 0.0026 
+RW_spot : 0.0046 
+RW_forwp : 0.0026 
+VECM_spot : 0.0038 
+VECM_forwp : 0.0026 
+BVAR_spot : NaN 
+BVAR_forwp : NaN 
+> 
+> cat("\n=== Mean MAPE Results ===\n")
+
+=== Mean MAPE Results ===
+> for(model_name in names(mean_mape_results)) {
++   cat(model_name, ":", sprintf("%.2f%%", mean_mape_results[[model_name]]*100), "\n")
++ }
+VAR_spot : 70.40% 
+VAR_forwp : 48.19% 
+ARIMA_spot : 73.17% 
+ARIMA_forwp : 48.05% 
+RW_spot : 87.00% 
+RW_forwp : 48.36% 
+VECM_spot : 69.41% 
+VECM_forwp : 47.93% 
+BVAR_spot : NaN% 
+BVAR_forwp : NaN% 
+> 
+> cat("\n=== RMSE Reduction from RW (%) ===\n")
+
+=== RMSE Reduction from RW (%) ===
+> for(model_name in names(rmse_reduction_from_rw)) {
++   cat(model_name, ":", sprintf("%.2f%%", rmse_reduction_from_rw[[model_name]]), "\n")
++ }
+VAR_spot : 17.03% 
+VAR_forwp : 0.18% 
+ARIMA_spot : 13.97% 
+ARIMA_forwp : 0.53% 
+RW_spot :  
+RW_forwp :  
+VECM_spot : 18.19% 
+VECM_forwp : 0.71% 
+BVAR_spot : NaN% 
+BVAR_forwp : NaN% 
+> 
+> cat("\n=== Diebold-Mariano Test Results (Statistic and P-Value) ===\n")
+
+=== Diebold-Mariano Test Results (Statistic and P-Value) ===
+> for(result in names(dm_test_results)) {
++   cat(result, ": Statistic =", sprintf("%.4f", dm_test_results[[result]]$statistic),
++       ", P-Value =", sprintf("%.4f", dm_test_results[[result]]$p.value), "\n")
++ }
+VAR_spot_vs_RW_spot : Statistic = -6.3619 , P-Value = 0.0000 
+VAR_forwp_vs_RW_forwp : Statistic = -0.9051 , P-Value = 0.3657 
+ARIMA_spot_vs_RW_spot : Statistic = -5.2327 , P-Value = 0.0000 
+ARIMA_forwp_vs_RW_forwp : Statistic = -0.9571 , P-Value = 0.3388 
+VECM_spot_vs_RW_spot : Statistic = -6.5666 , P-Value = 0.0000 
+VECM_forwp_vs_RW_forwp : Statistic = -1.5369 , P-Value = 0.1247 
