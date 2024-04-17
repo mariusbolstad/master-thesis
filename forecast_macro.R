@@ -12,6 +12,7 @@
 #install.packages("tsbox")
 #install.packages("MTS")
 #install.packages("BVAR")
+#install.packages("psych")
 
 getwd()
 setwd("./VSCode/master-thesis")
@@ -32,6 +33,7 @@ library(data.table)
 library(progress)
 library(MTS)
 library(BVAR)
+library(psych)
 
 
 # STEP 1: READ CSV
@@ -103,18 +105,23 @@ eur_usd <- read_delim('./data/other/EUR_USD_historical.csv',
 eur_usd <- eur_usd %>%
   mutate(across(-Date, ~as.numeric(gsub(",", ".", .x))))
 
-
 # STEP 2: CLEAN AND PREPARE DATA
-# CSZ column: SMX
+# CSZ column: CSZ
 # PMX column: PMX
 # SMX column: SMX
-# ffa column: ROLL
+# ffa column: 1MON, 1Q
 
 
 # Merge data frames on the Date column, include trade volume
 #data_combined <- merge(spot, csz_forw, by = "Date")
 #data_combined <- merge(data_combined, gbti_dev, by = "Date")
-data_combined <- inner_join(spot[, c("Date", "PMX")], pmx_forw[, c("Date", "1MON")], by = "Date")
+
+####### ENDRE ######
+data_combined <- inner_join(spot[, c("Date", "SMX")], smx_forw[, c("Date", "1MON")], by = "Date")
+####### ENDRE ######
+
+
+
 #data_combined <- inner_join(data_combined, gbti_dev[, c("Date", "Iron Ore Trade Vol", "Coal Trade Vol", "Grain Trade Vol", "Minor Bulk Trade Vol", "Dry Bulk Trade Vol")], by = "Date")
 #data_combined <- inner_join(data_combined, oecd_ip_dev[, c("Date", "Ind Prod Excl Const VOLA")], by = "Date")
 #data_combined <- inner_join(data_combined, fleet_dev[, c("Date", "HSZ fleet", "HMX fleet", "PMX fleet", "CSZ fleet")], by = "Date")
@@ -132,8 +139,14 @@ data_combined <- data_combined %>%
 # Transform data to log levels and create a new data frame for log levels
 data_log_levels <- data.frame(
   Date = data_combined$Date,
-  spot = log(data_combined$PMX),
+  
+  
+  
+  ####### ENDRE ######
+  spot = log(data_combined$SMX),
   forwp = log(data_combined$`1MON`)
+  ####### ENDRE ######
+  
 )
 
 #exog_log_levels <- data.frame(
@@ -230,6 +243,26 @@ lapply(train_diff_ts, function(series) adf.test(series, alternative = "stationar
 lapply(exog_lev_ts, function(series) adf.test(series, alternative = "stationary"))
 lapply(exog_diff_ts, function(series) adf.test(series, alternative = "stationary"))
 
+# Step 3a: OTHER STATISTICAL TESTS AND DESCRIPTIVE STATISTICS ON THE INPUT TIME SERIES
+
+# Perform Phillips-Perron (PP) test (stationarity)
+lapply(train_lev_ts, function(series) pp.test(series))
+lapply(train_diff_ts, function(series) pp.test(series))
+
+# Perform KPSS test (stationarity around trend)
+lapply(train_lev_ts, function(series) kpss.test(series))
+lapply(train_diff_ts, function(series) kpss.test(series))
+
+# Perform Ljung-Box test (autocorrelation)
+lapply(train_lev_ts, function(series) Box.test(series, type = "Ljung-Box"))
+lapply(train_diff_ts, function(series) Box.test(series, type = "Ljung-Box"))
+
+# Perform the Jarque-Bera test (normality)
+lapply(train_lev_ts, function(series) jarque.bera.test(series))
+lapply(train_diff_ts, function(series) jarque.bera.test(series))
+
+# Retrieve the descriptive statistics
+describe(data_combined[, c(2,3)])
 
 
 # Step 4: MODEL FITS AND DIAGNOSTIC CHECKS
@@ -361,22 +394,22 @@ grangerForw
 # VARX
 
 # lev
-lags <- VARselect(train_lev_ts, type = "const")
-lag_order <- VARselect(train_lev_ts, type = "both")$selection["AIC(n)"]
-varx_model <- vars::VAR(train_lev_ts, p = lag_order, type = "both", exogen = exog_lev_ts)
+#lags <- VARselect(train_lev_ts, type = "const")
+#lag_order <- VARselect(train_lev_ts, type = "both")$selection["AIC(n)"]
+#varx_model <- vars::VAR(train_lev_ts, p = lag_order, type = "both", exogen = exog_lev_ts)
 
-summary(varx_model)
+#summary(varx_model)
 
-varx_model3 <- VARX(train_lev_ts, x = exog_lev_ts , p = lag_order)
+#varx_model3 <- VARX(train_lev_ts, x = exog_lev_ts , p = lag_order)
 
 # diff
-lags <- VARselect(train_diff_ts, type = "const")
-lag_order <- VARselect(train_diff_ts, type = "both")$selection["AIC(n)"]
-varx_model <- vars::VAR(train_diff_ts, p = lag_order, type = "both", exogen = exog_diff_ts)
+#lags <- VARselect(train_diff_ts, type = "const")
+#lag_order <- VARselect(train_diff_ts, type = "both")$selection["AIC(n)"]
+#varx_model <- vars::VAR(train_diff_ts, p = lag_order, type = "both", exogen = exog_diff_ts)
 
-summary(varx_model)
+#summary(varx_model)
 
-varx_model3 <- VARX(train_diff_ts, x = exog_diff_ts , p = lag_order)
+#varx_model3 <- VARX(train_diff_ts, x = exog_diff_ts , p = lag_order)
 
 
 # VECM
@@ -477,7 +510,10 @@ print(white_test_forw)
 
 
 # Step 9: Forecast future values
+
+####### ENDRE ##########
 forecast_horizon <- 1
+####### ENDRE ##########
 
 
 
@@ -487,7 +523,7 @@ forecast_horizon <- 1
 last_observation_matrix <- as.matrix(tail(exog_lev[-1], 1))
 
 # Forecast 1 step ahead using the last known values of the exogenous variables
-varx_fcs <- VARXpred(varx_model3, newxt = last_observation_matrix, hstep = 1, orig = 0)
+#varx_fcs <- VARXpred(varx_model3, newxt = last_observation_matrix, hstep = 1, orig = 0)
 
 #vecm_forecasts <- predict(vecm_model, n.ahead = forecast_horizon)
 var_fcs <- predict(var_model, n.ahead = forecast_horizon) 
@@ -667,10 +703,10 @@ for (round in 1:num_rounds) {
   var_fcs <- predict(var_model, n.ahead = forecast_horizon)  
   
   ## VARX
-  varx_model <- VARX(train_diff_ts, x = exog_diff_ts , p = lag_order, output = FALSE)
-  last_observation_matrix <- as.matrix(tail(exog_diff[-1], 1))
+  #varx_model <- VARX(train_diff_ts, x = exog_diff_ts , p = lag_order, output = FALSE)
+  #last_observation_matrix <- as.matrix(tail(exog_diff[-1], 1))
   # Forecast 1 step ahead using the last known values of the exogenous variables
-  varx_fcs <- VARXpred(varx_model, newxt = last_observation_matrix, hstep = 1, orig = 0)
+  #varx_fcs <- VARXpred(varx_model, newxt = last_observation_matrix, hstep = 1, orig = 0)
   
   ## BVAR
   #bvar_model <- bvar(train_diff_ts, lags = lag_order, type = "both")
@@ -716,8 +752,8 @@ for (round in 1:num_rounds) {
   var_rev_fcs_forwp <- last_forwp + cumsum(var_fcs$fcst[[2]][, "fcst"])
   
   #VARX
-  varx_rev_fcs_spot <- last_spot + cumsum(varx_fcs$pred["spot"])
-  varx_rev_fcs_forwp <- last_forwp + cumsum(varx_fcs$pred["forwp"])
+  #varx_rev_fcs_spot <- last_spot + cumsum(varx_fcs$pred["spot"])
+  #varx_rev_fcs_forwp <- last_forwp + cumsum(varx_fcs$pred["forwp"])
   
   #BVAR
   #bvar_rev_fcs_spot <- last_spot + cumsum(t(bvar_fcs_fcast$quants[,,1])[,"50%"])
@@ -738,8 +774,8 @@ for (round in 1:num_rounds) {
     VAR = list(spot = var_rev_fcs_spot, forwp = var_rev_fcs_forwp),
     VECM = list(spot = vecm_fcs$fcst[[1]][, "fcst"], forwp = vecm_fcs$fcst[[2]][, "fcst"]),
     ARIMA = list(spot = arima_fcs_spot$mean, forwp = arima_fcs_forwp$mean),
-    RW = list(spot = rw_fcs_spot$mean, forwp = rw_fcs_forwp$mean),
-    VARX = list(spot =  varx_rev_fcs_spot, forwp = varx_rev_fcs_forwp)
+    RW = list(spot = rw_fcs_spot$mean, forwp = rw_fcs_forwp$mean)
+    #VARX = list(spot =  varx_rev_fcs_spot, forwp = varx_rev_fcs_forwp)
     #BVAR = list(spot =  bvar_rev_fcs_spot, forwp = bvar_rev_fcs_forwp)
   )
   
@@ -754,7 +790,7 @@ for (round in 1:num_rounds) {
   act_dir_change_forwp <- sign(last_act_forwp - last_forwp)
   
   # For each model, calculate and store the direction accuracy
-  for (model in c("VAR", "ARIMA", "RW", "VECM", "VARX")) {
+  for (model in c("VAR", "ARIMA", "RW", "VECM")) {
     # Calculate the actual direction of change for spot and forwp
     act_dir_change_spot <- sign(last_act_spot - last_spot)
     act_dir_change_forwp <- sign(last_act_forwp - last_forwp)
@@ -783,8 +819,8 @@ for (round in 1:num_rounds) {
   rmse_results$VAR_forwp <- c(rmse_results$VAR_forwp, sqrt(mean((var_rev_fcs_forwp - act_forwp)^2)))
   
   # Calculate and append MSE for VARX forecasts
-  rmse_results$VARX_spot <- c(rmse_results$VARX_spot, sqrt(mean((varx_rev_fcs_spot - act_spot)^2)))
-  rmse_results$VARX_forwp <- c(rmse_results$VARX_forwp, sqrt(mean((varx_rev_fcs_forwp - act_forwp)^2)))
+  #rmse_results$VARX_spot <- c(rmse_results$VARX_spot, sqrt(mean((varx_rev_fcs_spot - act_spot)^2)))
+  #rmse_results$VARX_forwp <- c(rmse_results$VARX_forwp, sqrt(mean((varx_rev_fcs_forwp - act_forwp)^2)))
   
   # Calculate and append MSE for BVAR forecasts
   #rmse_results$BVAR_spot <- c(rmse_results$BVAR_spot, sqrt(mean((bvar_rev_fcs_spot - act_spot)^2)))
@@ -810,8 +846,8 @@ for (round in 1:num_rounds) {
   mae_results$VAR_forwp <- c(mae_results$VAR_forwp, mean(abs(var_rev_fcs_forwp - act_forwp)))
   
   # Calculate and append MAE for VARX forecasts
-  mae_results$VARX_spot <- c(mae_results$VARX_spot, mean(abs(varx_rev_fcs_spot - act_spot)))
-  mae_results$VARX_forwp <- c(mae_results$VARX_forwp, mean(abs(varx_rev_fcs_forwp - act_forwp)))
+  #mae_results$VARX_spot <- c(mae_results$VARX_spot, mean(abs(varx_rev_fcs_spot - act_spot)))
+  #mae_results$VARX_forwp <- c(mae_results$VARX_forwp, mean(abs(varx_rev_fcs_forwp - act_forwp)))
   
   # Calculate and append MAE for BVAR forecasts
   #mae_results$BVAR_spot <- c(mae_results$BVAR_spot, mean(abs(bvar_rev_fcs_spot - act_spot)))
@@ -838,9 +874,9 @@ for (round in 1:num_rounds) {
   # VAR forwp
   theil_results$VAR_forwp <- c(theil_results$VAR_forwp, calculate_theils_u(forecast = var_rev_fcs_forwp, actual = act_forwp))
   # VARX spot
-  theil_results$VARX_spot <- c(theil_results$VARX_spot, calculate_theils_u(forecast = varx_rev_fcs_spot, actual = act_spot))
+ # theil_results$VARX_spot <- c(theil_results$VARX_spot, calculate_theils_u(forecast = varx_rev_fcs_spot, actual = act_spot))
   # VARX forwp
-  theil_results$VARX_forwp <- c(theil_results$VARX_forwp, calculate_theils_u(forecast = varx_rev_fcs_forwp, actual = act_forwp))
+  #theil_results$VARX_forwp <- c(theil_results$VARX_forwp, calculate_theils_u(forecast = varx_rev_fcs_forwp, actual = act_forwp))
   # BVAR spot
   #theil_results$BVAR_spot <- c(theil_results$BVAR_spot, calculate_theils_u(forecast = bvar_rev_fcs_spot, actual = act_spot))
   # BVAR forwp
@@ -864,8 +900,8 @@ for (round in 1:num_rounds) {
   mape_results$VAR_forwp <- c(mape_results$VAR_forwp, calculate_mape(act_forwp, var_rev_fcs_forwp))
   
   # Calculate and append MAPE for VARX forecasts
-  mape_results$VARX_spot <- c(mape_results$VARX_spot, calculate_mape(act_spot, varx_rev_fcs_spot))
-  mape_results$VARX_forwp <- c(mape_results$VARX_forwp, calculate_mape(act_forwp, varx_rev_fcs_forwp))
+  #mape_results$VARX_spot <- c(mape_results$VARX_spot, calculate_mape(act_spot, varx_rev_fcs_spot))
+  #mape_results$VARX_forwp <- c(mape_results$VARX_forwp, calculate_mape(act_forwp, varx_rev_fcs_forwp))
   
   # Calculate and append MAPE for BVAR forecasts
   #mape_results$BVAR_spot <- c(mape_results$BVAR_spot, calculate_mape(act_spot, bvar_rev_fcs_spot))
@@ -908,9 +944,9 @@ rmse_reduction_from_rw <- list(
   RW_spot = numeric(),
   RW_forwp = numeric(),
   VECM_spot = numeric(),
-  VECM_forwp = numeric(),
-  VARX_spot = numeric(),
-  VARX_forwp = numeric()
+  VECM_forwp = numeric()
+  #VARX_spot = numeric(),
+  #VARX_forwp = numeric()
 )
 
 for(model_name in names(mean_rmse_results)) {
@@ -927,7 +963,7 @@ aggregated_actuals <- list(
   forwp = unlist(lapply(actual_values_list, `[[`, "forwp"))
 )
 
-models <- c("VAR", "ARIMA", "VECM", "RW", "VARX")
+models <- c("VAR", "ARIMA", "VECM", "RW")
 for(model in models) {
   aggregated_forecasts[[model]] <- list(
     spot = unlist(lapply(forecasted_values, function(x) x[[model]][["spot"]])),
