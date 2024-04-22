@@ -14,8 +14,8 @@
 #install.packages("BVAR")
 #install.packages("psych")
 
-getwd()
-setwd("./VSCode/master-thesis")
+#getwd()
+#setwd("./VSCode/master-thesis")
 #setwd("./master-thesis")
 library(readr)  # For reading CSV files
 library(dplyr)  # For data manipulation
@@ -118,6 +118,7 @@ eur_usd <- eur_usd %>%
 
 ####### ENDRE ######
 data_combined <- inner_join(spot[, c("Date", "SMX")], smx_forw[, c("Date", "1MON")], by = "Date")
+data_ID <- list("SMX", "1MON")
 ####### ENDRE ######
 
 
@@ -512,7 +513,7 @@ print(white_test_forw)
 # Step 9: Forecast future values
 
 ####### ENDRE ##########
-forecast_horizon <- 1
+forecast_horizon <-5
 ####### ENDRE ##########
 
 
@@ -536,8 +537,8 @@ arima_fcs_spot <- forecast(arima_model_spot, h = forecast_horizon)
 arima_fcs_forwp <- forecast(arima_model_forwp, h = forecast_horizon)
 
 # Determine the number of rounds based on the test set size and forecast horizon
-num_rounds <- min(floor(len_test / forecast_horizon), 30)
-#num_rounds <- floor(nrow(test_lev) / forecast_horizon)
+#num_rounds <- min(floor(len_test / forecast_horizon), 30)
+num_rounds <- floor(nrow(test_lev) / forecast_horizon)
 
 print(num_rounds)
 
@@ -972,19 +973,42 @@ for(model in models) {
 }
 
 # Diebold-Mariano Test
+#dm_test_results <- list()
+#for(model in models) {
+#  if(model != "RW") {
+#    for(market in c("spot", "forwp")) {
+#      forecast1 <- aggregated_forecasts[[model]][[market]]
+#      forecast2 <- aggregated_forecasts[["RW"]][[market]]
+#      actual <- aggregated_actuals[[market]]
+#      errors1 <- forecast1 - actual
+#      errors2 <- forecast2 - actual
+#      dm_test_results[[paste(model, market, "vs_RW", market, sep = "_")]] <- dm.test(errors1, errors2)
+#    }
+#  }
+#}
+
+# Diebold-Mariano Test with a error handling included
 dm_test_results <- list()
 for(model in models) {
   if(model != "RW") {
     for(market in c("spot", "forwp")) {
-      forecast1 <- aggregated_forecasts[[model]][[market]]
-      forecast2 <- aggregated_forecasts[["RW"]][[market]]
-      actual <- aggregated_actuals[[market]]
-      errors1 <- forecast1 - actual
-      errors2 <- forecast2 - actual
-      dm_test_results[[paste(model, market, "vs_RW", market, sep = "_")]] <- dm.test(errors1, errors2)
+      tryCatch({
+        forecast1 <- aggregated_forecasts[[model]][[market]]
+        forecast2 <- aggregated_forecasts[["RW"]][[market]]
+        actual <- aggregated_actuals[[market]]
+        errors1 <- forecast1 - actual
+        errors2 <- forecast2 - actual
+        dm_test_results[[paste(model, market, "vs_RW", market, sep = "_")]] <- dm.test(errors1, errors2)
+      }, error = function(e) {
+        cat("An error has occured while perfoming the DM test", conditionMessage(e), "\n")
+      })
+      
     }
   }
 }
+
+# Printing Data ID and Forecast Horizon
+cat("Data ID and Forecast Horizon: ", data_ID[[1]], data_ID[[2]], forecast_horizon)
 
 # Printing Results
 cat("=== Average Direction Accuracy for Each Model (%) ===\n")
