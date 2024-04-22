@@ -117,8 +117,8 @@ eur_usd <- eur_usd %>%
 #data_combined <- merge(data_combined, gbti_dev, by = "Date")
 
 ####### ENDRE ######
-data_combined <- inner_join(spot[, c("Date", "SMX")], smx_forw[, c("Date", "1MON")], by = "Date")
-data_ID <- list("SMX", "1MON")
+data_combined <- inner_join(spot[, c("Date", "PMX")], pmx_forw[, c("Date", "1Q")], by = "Date")
+data_ID <- list("PMX", "1Q")
 ####### ENDRE ######
 
 
@@ -144,8 +144,8 @@ data_log_levels <- data.frame(
   
   
   ####### ENDRE ######
-  spot = log(data_combined$SMX),
-  forwp = log(data_combined$`1MON`)
+  spot = log(data_combined$PMX),
+  forwp = log(data_combined$`1Q`)
   ####### ENDRE ######
   
 )
@@ -513,7 +513,7 @@ print(white_test_forw)
 # Step 9: Forecast future values
 
 ####### ENDRE ##########
-forecast_horizon <-5
+forecast_horizon <-10
 ####### ENDRE ##########
 
 
