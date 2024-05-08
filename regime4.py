@@ -21,6 +21,7 @@ import json
 
 import tensorflow as tf
 
+
 ##### THINGS TO CHNAGE ########
 
 #1. local and system test False
@@ -29,9 +30,9 @@ import tensorflow as tf
 #4. exog_col
 #5. 
 
-local = True
+local = False
 system_test = False
-path = "test/csz_1-5d"
+path = "test/regime4"
 spot_path = f"{path}_spot"
 forw_path = f"{path}_forw"
 
@@ -505,13 +506,13 @@ def main():
     ###### PARAMS ########
     
     #f_col = "1MON"
-    f_col_lst = ["1MON", "1Q"]
+    f_col_lst = ["1MON"]
     s_col = "CSZ"
-    exog_col_lst = [[], [4], [2,4]]
+    exog_col_lst = [[4]]
     #exog_col = [2]
-    hors = [1,2,5]
+    hors = [10]
     #hor = 1
-    diff = True
+    diff = False
     
     
     #### HYPERPARAMS #######
@@ -521,21 +522,21 @@ def main():
     epochs = 100
     if system_test:
         epochs = 1
-    verbose = 0
+    verbose = 1
     look_back = 10
     layers = 2
     #dropout_lst = [None, 0.2, 0.5]
     dropout = None
     #regul_lst = [None, 0.01, 0.1]
-    regul = 0.1
+    regul = None
     #earlystop_lst = [None, 3, 10]    
-    earlystop = 10
+    earlystop = None
     ######################
 
     for f_col in f_col_lst:
         for hor in hors:
             for exog_col in exog_col_lst:
-                models = ["MLP", "LSTM", "RW"]
+                models = ["LSTM", "RW"]
                 forw = pick_forw(s_col)
                 # Ensure 'Date' columns are in datetime format for all datasets
                 #oecd_ip_dev['Date'] = pd.to_datetime(oecd_ip_dev['Date'])
@@ -594,6 +595,8 @@ def main():
                 #len_test = len(data_log_levels[split_index:test_index])
                 #num_rounds = math.floor(len_test / hor)
                 #print("Num rounds:",num_rounds)
+                
+                data_log_levels = data_log_levels.iloc[579:1972]
 
                 # Test
                 split_index = math.floor(len(data_log_levels) * 0.8)

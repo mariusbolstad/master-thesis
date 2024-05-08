@@ -1330,3 +1330,5 @@
         "RW": 0
     }
 }
+2024-05-07 10:30:46,451 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 100. Nodes: 16 Batchsize: 32
+2024-05-07 10:31:53,592 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 100. Nodes: 16 Batchsize: 32
