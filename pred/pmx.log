@@ -445,3 +445,6 @@
 2024-05-09 17:22:05,525 - INFO - Spot: PMX. Forw: 1MON. Lookback: 10. Horizon: 10. Exog_Col = []. Epochs = 100. Nodes: 16 Batchsize: 32
 2024-05-09 18:02:29,754 - INFO - Spot: PMX. Forw: 1MON. Lookback: 10. Horizon: 10. Exog_Col = [2]. Epochs = 100. Nodes: 16 Batchsize: 32
 2024-05-09 18:52:44,976 - INFO - Spot: PMX. Forw: 1MON. Lookback: 10. Horizon: 10. Exog_Col = [2, 4]. Epochs = 100. Nodes: 16 Batchsize: 32
+2024-05-09 19:36:48,096 - INFO - Spot: PMX. Forw: 1MON. Lookback: 10. Horizon: 20. Exog_Col = []. Epochs = 100. Nodes: 16 Batchsize: 32
+2024-05-09 20:16:19,954 - INFO - Spot: PMX. Forw: 1MON. Lookback: 10. Horizon: 20. Exog_Col = [2]. Epochs = 100. Nodes: 16 Batchsize: 32
+2024-05-09 20:39:41,174 - INFO - Spot: PMX. Forw: 1MON. Lookback: 10. Horizon: 20. Exog_Col = [2, 4]. Epochs = 100. Nodes: 16 Batchsize: 32

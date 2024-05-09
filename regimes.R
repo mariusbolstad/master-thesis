@@ -493,7 +493,7 @@ print(white_test_forw)
 
 
 # Step 9: Forecast future values
-forecast_horizon <- 10
+forecast_horizon <- 1
 
 
 
