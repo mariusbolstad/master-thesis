@@ -12,11 +12,11 @@
 #install.packages("tsbox")
 #install.packages("MTS")
 #install.packages("BVAR")
-#install.packages("strucchange")
 #install.packages("psych")
+#install.packages("ggplot2")
 
-getwd()
-setwd("./VSCode/master-thesis")
+#getwd()
+#setwd("./VSCode/master-thesis")
 #setwd("./master-thesis")
 library(readr)  # For reading CSV files
 library(dplyr)  # For data manipulation
@@ -34,8 +34,8 @@ library(data.table)
 library(progress)
 library(MTS)
 library(BVAR)
-library(strucchange)
 library(psych)
+library(ggplot2)
 
 
 # STEP 1: READ CSV
@@ -103,8 +103,27 @@ eur_usd <- read_delim('./data/other/EUR_USD_historical.csv',
                        escape_double = FALSE, 
                        col_types = cols(Date = col_date(format = "%d.%m.%Y")),
                        trim_ws = TRUE)
+
+sp500 <- read_delim('./data/other/sp500.csv', 
+                    delim = ',', 
+                    escape_double = FALSE, 
+                    col_types = cols(Date = col_date(format = "%d-%b-%Y")),
+                    trim_ws = TRUE)
+
+bdi <- read_delim('./data/spot/clarkson_data.csv', 
+                      delim = ';', 
+                      escape_double = FALSE, 
+                      col_types = cols(Date = col_date(format = "%d/%m/%Y")),
+                      trim_ws = TRUE)
+
 # Convert columns from text to numeric, replacing commas with dots
 eur_usd <- eur_usd %>%
+  mutate(across(-Date, ~as.numeric(gsub(",", ".", .x))))
+
+sp500 <- sp500 %>%
+  mutate(across(-Date, ~as.numeric(gsub(",", ".", .x))))
+
+bdi <- bdi %>%
   mutate(across(-Date, ~as.numeric(gsub(",", ".", .x))))
 
 # STEP 2: CLEAN AND PREPARE DATA
@@ -118,16 +137,20 @@ eur_usd <- eur_usd %>%
 #data_combined <- merge(spot, csz_forw, by = "Date")
 #data_combined <- merge(data_combined, gbti_dev, by = "Date")
 
+####### ENDRE ######
+data_combined <- inner_join(spot[, c("Date", "CSZ")], csz_forw[, c("Date", "1MON")], by = "Date")
+data_ID <- list("CSZ", "1MON")
+####### ENDRE ######
 
-####### ENDRE ######
-data_combined <- inner_join(spot[, c("Date", "SMX")], smx_forw[, c("Date", "1MON")], by = "Date")
-####### ENDRE ######
+
 
 #data_combined <- inner_join(data_combined, gbti_dev[, c("Date", "Iron Ore Trade Vol", "Coal Trade Vol", "Grain Trade Vol", "Minor Bulk Trade Vol", "Dry Bulk Trade Vol")], by = "Date")
 #data_combined <- inner_join(data_combined, oecd_ip_dev[, c("Date", "Ind Prod Excl Const VOLA")], by = "Date")
 #data_combined <- inner_join(data_combined, fleet_dev[, c("Date", "HSZ fleet", "HMX fleet", "PMX fleet", "CSZ fleet")], by = "Date")
 #data_combined <- inner_join(data_combined, fleet_dev[, c("Date", "PMX fleet")], by = "Date")
 data_combined <- inner_join(data_combined, eur_usd[, c("Date", "Last")], by = "Date")
+#data_combined <- inner_join(data_combined, sp500[, c("Date", "Close")], by = "Date")
+#data_combined <- inner_join(data_combined, bdi[, c("Date", "BDI")], by = "Date")
 # Removing rows where ColumnA or ColumnB have 0 or NA values
 data_combined <- data_combined %>%
   filter(if_all(-Date, ~ .x != 0 & !is.na(.x)))
@@ -141,8 +164,10 @@ data_combined <- data_combined %>%
 data_log_levels <- data.frame(
   Date = data_combined$Date,
   
+  
+  
   ####### ENDRE ######
-  spot = log(data_combined$SMX),
+  spot = log(data_combined$CSZ),
   forwp = log(data_combined$`1MON`)
   ####### ENDRE ######
   
@@ -166,22 +191,14 @@ exog_log_levels <- data.frame(
   #pmx_dev = log(data_combined$`PMX fleet`),
   #csz_dev = log(data_combined$`PMX fleet`),
   eur_usd = data_combined$Last  # Not log-transformed as it's a rate, but adjust according to your needs,
+  #sp500 = log(data_combined$Close)
+  #bdi = log(data_combined$BDI)
   #iron = log(data_combined$`Iron Ore Trade Vol`),
   #coal = log(data_combined$`Coal Trade Vol`)
 )
 
 # Display the first few rows of each new data frame to verify
 print(head(data_log_levels))
-
-data_ts <- ts(data_log_levels[, c("spot")])
-# Perform the analysis to find breakpoints
-breakpoint_analysis <- breakpoints(data_ts ~ 1)
-
-# Summary of the breakpoints
-summary(breakpoint_analysis)
-
-# Plot the breakpoints along with the time series
-plot(breakpoint_analysis)
 
 # Split into train and test sets
 
@@ -196,6 +213,11 @@ len_test <- nrow(test_lev)
 exog_lev <- exog_log_levels[1:split_index, ]
 
 # Calculate differences
+data_log_diff <- data.frame(
+  Date = data_log_levels$Date[-1],  # Exclude the first date because there's no prior value to difference with
+  spot = diff(data_log_levels$spot),
+  forwp = diff(data_log_levels$forwp)
+)
 
 # Calculate first differences for the training set
 train_diff <- data.frame(
@@ -213,6 +235,8 @@ exog_diff <- data.frame(
   #pmx_dev = diff(exog_log_levels$pmx_dev),
   #csz_dev = diff(exog_lev$csz_dev),
   eur_usd = diff(exog_lev$eur_usd)
+  #sp500 = diff(exog_lev$sp500)
+  #bdi = diff(exog_lev$bdi)
   #iron = diff(exog_lev$iron),
   #coal = diff(exog_lev$coal)
 )
@@ -271,7 +295,59 @@ lapply(train_lev_ts, function(series) jarque.bera.test(series))
 lapply(train_diff_ts, function(series) jarque.bera.test(series))
 
 # Retrieve the descriptive statistics
-describe(data_combined[, c(2,3)])
+cat("Log-level Descriptive Statistics", data_ID[[1]], data_ID[[2]])
+describe(data_log_levels[, c(2,3)])
+cat("Log-differences Descriptive Statistics", data_ID[[1]], data_ID[[2]])
+describe(data_log_diff[, c(2,3)])
+
+# Calculate the Autocorrelation for the differenced data sets
+acf(data_log_diff[[2]], lag.max = 40, main = paste("Autocorrelation for Log-Differences, ", data_ID[[1]], "Spot"), ylim = c(-1,1), lwd = 3)
+acf(data_log_diff[[3]], lag.max = 40, main = paste("Autocorrelation for Log-Differences, ", data_ID[[1]], data_ID[[2]]), ylim = c(-1,1), lwd = 3)
+acf(exog_diff_ts, lag.max = 40, main = paste("Autocorrelation for Log-Differences, ", colnames(exog_diff_ts)), ylim = c(-1,1), lwd = 3)
+
+# Calculate the Cross-correlation for the data sets
+ccf(data_log_diff[[2]], data_log_diff[[3]], lag.max = 40, main = paste("Cross-Correlation for Log-Differences; ", data_ID[[1]], "Spot and", data_ID[[2]]), ylim = c(-1,1), lwd = 3)
+ccf(train_diff_ts[,1], ts(exog_diff$eur_usd), lag.max = 40, main = paste("Cross-Correlation for Log-Differences, ", data_ID[[1]], "Spot and", colnames(exog_diff_ts)), ylim = c(-1,1), lwd = 3)
+ccf(train_diff_ts[,2], ts(exog_diff$eur_usd), lag.max = 40, main = paste("Cross-Correlation for Log-Differences, ", data_ID[[1]], data_ID[[2]], "and", colnames(exog_diff_ts)), ylim = c(-1,1), lwd = 3)
+
+# Completing all the statistical tests for the exogenous variables as well (including the descriptive statistics)
+cat("Statistical tests and descriptive statistics for the exogenous variables")
+cat("Log-Levels")
+lapply(exog_lev_ts, function(series) adf.test(series, alternative = "stationary"))
+lapply(exog_lev_ts, function(series) pp.test(series))
+lapply(exog_lev_ts, function(series) kpss.test(series))
+lapply(exog_lev_ts, function(series) Box.test(series, type = "Ljung-Box"))
+lapply(exog_lev_ts, function(series) jarque.bera.test(series))
+describe(exog_lev_ts)
+
+cat("Log-Differences")
+lapply(exog_diff_ts, function(series) adf.test(series, alternative = "stationary"))
+lapply(exog_diff_ts, function(series) pp.test(series))
+lapply(exog_diff_ts, function(series) kpss.test(series))
+lapply(exog_diff_ts, function(series) Box.test(series, type = "Ljung-Box"))
+lapply(exog_diff_ts, function(series) jarque.bera.test(series))
+describe(exog_diff_ts)
+
+# Plot the relevant Spot and Forward
+#ggplot(data_combined, aes(x = Date)) +
+#  geom_line(aes(y = CSZ, color = "CSZ")) +  # Plot CSZ
+#  geom_line(aes(y = `1MON`, color = "1MON")) +  # Plot 1MON
+#  labs(title = "CSZ and 1MON Over Time",
+#       x = "Date",
+#       y = "Spot Rates and FFA Price",
+#       color = "Series") +
+#  scale_color_manual(values = c("CSZ" = "blue", "1MON" = "red")) +
+#  theme_light() +  # Using a light theme as a base
+#  theme(panel.background = element_blank(),  # No panel background
+#        panel.grid.major = element_blank(),  # No vertical grid lines
+#        panel.grid.minor = element_blank(),  # No minor grid lines
+#        panel.grid.major.y = element_line(color = "black"),  # Black horizontal lines
+#        axis.text = element_text(color = "black"),  # Black text for axes
+#        axis.title = element_text(color = "black"),  # Black axis titles
+#        plot.background = element_rect(fill = "white", color = "white"),  # White plot background
+#        axis.line.y = element_line(color = "black")) +  # Black line for the y-axis
+#  scale_x_date(date_breaks = "2 year", date_labels = "%b %Y")  # Increase label frequency and format
+
 
 
 # Step 4: MODEL FITS AND DIAGNOSTIC CHECKS
@@ -440,6 +516,7 @@ vecm_var <- vec2var(coint_test, r = 1)
 
 # Extract the residuals from the VAR model
 residuals_var <- residuals(vecm_var)
+cor_matrix_vecm <- cor(residuals_var)
 
 # Get the number of equations (variables) in the VAR model
 num_equations <- ncol(residuals_var)
@@ -515,13 +592,28 @@ print(white_test_forw)
 
 
 
+# Calculate the AIC for all data in all segments
+var_aic <- AIC(var_model)
+cat("AIC for VAR", data_ID[[1]], data_ID[[2]], ":", var_aic)
+vecm_aic <- AIC(vecm_var)
+cat("AIC for VECM", data_ID[[1]], data_ID[[2]], ":", vecm_aic)
+arima_spot_aic <- AIC(arima_model_spot)
+cat("AIC for ARIMA spot", data_ID[[1]], data_ID[[2]], ":", arima_spot_aic)
+arima_forwp_aic <- AIC(arima_model_forwp)
+cat("AIC for ARIMA forward", data_ID[[1]], data_ID[[2]], ":", arima_forwp_aic)
+
+
+
+# Estimate the VECM model for in-sample results
+summary(vecm_cajo)
+print(cor_matrix_vecm)
 
 
 
 # Step 9: Forecast future values
 
 ####### ENDRE ##########
-forecast_horizon <- 1
+forecast_horizon <-10
 ####### ENDRE ##########
 
 
@@ -545,8 +637,8 @@ arima_fcs_spot <- forecast(arima_model_spot, h = forecast_horizon)
 arima_fcs_forwp <- forecast(arima_model_forwp, h = forecast_horizon)
 
 # Determine the number of rounds based on the test set size and forecast horizon
-num_rounds <- min(floor(len_test / forecast_horizon), 30)
-#num_rounds <- floor(nrow(test_lev) / forecast_horizon)
+#num_rounds <- min(floor(len_test / forecast_horizon), 30)
+num_rounds <- floor(nrow(test_lev) / forecast_horizon)
 
 print(num_rounds)
 
@@ -981,19 +1073,42 @@ for(model in models) {
 }
 
 # Diebold-Mariano Test
+#dm_test_results <- list()
+#for(model in models) {
+#  if(model != "RW") {
+#    for(market in c("spot", "forwp")) {
+#      forecast1 <- aggregated_forecasts[[model]][[market]]
+#      forecast2 <- aggregated_forecasts[["RW"]][[market]]
+#      actual <- aggregated_actuals[[market]]
+#      errors1 <- forecast1 - actual
+#      errors2 <- forecast2 - actual
+#      dm_test_results[[paste(model, market, "vs_RW", market, sep = "_")]] <- dm.test(errors1, errors2)
+#    }
+#  }
+#}
+
+# Diebold-Mariano Test with a error handling included
 dm_test_results <- list()
 for(model in models) {
   if(model != "RW") {
     for(market in c("spot", "forwp")) {
-      forecast1 <- aggregated_forecasts[[model]][[market]]
-      forecast2 <- aggregated_forecasts[["RW"]][[market]]
-      actual <- aggregated_actuals[[market]]
-      errors1 <- forecast1 - actual
-      errors2 <- forecast2 - actual
-      dm_test_results[[paste(model, market, "vs_RW", market, sep = "_")]] <- dm.test(errors1, errors2)
+      tryCatch({
+        forecast1 <- aggregated_forecasts[[model]][[market]]
+        forecast2 <- aggregated_forecasts[["RW"]][[market]]
+        actual <- aggregated_actuals[[market]]
+        errors1 <- forecast1 - actual
+        errors2 <- forecast2 - actual
+        dm_test_results[[paste(model, market, "vs_RW", market, sep = "_")]] <- dm.test(errors1, errors2)
+      }, error = function(e) {
+        cat("An error has occured while perfoming the DM test", conditionMessage(e), "\n")
+      })
+      
     }
   }
 }
+
+# Printing Data ID and Forecast Horizon
+cat("Data ID and Forecast Horizon: ", data_ID[[1]], data_ID[[2]], forecast_horizon)
 
 # Printing Results
 cat("=== Average Direction Accuracy for Each Model (%) ===\n")
@@ -1031,3 +1146,20 @@ for(result in names(dm_test_results)) {
   cat(result, ": Statistic =", sprintf("%.4f", dm_test_results[[result]]$statistic),
       ", P-Value =", sprintf("%.4f", dm_test_results[[result]]$p.value), "\n")
 }
+
+# Storing and saving the forecasts and actual values in a csv file
+
+combined_fcs_act_val <- data.frame(Actuals = aggregated_actuals$spot, 
+                                   VAR_fcs = aggregated_forecasts$VAR$spot, 
+                                   VECM_fcs = aggregated_forecasts$VECM$spot, 
+                                   ARIMA_fcs = aggregated_forecasts$ARIMA$spot, 
+                                   RW_fcs = aggregated_forecasts$RW$spot, 
+                                   VAR_res = aggregated_forecasts$VAR$spot - aggregated_actuals$spot,
+                                   VECM_res = aggregated_forecasts$VECM$spot - aggregated_actuals$spot,
+                                   ARIMA_res = aggregated_forecasts$ARIMA$spot - aggregated_actuals$spot,
+                                   RW_res = aggregated_forecasts$RW$spot - aggregated_actuals$spot)
+
+filename <- paste(data_ID[[1]], data_ID[[2]], forecast_horizon, "days_forecasts_residuals.csv", sep = "_")
+write.csv(combined_fcs_act_val, filename, row.names = FALSE)
+print(read.csv(filename))
+
