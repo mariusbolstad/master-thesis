@@ -1,0 +1,571 @@
+2024-05-02 15:08:53,763 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 10. Exog_Col = [4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-02 15:08:58,071 - INFO - Logged Metrics:
+{
+    "rmse_spot": {
+        "LSTM": 0.9692013370183558,
+        "RW": 0.22832192001587773
+    },
+    "rmse_forw": {
+        "LSTM": 0.5240645928423721,
+        "RW": 0.17466807458200057
+    },
+    "mae_spot": {
+        "LSTM": 0.938051391209445,
+        "RW": 0.19169782410996428
+    },
+    "mae_forw": {
+        "LSTM": 0.5000260947149455,
+        "RW": 0.15024580985229602
+    },
+    "mape_spot": {
+        "LSTM": 9.740254140691272,
+        "RW": 1.963445623270758
+    },
+    "mape_forw": {
+        "LSTM": 5.203142405837999,
+        "RW": 1.553887779874945
+    },
+    "correct_direction_spot": {
+        "LSTM": 0.0
+    },
+    "correct_direction_forw": {
+        "LSTM": 0.0
+    },
+    "pred_spot": {},
+    "pred_forw": {},
+    "dm_teststat_spot": {
+        "LSTM": 8.98817622120742,
+        "RW": 0.0
+    },
+    "dm_pvalue_spot": {
+        "LSTM": 2.5136676484136534e-19,
+        "RW": 1.0
+    },
+    "dm_teststat_forw": {
+        "LSTM": 6.990749278749284,
+        "RW": 0.0
+    },
+    "dm_pvalue_forw": {
+        "LSTM": 2.7342200913320787e-12,
+        "RW": 1.0
+    },
+    "reduction_rmse_spot": {
+        "LSTM": -324.4889570615719,
+        "RW": 0
+    },
+    "reduction_rmse_forw": {
+        "LSTM": -200.03456218116264,
+        "RW": 0
+    }
+}
+2024-05-02 15:10:47,087 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 10. Exog_Col = [4]. Epochs = 100. Nodes: 16 Batchsize: 32
+2024-05-02 15:11:21,193 - WARNING - 5 out of the last 5 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x2897584c0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-02 15:11:21,639 - WARNING - 5 out of the last 5 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x2878b44c0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-02 15:11:27,505 - WARNING - 6 out of the last 6 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x285cc3b80> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-02 15:11:27,514 - INFO - Logged Metrics:
+{
+    "rmse_spot": {
+        "LSTM": 0.2745819226984019,
+        "RW": 0.1946028627245978
+    },
+    "rmse_forw": {
+        "LSTM": 0.22230134264499538,
+        "RW": 0.17897635694844738
+    },
+    "mae_spot": {
+        "LSTM": 0.24860423592797137,
+        "RW": 0.16715420094016728
+    },
+    "mae_forw": {
+        "LSTM": 0.19287384559003254,
+        "RW": 0.15779955525283176
+    },
+    "mape_spot": {
+        "LSTM": 2.5338996509807608,
+        "RW": 1.7255197556463144
+    },
+    "mape_forw": {
+        "LSTM": 1.9988987927839956,
+        "RW": 1.6223825968143508
+    },
+    "correct_direction_spot": {
+        "LSTM": 0.36363636363636365
+    },
+    "correct_direction_forw": {
+        "LSTM": 0.5454545454545454
+    },
+    "pred_spot": {},
+    "pred_forw": {},
+    "dm_teststat_spot": {
+        "LSTM": 2.5994833542687674,
+        "RW": 0.0
+    },
+    "dm_pvalue_spot": {
+        "LSTM": 0.00933642064375011,
+        "RW": 1.0
+    },
+    "dm_teststat_forw": {
+        "LSTM": -1.2656473689270449,
+        "RW": 0.0
+    },
+    "dm_pvalue_forw": {
+        "LSTM": 0.20563935904402064,
+        "RW": 1.0
+    },
+    "reduction_rmse_spot": {
+        "LSTM": -41.098604025671804,
+        "RW": 0
+    },
+    "reduction_rmse_forw": {
+        "LSTM": -24.20709999646902,
+        "RW": 0
+    }
+}
+2024-05-02 15:14:21,451 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 10. Exog_Col = [4]. Epochs = 1000. Nodes: 16 Batchsize: 32
+2024-05-02 15:18:47,381 - WARNING - 5 out of the last 5 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x287ae9280> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-02 15:18:51,114 - WARNING - 5 out of the last 5 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x285071280> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-02 15:19:40,981 - WARNING - 6 out of the last 6 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x287ae99d0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-02 15:19:40,991 - INFO - Logged Metrics:
+{
+    "rmse_spot": {
+        "LSTM": 0.3966821938277164,
+        "RW": 0.1946028627245978
+    },
+    "rmse_forw": {
+        "LSTM": 0.2805952788003284,
+        "RW": 0.17897635694844738
+    },
+    "mae_spot": {
+        "LSTM": 0.34897768362194337,
+        "RW": 0.16715420094016728
+    },
+    "mae_forw": {
+        "LSTM": 0.24872781103360495,
+        "RW": 0.15779955525283176
+    },
+    "mape_spot": {
+        "LSTM": 3.5540886182299842,
+        "RW": 1.7255197556463144
+    },
+    "mape_forw": {
+        "LSTM": 2.574256918304442,
+        "RW": 1.6223825968143508
+    },
+    "correct_direction_spot": {
+        "LSTM": 0.18181818181818182
+    },
+    "correct_direction_forw": {
+        "LSTM": 0.36363636363636365
+    },
+    "pred_spot": {},
+    "pred_forw": {},
+    "dm_teststat_spot": {
+        "LSTM": 2.942825236793052,
+        "RW": 0.0
+    },
+    "dm_pvalue_spot": {
+        "LSTM": 0.0032523196025035215,
+        "RW": 1.0
+    },
+    "dm_teststat_forw": {
+        "LSTM": 0.4187693531137327,
+        "RW": 0.0
+    },
+    "dm_pvalue_forw": {
+        "LSTM": 0.6753847045896533,
+        "RW": 1.0
+    },
+    "reduction_rmse_spot": {
+        "LSTM": -103.84191078889806,
+        "RW": 0
+    },
+    "reduction_rmse_forw": {
+        "LSTM": -56.77784685334248,
+        "RW": 0
+    }
+}
+2024-05-07 10:17:58,347 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 10. Exog_Col = [4]. Epochs = 100. Nodes: 16 Batchsize: 32
+2024-05-07 10:18:31,523 - WARNING - 5 out of the last 5 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x286d674c0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-07 10:18:31,944 - WARNING - 5 out of the last 5 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x28c2c94c0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-07 10:18:37,799 - WARNING - 6 out of the last 6 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x282243b80> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-07 10:18:37,805 - INFO - Logged Metrics:
+{
+    "rmse_spot": {
+        "LSTM": 0.28841115558046565,
+        "RW": 0.1946028627245978
+    },
+    "rmse_forw": {
+        "LSTM": 0.24301018199534116,
+        "RW": 0.17897635694844738
+    },
+    "mae_spot": {
+        "LSTM": 0.2653670701603104,
+        "RW": 0.16715420094016728
+    },
+    "mae_forw": {
+        "LSTM": 0.2125684709664835,
+        "RW": 0.15779955525283176
+    },
+    "mape_spot": {
+        "LSTM": 2.700668826299801,
+        "RW": 1.7255197556463144
+    },
+    "mape_forw": {
+        "LSTM": 2.202160220635268,
+        "RW": 1.6223825968143508
+    },
+    "correct_direction_spot": {
+        "LSTM": 0.36363636363636365
+    },
+    "correct_direction_forw": {
+        "LSTM": 0.36363636363636365
+    },
+    "pred_spot": {},
+    "pred_forw": {},
+    "dm_teststat_spot": {
+        "LSTM": 2.484682025272292,
+        "RW": 0.0
+    },
+    "dm_pvalue_spot": {
+        "LSTM": 0.012966719801271209,
+        "RW": 1.0
+    },
+    "dm_teststat_forw": {
+        "LSTM": -1.530119317825513,
+        "RW": 0.0
+    },
+    "dm_pvalue_forw": {
+        "LSTM": 0.12598719740984063,
+        "RW": 1.0
+    },
+    "reduction_rmse_spot": {
+        "LSTM": -48.20499120232646,
+        "RW": 0
+    },
+    "reduction_rmse_forw": {
+        "LSTM": -35.77781229804457,
+        "RW": 0
+    }
+}
+2024-05-07 10:23:04,165 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 10. Exog_Col = [4]. Epochs = 100. Nodes: 16 Batchsize: 32
+2024-05-07 10:24:07,791 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 10. Exog_Col = [4]. Epochs = 100. Nodes: 16 Batchsize: 32
+2024-05-07 10:24:36,588 - WARNING - 5 out of the last 5 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x2873794c0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-07 10:24:37,054 - WARNING - 5 out of the last 5 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x289be24c0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-07 10:24:42,425 - WARNING - 6 out of the last 6 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x282283b80> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-07 10:24:42,890 - WARNING - 6 out of the last 6 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x2866c3b80> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-07 10:25:19,726 - INFO - Logged Metrics:
+{
+    "rmse_spot": {
+        "LSTM": 0.2930589215506554,
+        "RW": 0.20514456373858883
+    },
+    "rmse_forw": {
+        "LSTM": 0.20603884000100225,
+        "RW": 0.20371309850538064
+    },
+    "mae_spot": {
+        "LSTM": 0.2639819977981722,
+        "RW": 0.17571999119936277
+    },
+    "mae_forw": {
+        "LSTM": 0.1836305524972267,
+        "RW": 0.17926162791585068
+    },
+    "mape_spot": {
+        "LSTM": 2.7876772059919404,
+        "RW": 1.8835465758791599
+    },
+    "mape_forw": {
+        "LSTM": 1.9374064967186428,
+        "RW": 1.889466416492876
+    },
+    "correct_direction_spot": {
+        "LSTM": 0.5217391304347826
+    },
+    "correct_direction_forw": {
+        "LSTM": 0.7391304347826086
+    },
+    "pred_spot": {},
+    "pred_forw": {},
+    "dm_teststat_spot": {
+        "LSTM": 4.721380870248067,
+        "RW": 0.0
+    },
+    "dm_pvalue_spot": {
+        "LSTM": 2.3424881865062247e-06,
+        "RW": 1.0
+    },
+    "dm_teststat_forw": {
+        "LSTM": -1.0226925033086385,
+        "RW": 0.0
+    },
+    "dm_pvalue_forw": {
+        "LSTM": 0.3064532570380325,
+        "RW": 1.0
+    },
+    "reduction_rmse_spot": {
+        "LSTM": -42.854831836584204,
+        "RW": 0
+    },
+    "reduction_rmse_forw": {
+        "LSTM": -1.1416749893282896,
+        "RW": 0
+    }
+}
+2024-05-07 10:26:46,192 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 10. Exog_Col = [4]. Epochs = 100. Nodes: 16 Batchsize: 32
+2024-05-07 10:27:26,556 - WARNING - 5 out of the last 5 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x28b4120d0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-07 10:27:28,619 - WARNING - 5 out of the last 5 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x17f3d40d0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-07 10:27:35,053 - WARNING - 6 out of the last 6 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x289067940> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-07 10:27:37,137 - WARNING - 6 out of the last 6 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x16e30cee0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-07 10:30:42,367 - INFO - Logged Metrics:
+{
+    "rmse_spot": {
+        "LSTM": 0.20309065357226386,
+        "RW": 0.18299671782929425
+    },
+    "rmse_forw": {
+        "LSTM": 0.18159006510415207,
+        "RW": 0.14854550490796622
+    },
+    "mae_spot": {
+        "LSTM": 0.1786701387012187,
+        "RW": 0.15745923201987327
+    },
+    "mae_forw": {
+        "LSTM": 0.16178413431302338,
+        "RW": 0.12858285492768096
+    },
+    "mape_spot": {
+        "LSTM": 2.0199115018302876,
+        "RW": 1.771163418565295
+    },
+    "mape_forw": {
+        "LSTM": 1.8211454387347084,
+        "RW": 1.450016418633341
+    },
+    "correct_direction_spot": {
+        "LSTM": 0.40425531914893614
+    },
+    "correct_direction_forw": {
+        "LSTM": 0.44680851063829785
+    },
+    "pred_spot": {},
+    "pred_forw": {},
+    "dm_teststat_spot": {
+        "LSTM": -0.1955029582404511,
+        "RW": 0.0
+    },
+    "dm_pvalue_spot": {
+        "LSTM": 0.8449992220241118,
+        "RW": 1.0
+    },
+    "dm_teststat_forw": {
+        "LSTM": -2.13651934506472,
+        "RW": 0.0
+    },
+    "dm_pvalue_forw": {
+        "LSTM": 0.03263710588978913,
+        "RW": 1.0
+    },
+    "reduction_rmse_spot": {
+        "LSTM": -10.980489694746298,
+        "RW": 0
+    },
+    "reduction_rmse_forw": {
+        "LSTM": -22.24541241867881,
+        "RW": 0
+    }
+}
+2024-05-07 10:32:50,949 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 10. Exog_Col = [4]. Epochs = 100. Nodes: 16 Batchsize: 32
+2024-05-07 10:33:36,917 - WARNING - 5 out of the last 5 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x288372d30> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-07 10:33:39,283 - WARNING - 5 out of the last 5 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x28be40d30> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-07 10:33:46,415 - WARNING - 6 out of the last 6 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x28241e5e0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-07 10:33:48,460 - WARNING - 6 out of the last 6 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x16e5381f0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-07 10:36:52,849 - INFO - Logged Metrics:
+{
+    "rmse_spot": {
+        "LSTM": 0.2029847119983337,
+        "RW": 0.18299671782929425
+    },
+    "rmse_forw": {
+        "LSTM": 0.17112629911083077,
+        "RW": 0.14854550490796622
+    },
+    "mae_spot": {
+        "LSTM": 0.17934159743984562,
+        "RW": 0.15745923201987327
+    },
+    "mae_forw": {
+        "LSTM": 0.1517432958386549,
+        "RW": 0.12858285492768096
+    },
+    "mape_spot": {
+        "LSTM": 2.0298913703869936,
+        "RW": 1.771163418565295
+    },
+    "mape_forw": {
+        "LSTM": 1.710184720871036,
+        "RW": 1.450016418633341
+    },
+    "correct_direction_spot": {
+        "LSTM": 0.48936170212765956
+    },
+    "correct_direction_forw": {
+        "LSTM": 0.5319148936170213
+    },
+    "pred_spot": {},
+    "pred_forw": {},
+    "dm_teststat_spot": {
+        "LSTM": 0.28468742951687553,
+        "RW": 0.0
+    },
+    "dm_pvalue_spot": {
+        "LSTM": 0.7758836221061411,
+        "RW": 1.0
+    },
+    "dm_teststat_forw": {
+        "LSTM": -2.4211611430489866,
+        "RW": 0.0
+    },
+    "dm_pvalue_forw": {
+        "LSTM": 0.015471017431415796,
+        "RW": 1.0
+    },
+    "reduction_rmse_spot": {
+        "LSTM": -10.922597085967944,
+        "RW": 0
+    },
+    "reduction_rmse_forw": {
+        "LSTM": -15.201263893414229,
+        "RW": 0
+    }
+}
+2024-05-07 10:37:09,859 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 10. Exog_Col = [4]. Epochs = 100. Nodes: 16 Batchsize: 32
+2024-05-07 10:37:52,456 - WARNING - 5 out of the last 5 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x28c2bbdc0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-07 10:37:54,324 - WARNING - 5 out of the last 5 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x28efb6dc0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-07 10:38:01,493 - WARNING - 6 out of the last 6 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x286413ca0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-07 10:38:03,291 - WARNING - 6 out of the last 6 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x285c4c040> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-07 10:41:13,825 - INFO - Logged Metrics:
+{
+    "rmse_spot": {
+        "LSTM": 0.3398738728539294,
+        "RW": 0.18299671782929425
+    },
+    "rmse_forw": {
+        "LSTM": 0.2880748805398043,
+        "RW": 0.14854550490796622
+    },
+    "mae_spot": {
+        "LSTM": 0.3234347470623644,
+        "RW": 0.15745923201987327
+    },
+    "mae_forw": {
+        "LSTM": 0.27218642449083486,
+        "RW": 0.12858285492768096
+    },
+    "mape_spot": {
+        "LSTM": 3.7177535396547596,
+        "RW": 1.771163418565295
+    },
+    "mape_forw": {
+        "LSTM": 3.095085458588478,
+        "RW": 1.450016418633341
+    },
+    "correct_direction_spot": {
+        "LSTM": 0.5106382978723404
+    },
+    "correct_direction_forw": {
+        "LSTM": 0.44680851063829785
+    },
+    "pred_spot": {},
+    "pred_forw": {},
+    "dm_teststat_spot": {
+        "LSTM": -3.107148384964966,
+        "RW": 0.0
+    },
+    "dm_pvalue_spot": {
+        "LSTM": 0.0018890155465576485,
+        "RW": 1.0
+    },
+    "dm_teststat_forw": {
+        "LSTM": -6.7289996310323925,
+        "RW": 0.0
+    },
+    "dm_pvalue_forw": {
+        "LSTM": 1.708334882673876e-11,
+        "RW": 1.0
+    },
+    "reduction_rmse_spot": {
+        "LSTM": -85.7267588651375,
+        "RW": 0
+    },
+    "reduction_rmse_forw": {
+        "LSTM": -93.93039238601379,
+        "RW": 0
+    }
+}
+2024-05-07 10:43:12,057 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 10. Exog_Col = [4]. Epochs = 100. Nodes: 16 Batchsize: 32
+2024-05-07 10:43:28,497 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 10. Exog_Col = [4]. Epochs = 100. Nodes: 16 Batchsize: 32
+2024-05-07 10:45:36,326 - WARNING - 5 out of the last 5 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x2871030d0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-07 10:45:36,358 - WARNING - 5 out of the last 5 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x2891380d0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-07 10:46:04,129 - WARNING - 6 out of the last 6 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x2845671f0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-07 10:46:04,247 - WARNING - 6 out of the last 6 calls to <function TensorFlowTrainer.make_predict_function.<locals>.one_step_on_data_distributed at 0x283f121f0> triggered tf.function retracing. Tracing is expensive and the excessive number of tracings could be due to (1) creating @tf.function repeatedly in a loop, (2) passing tensors with different shapes, (3) passing Python objects instead of tensors. For (1), please define your @tf.function outside of the loop. For (2), @tf.function has reduce_retracing=True option that can avoid unnecessary retracing. For (3), please refer to https://www.tensorflow.org/guide/function#controlling_retracing and https://www.tensorflow.org/api_docs/python/tf/function for  more details.
+2024-05-07 11:01:16,401 - INFO - Logged Metrics:
+{
+    "rmse_spot": {
+        "LSTM": 0.2038430062545107,
+        "RW": 0.24282801461508743
+    },
+    "rmse_forw": {
+        "LSTM": 0.1673063956691395,
+        "RW": 0.16911038655292482
+    },
+    "mae_spot": {
+        "LSTM": 0.1747437579579739,
+        "RW": 0.21291384099328436
+    },
+    "mae_forw": {
+        "LSTM": 0.1476738377221983,
+        "RW": 0.14990193814132544
+    },
+    "mape_spot": {
+        "LSTM": 1.8078452365125732,
+        "RW": 2.2071904764894525
+    },
+    "mape_forw": {
+        "LSTM": 1.5043791560721982,
+        "RW": 1.529894779270953
+    },
+    "correct_direction_spot": {
+        "LSTM": 0.6714285714285714
+    },
+    "correct_direction_forw": {
+        "LSTM": 0.5285714285714286
+    },
+    "pred_spot": {},
+    "pred_forw": {},
+    "dm_teststat_spot": {
+        "LSTM": -0.5469165019765783,
+        "RW": 0.0
+    },
+    "dm_pvalue_spot": {
+        "LSTM": 0.5844360980164811,
+        "RW": 1.0
+    },
+    "dm_teststat_forw": {
+        "LSTM": -0.32085423660476287,
+        "RW": 0.0
+    },
+    "dm_pvalue_forw": {
+        "LSTM": 0.7483208556321033,
+        "RW": 1.0
+    },
+    "reduction_rmse_spot": {
+        "LSTM": 16.054576084383342,
+        "RW": 0
+    },
+    "reduction_rmse_forw": {
+        "LSTM": 1.0667534505461873,
+        "RW": 0
+    }
+}

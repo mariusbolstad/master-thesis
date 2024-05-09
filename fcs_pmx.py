@@ -19,7 +19,7 @@ import json
 
 import tensorflow as tf
 
-local = True
+local = False
 
 if local:
     csv_file_spot = "log_spot.csv"
@@ -410,14 +410,11 @@ def main():
     #oecd_ip_dev = pd.read_csv('./data/other/oecd_daily.csv', parse_dates=['Date'], dayfirst=True)
     #fleet_dev = pd.read_csv('./data/other/fleet_dev_daily.csv', parse_dates=['Date'], dayfirst=True)
     eur_usd = pd.read_csv('./data/other/EUR_USD_historical.csv', parse_dates=['Date'], delimiter=";", dayfirst=True)
-    sp500 = pd.read_csv("./data/other/sp500.csv", parse_dates=['Date'])
-    
+    #sp500 = pd.read_csv()
     #sofr = pd.read_csv()
     # Convert 'Last' column to numeric, replacing comma with dot for decimal point
     eur_usd['Last'] = pd.to_numeric(eur_usd['Last'].str.replace(',', '.'), errors='coerce')
-    sp500['Close'] = pd.to_numeric(sp500['Close'].str.replace(',', ''), errors='coerce')
-
-
+    
     def pick_forw(key):
         if key == "PMX":
             return pmx_forw
@@ -428,9 +425,9 @@ def main():
 
     
     # Number of rounds based on the test set size and forecast horizon
-    exog_col = [2, 3]
+    exog_col = []
     hor = 3
-    s_col = "CSZ"
+    s_col = "PMX"
     f_col = "1MON"
     #fleet_col = "CSZ fleet"
     forw = pick_forw(s_col)
@@ -443,7 +440,6 @@ def main():
     #oecd_ip_dev['Date'] = pd.to_datetime(oecd_ip_dev['Date'])
     #fleet_dev['Date'] = pd.to_datetime(fleet_dev['Date'])
     eur_usd['Date'] = pd.to_datetime(eur_usd['Date'])
-    sp500['Date'] = pd.to_datetime(sp500['Date'])    
     spot['Date'] = pd.to_datetime(spot['Date'])
     pmx_forw['Date'] = pd.to_datetime(pmx_forw['Date'])
     csz_forw['Date'] = pd.to_datetime(csz_forw['Date'])
@@ -452,7 +448,7 @@ def main():
 
     #prod_col = 'Ind Prod Excl Const VOLA'
     eur_col = 'Last'
-    sp500_col = "Close"
+    sp500_col = ""
     sofr_col = ""
 
     # Merge data frames on the Date column
@@ -460,13 +456,13 @@ def main():
     #data_combined = pd.merge(data_combined, oecd_ip_dev[['Date', prod_col]], on='Date', how='inner')
     #data_combined = pd.merge(data_combined, fleet_dev[['Date', fleet_col]], on='Date', how='inner')
     data_combined = pd.merge(data_combined, eur_usd[['Date', eur_col]], on='Date', how='inner')
-    data_combined = pd.merge(data_combined, sp500[['Date', sp500_col]], on='Date', how='inner')
+    #data_combined = pd.merge(data_combined, sp500[['Date', sp500_col]], on='Date', how='inner')
     #data_combined = pd.merge(data_combined, sofr[['Date', sofr_col]], on='Date', how='inner')
 
 
 
     # Filter out rows where the specified columns contain zeros or NA values
-    cols_to_check = [s_col, f_col, eur_col, sp500_col]
+    cols_to_check = [s_col, f_col, eur_col]
     data_combined = data_combined.dropna(subset=cols_to_check)  # Drop rows where NA values are present in the specified columns
     data_combined = data_combined[(data_combined[cols_to_check] != 0).all(axis=1)]  # Drop rows where 0 values are present in the specified columns
 
@@ -482,10 +478,6 @@ def main():
     #data_log_levels[prod_col] = np.log(data_combined[prod_col])
     if len(exog_col) == 1:
         data_log_levels[eur_col] = np.log(data_combined[eur_col])
-    elif len(exog_col) == 2:
-        data_log_levels[eur_col] = np.log(data_combined[eur_col])
-        data_log_levels[sp500_col] = np.log(data_combined[sp500_col])
-        
 
     data_log_levels.index = data_combined["Date"]
     

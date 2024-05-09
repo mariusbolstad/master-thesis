@@ -12,8 +12,7 @@
 #install.packages("tsbox")
 #install.packages("MTS")
 #install.packages("BVAR")
-#install.packages("strucchange")
-#install.packages("psych")
+install.packages("strucchange")
 
 getwd()
 setwd("./VSCode/master-thesis")
@@ -35,7 +34,6 @@ library(progress)
 library(MTS)
 library(BVAR)
 library(strucchange)
-library(psych)
 
 
 # STEP 1: READ CSV
@@ -99,30 +97,26 @@ vessel_sale_volume <- read_csv('./data/other/vessel_sale_daily.csv',
                                trim_ws = TRUE)
 
 eur_usd <- read_delim('./data/other/EUR_USD_historical.csv', 
-                       delim = ';', 
-                       escape_double = FALSE, 
-                       col_types = cols(Date = col_date(format = "%d.%m.%Y")),
-                       trim_ws = TRUE)
+                      delim = ';', 
+                      escape_double = FALSE, 
+                      col_types = cols(Date = col_date(format = "%d.%m.%Y")),
+                      trim_ws = TRUE)
 # Convert columns from text to numeric, replacing commas with dots
 eur_usd <- eur_usd %>%
   mutate(across(-Date, ~as.numeric(gsub(",", ".", .x))))
 
+
 # STEP 2: CLEAN AND PREPARE DATA
-# CSZ column: CSZ
+# CSZ column: SMX
 # PMX column: PMX
 # SMX column: SMX
-# ffa column: 1MON, 1Q
+# ffa column: ROLL
 
 
 # Merge data frames on the Date column, include trade volume
 #data_combined <- merge(spot, csz_forw, by = "Date")
 #data_combined <- merge(data_combined, gbti_dev, by = "Date")
-
-
-####### ENDRE ######
-data_combined <- inner_join(spot[, c("Date", "SMX")], smx_forw[, c("Date", "1MON")], by = "Date")
-####### ENDRE ######
-
+data_combined <- inner_join(spot[, c("Date", "CSZ")], csz_forw[, c("Date", "1MON")], by = "Date")
 #data_combined <- inner_join(data_combined, gbti_dev[, c("Date", "Iron Ore Trade Vol", "Coal Trade Vol", "Grain Trade Vol", "Minor Bulk Trade Vol", "Dry Bulk Trade Vol")], by = "Date")
 #data_combined <- inner_join(data_combined, oecd_ip_dev[, c("Date", "Ind Prod Excl Const VOLA")], by = "Date")
 #data_combined <- inner_join(data_combined, fleet_dev[, c("Date", "HSZ fleet", "HMX fleet", "PMX fleet", "CSZ fleet")], by = "Date")
@@ -140,12 +134,8 @@ data_combined <- data_combined %>%
 # Transform data to log levels and create a new data frame for log levels
 data_log_levels <- data.frame(
   Date = data_combined$Date,
-  
-  ####### ENDRE ######
-  spot = log(data_combined$SMX),
+  spot = log(data_combined$CSZ),
   forwp = log(data_combined$`1MON`)
-  ####### ENDRE ######
-  
 )
 
 #exog_log_levels <- data.frame(
@@ -175,14 +165,18 @@ print(head(data_log_levels))
 
 data_ts <- ts(data_log_levels[, c("spot")])
 # Perform the analysis to find breakpoints
-breakpoint_analysis <- breakpoints(data_ts ~ 1)
+#breakpoint_analysis <- breakpoints(data_ts ~ 1)
 
 # Summary of the breakpoints
-summary(breakpoint_analysis)
+#summary(breakpoint_analysis)
 
 # Plot the breakpoints along with the time series
-plot(breakpoint_analysis)
+#plot(breakpoint_analysis)
 
+#data_combined <- data_combined[1972:nrow(data_combined), ]
+#data_log_levels <- data_log_levels[1972:nrow(data_log_levels), ]
+#data_combined <- data_combined[580:1971, ]
+#data_log_levels <- data_log_levels[580:1971, ]
 # Split into train and test sets
 
 # Calculate the index for the split
@@ -252,26 +246,6 @@ lapply(train_diff_ts, function(series) adf.test(series, alternative = "stationar
 lapply(exog_lev_ts, function(series) adf.test(series, alternative = "stationary"))
 lapply(exog_diff_ts, function(series) adf.test(series, alternative = "stationary"))
 
-# Step 3a: OTHER STATISTICAL TESTS AND DESCRIPTIVE STATISTICS ON THE INPUT TIME SERIES
-
-# Perform Phillips-Perron (PP) test (stationarity)
-lapply(train_lev_ts, function(series) pp.test(series))
-lapply(train_diff_ts, function(series) pp.test(series))
-
-# Perform KPSS test (stationarity around trend)
-lapply(train_lev_ts, function(series) kpss.test(series))
-lapply(train_diff_ts, function(series) kpss.test(series))
-
-# Perform Ljung-Box test (autocorrelation)
-lapply(train_lev_ts, function(series) Box.test(series, type = "Ljung-Box"))
-lapply(train_diff_ts, function(series) Box.test(series, type = "Ljung-Box"))
-
-# Perform the Jarque-Bera test (normality)
-lapply(train_lev_ts, function(series) jarque.bera.test(series))
-lapply(train_diff_ts, function(series) jarque.bera.test(series))
-
-# Retrieve the descriptive statistics
-describe(data_combined[, c(2,3)])
 
 
 # Step 4: MODEL FITS AND DIAGNOSTIC CHECKS
@@ -519,10 +493,7 @@ print(white_test_forw)
 
 
 # Step 9: Forecast future values
-
-####### ENDRE ##########
-forecast_horizon <- 1
-####### ENDRE ##########
+forecast_horizon <- 10
 
 
 
@@ -545,8 +516,8 @@ arima_fcs_spot <- forecast(arima_model_spot, h = forecast_horizon)
 arima_fcs_forwp <- forecast(arima_model_forwp, h = forecast_horizon)
 
 # Determine the number of rounds based on the test set size and forecast horizon
-num_rounds <- min(floor(len_test / forecast_horizon), 30)
-#num_rounds <- floor(nrow(test_lev) / forecast_horizon)
+#num_rounds <- min(floor(len_test / forecast_horizon), 30)
+num_rounds <- floor(nrow(test_lev) / forecast_horizon)
 
 print(num_rounds)
 
@@ -721,7 +692,7 @@ for (round in 1:num_rounds) {
   #bvar_model <- bvar(train_diff_ts, lags = lag_order, type = "both")
   #bvar_fcs <- predict(bvar_model, horizon = forecast_horizon)
   #bvar_fcs_fcast <- summary(bvar_fcs)
-
+  
   
   # VECM
   coint_test <- ca.jo(train_lev_ts, spec = "longrun", type = "trace", ecdet = "trend", K = lag_order)
@@ -799,7 +770,7 @@ for (round in 1:num_rounds) {
   act_dir_change_forwp <- sign(last_act_forwp - last_forwp)
   
   # For each model, calculate and store the direction accuracy
-  for (model in c("VAR", "ARIMA", "RW", "VECM")) {
+  for (model in c("VAR", "ARIMA", "RW", "VECM", "VARX")) {
     # Calculate the actual direction of change for spot and forwp
     act_dir_change_spot <- sign(last_act_spot - last_spot)
     act_dir_change_forwp <- sign(last_act_forwp - last_forwp)
@@ -877,13 +848,13 @@ for (round in 1:num_rounds) {
   
   # Calculate Theil
   
-  theil_results$VAR_spot <- c(theil_results$VAR_spot, calculate_theils_u(forecast = var_rev_fcs_spot, actual = act_spot))
+  #theil_results$VAR_spot <- c(theil_results$VAR_spot, calculate_theils_u(forecast = var_rev_fcs_spot, actual = act_spot))
   
   # Continuing Theil's U calculations for other models
   # VAR forwp
-  theil_results$VAR_forwp <- c(theil_results$VAR_forwp, calculate_theils_u(forecast = var_rev_fcs_forwp, actual = act_forwp))
+  #theil_results$VAR_forwp <- c(theil_results$VAR_forwp, calculate_theils_u(forecast = var_rev_fcs_forwp, actual = act_forwp))
   # VARX spot
- # theil_results$VARX_spot <- c(theil_results$VARX_spot, calculate_theils_u(forecast = varx_rev_fcs_spot, actual = act_spot))
+  #theil_results$VARX_spot <- c(theil_results$VARX_spot, calculate_theils_u(forecast = varx_rev_fcs_spot, actual = act_spot))
   # VARX forwp
   #theil_results$VARX_forwp <- c(theil_results$VARX_forwp, calculate_theils_u(forecast = varx_rev_fcs_forwp, actual = act_forwp))
   # BVAR spot
@@ -891,17 +862,17 @@ for (round in 1:num_rounds) {
   # BVAR forwp
   #theil_results$BVAR_forwp <- c(theil_results$BVAR_forwp, calculate_theils_u(forecast = bvar_rev_fcs_forwp, actual = act_forwp))
   # VECM spot
-  theil_results$VECM_spot <- c(theil_results$VECM_spot, calculate_theils_u(forecast = vecm_fcs$fcst[[1]][, "fcst"], actual = act_spot))
+  #theil_results$VECM_spot <- c(theil_results$VECM_spot, calculate_theils_u(forecast = vecm_fcs$fcst[[1]][, "fcst"], actual = act_spot))
   # VECM forwp
-  theil_results$VECM_forwp <- c(theil_results$VECM_forwp, calculate_theils_u(forecast = vecm_fcs$fcst[[2]][, "fcst"], actual = act_forwp))
+  #theil_results$VECM_forwp <- c(theil_results$VECM_forwp, calculate_theils_u(forecast = vecm_fcs$fcst[[2]][, "fcst"], actual = act_forwp))
   # ARIMA spot
-  theil_results$ARIMA_spot <- c(theil_results$ARIMA_spot, calculate_theils_u(forecast = arima_fcs_spot$mean, actual = act_spot))
+  #theil_results$ARIMA_spot <- c(theil_results$ARIMA_spot, calculate_theils_u(forecast = arima_fcs_spot$mean, actual = act_spot))
   # ARIMA forwp
-  theil_results$ARIMA_forwp <- c(theil_results$ARIMA_forwp, calculate_theils_u(forecast = arima_fcs_forwp$mean, actual = act_forwp))
+  #theil_results$ARIMA_forwp <- c(theil_results$ARIMA_forwp, calculate_theils_u(forecast = arima_fcs_forwp$mean, actual = act_forwp))
   # Random Walk spot
-  theil_results$RW_spot <- c(theil_results$RW_spot, calculate_theils_u(forecast = rw_fcs_spot$mean, actual = act_spot))
+  #theil_results$RW_spot <- c(theil_results$RW_spot, calculate_theils_u(forecast = rw_fcs_spot$mean, actual = act_spot))
   # Random Walk forwp
-  theil_results$RW_forwp <- c(theil_results$RW_forwp, calculate_theils_u(forecast = rw_fcs_forwp$mean, actual = act_forwp))
+  #theil_results$RW_forwp <- c(theil_results$RW_forwp, calculate_theils_u(forecast = rw_fcs_forwp$mean, actual = act_forwp))
   
   
   # Calculate and append MAPE for VAR forecasts
@@ -953,9 +924,9 @@ rmse_reduction_from_rw <- list(
   RW_spot = numeric(),
   RW_forwp = numeric(),
   VECM_spot = numeric(),
-  VECM_forwp = numeric()
-  #VARX_spot = numeric(),
-  #VARX_forwp = numeric()
+  VECM_forwp = numeric(),
+  VARX_spot = numeric(),
+  VARX_forwp = numeric()
 )
 
 for(model_name in names(mean_rmse_results)) {

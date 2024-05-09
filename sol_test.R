@@ -190,8 +190,8 @@ train_diff_ts <- ts(train_diff[, -1])
 # Step 3: STATIONARITY CHECKS
 
 # Perform Augmented Dickey-Fuller Test
-lapply(train_lev_ts, function(series) adf.test(series, alternative = "stationary"))
-lapply(train_diff_ts, function(series) adf.test(series, alternative = "stationary"))
+#lapply(train_lev_ts, function(series) adf.test(series, alternative = "stationary"))
+#lapply(train_diff_ts, function(series) adf.test(series, alternative = "stationary"))
 
 
 
