@@ -12,10 +12,10 @@
 #install.packages("tsbox")
 #install.packages("MTS")
 #install.packages("BVAR")
-#install.packages("psych")
+install.packages("strucchange")
 
 getwd()
-#setwd("./VSCode/master-thesis")
+setwd("./VSCode/master-thesis")
 #setwd("./master-thesis")
 library(readr)  # For reading CSV files
 library(dplyr)  # For data manipulation
@@ -33,7 +33,7 @@ library(data.table)
 library(progress)
 library(MTS)
 library(BVAR)
-library(psych)
+library(strucchange)
 
 
 # STEP 1: READ CSV
@@ -97,99 +97,31 @@ vessel_sale_volume <- read_csv('./data/other/vessel_sale_daily.csv',
                                trim_ws = TRUE)
 
 eur_usd <- read_delim('./data/other/EUR_USD_historical.csv', 
-                       delim = ';', 
-                       escape_double = FALSE, 
-                       col_types = cols(Date = col_date(format = "%d.%m.%Y")),
-                       trim_ws = TRUE)
-
-
-
-# Set the path to your CSV file
-csv_file <- "./data/other/sp500.csv"
-
-# Set the path to your original CSV file
-original_csv_file <- "./data/other/sp500.csv"
-# Set the path to the new CSV file with numeric months
-modified_csv_file <- "data_numeric_months.csv"
-
-# Read the original CSV file into a data frame while removing quotes
-sp500 <- read.csv(original_csv_file, stringsAsFactors = FALSE, quote = "\"")
-
-# Mapping from month names to numbers
-month_mapping <- list(
-  "Jan" = "01", "Feb" = "02", "Mar" = "03", "Apr" = "04",
-  "May" = "05", "Jun" = "06", "Jul" = "07", "Aug" = "08",
-  "Sep" = "09", "Oct" = "10", "Nov" = "11", "Dec" = "12"
-)
-
-# Replace month names in the Date column
-replace_months <- function(date_str, mapping) {
-  for (month_name in names(mapping)) {
-    date_str <- gsub(month_name, mapping[[month_name]], date_str)
-  }
-  return(date_str)
-}
-
-# Apply the month replacement function to the "Date" column
-sp500$Date <- sapply(sp500$Date, replace_months, mapping = month_mapping)
-
-# Write the modified data to a new CSV file
-write.csv(sp500, modified_csv_file, row.names = FALSE, quote = TRUE)
-
-# Reload the modified CSV into a data frame, converting "Close" to numeric and "Date" to Date class
-sp500 <- read.csv(modified_csv_file, stringsAsFactors = FALSE)
-
-# Convert the "Close" column to numeric (remove commas)
-sp500$Close <- as.numeric(gsub(",", "", sp500$Close))
-
-# Convert the "Date" column to Date class with the new numeric format
-sp500$Date <- as.Date(sp500$Date, format = "%d-%m-%Y")
-
-# Check for NA values
-na_dates <- sum(is.na(sp500$Date))
-if (na_dates > 0) {
-  cat("Warning: There are", na_dates, "missing dates after conversion.\n")
-  print(sp500[is.na(sp500$Date), ])
-}
-
-# Display the data frame
-print(sp500)
-
-
-
-
-
-
+                      delim = ';', 
+                      escape_double = FALSE, 
+                      col_types = cols(Date = col_date(format = "%d.%m.%Y")),
+                      trim_ws = TRUE)
 # Convert columns from text to numeric, replacing commas with dots
 eur_usd <- eur_usd %>%
   mutate(across(-Date, ~as.numeric(gsub(",", ".", .x))))
 
 
-
 # STEP 2: CLEAN AND PREPARE DATA
-# CSZ column: CSZ
+# CSZ column: SMX
 # PMX column: PMX
 # SMX column: SMX
-# ffa column: 1MON, 1Q
+# ffa column: ROLL
 
 
 # Merge data frames on the Date column, include trade volume
 #data_combined <- merge(spot, csz_forw, by = "Date")
 #data_combined <- merge(data_combined, gbti_dev, by = "Date")
-
-####### ENDRE ######
-data_combined <- inner_join(spot[, c("Date", "PMX")], pmx_forw[, c("Date", "1MON")], by = "Date")
-####### ENDRE ######
-
-
-
+data_combined <- inner_join(spot[, c("Date", "CSZ")], csz_forw[, c("Date", "1MON")], by = "Date")
 #data_combined <- inner_join(data_combined, gbti_dev[, c("Date", "Iron Ore Trade Vol", "Coal Trade Vol", "Grain Trade Vol", "Minor Bulk Trade Vol", "Dry Bulk Trade Vol")], by = "Date")
 #data_combined <- inner_join(data_combined, oecd_ip_dev[, c("Date", "Ind Prod Excl Const VOLA")], by = "Date")
 #data_combined <- inner_join(data_combined, fleet_dev[, c("Date", "HSZ fleet", "HMX fleet", "PMX fleet", "CSZ fleet")], by = "Date")
 #data_combined <- inner_join(data_combined, fleet_dev[, c("Date", "PMX fleet")], by = "Date")
 data_combined <- inner_join(data_combined, eur_usd[, c("Date", "Last")], by = "Date")
-data_combined <- inner_join(data_combined, sp500[, c("Date", "Close")], by = "Date")
-data_combined <- inner_join(data_combined, spot[, c("Date", "BDI")], by = "Date")
 # Removing rows where ColumnA or ColumnB have 0 or NA values
 data_combined <- data_combined %>%
   filter(if_all(-Date, ~ .x != 0 & !is.na(.x)))
@@ -202,14 +134,8 @@ data_combined <- data_combined %>%
 # Transform data to log levels and create a new data frame for log levels
 data_log_levels <- data.frame(
   Date = data_combined$Date,
-  
-  
-  
-  ####### ENDRE ######
-  spot = log(data_combined$PMX),
+  spot = log(data_combined$CSZ),
   forwp = log(data_combined$`1MON`)
-  ####### ENDRE ######
-  
 )
 
 #exog_log_levels <- data.frame(
@@ -229,15 +155,23 @@ exog_log_levels <- data.frame(
   #hmx_dev = log(data_combined$`HMX fleet`),
   #pmx_dev = log(data_combined$`PMX fleet`),
   #csz_dev = log(data_combined$`PMX fleet`),
-  eur_usd = data_combined$Last,  # Not log-transformed as it's a rate, but adjust according to your needs,
+  eur_usd = data_combined$Last  # Not log-transformed as it's a rate, but adjust according to your needs,
   #iron = log(data_combined$`Iron Ore Trade Vol`),
   #coal = log(data_combined$`Coal Trade Vol`)
-  #sp500 = log(data_combined$Close),
-  bdi = log(data_combined$BDI)
 )
 
 # Display the first few rows of each new data frame to verify
 print(head(data_log_levels))
+
+data_ts <- ts(data_log_levels[, c("spot")])
+# Perform the analysis to find breakpoints
+breakpoint_analysis <- breakpoints(data_ts ~ 1)
+
+# Summary of the breakpoints
+summary(breakpoint_analysis)
+
+# Plot the breakpoints along with the time series
+plot(breakpoint_analysis)
 
 # Split into train and test sets
 
@@ -268,9 +202,7 @@ exog_diff <- data.frame(
   #hmx_dev = diff(exog_log_levels$hmx_dev),
   #pmx_dev = diff(exog_log_levels$pmx_dev),
   #csz_dev = diff(exog_lev$csz_dev),
-  eur_usd = diff(exog_lev$eur_usd),
-  #sp500 = diff(exog_lev$sp500),
-  bdi = diff(exog_lev$bdi)
+  eur_usd = diff(exog_lev$eur_usd)
   #iron = diff(exog_lev$iron),
   #coal = diff(exog_lev$coal)
 )
@@ -310,26 +242,6 @@ lapply(train_diff_ts, function(series) adf.test(series, alternative = "stationar
 lapply(exog_lev_ts, function(series) adf.test(series, alternative = "stationary"))
 lapply(exog_diff_ts, function(series) adf.test(series, alternative = "stationary"))
 
-# Step 3a: OTHER STATISTICAL TESTS AND DESCRIPTIVE STATISTICS ON THE INPUT TIME SERIES
-
-# Perform Phillips-Perron (PP) test (stationarity)
-lapply(train_lev_ts, function(series) pp.test(series))
-lapply(train_diff_ts, function(series) pp.test(series))
-
-# Perform KPSS test (stationarity around trend)
-lapply(train_lev_ts, function(series) kpss.test(series))
-lapply(train_diff_ts, function(series) kpss.test(series))
-
-# Perform Ljung-Box test (autocorrelation)
-lapply(train_lev_ts, function(series) Box.test(series, type = "Ljung-Box"))
-lapply(train_diff_ts, function(series) Box.test(series, type = "Ljung-Box"))
-
-# Perform the Jarque-Bera test (normality)
-lapply(train_lev_ts, function(series) jarque.bera.test(series))
-lapply(train_diff_ts, function(series) jarque.bera.test(series))
-
-# Retrieve the descriptive statistics
-describe(data_combined[, c(2,3)])
 
 
 # Step 4: MODEL FITS AND DIAGNOSTIC CHECKS
@@ -341,6 +253,7 @@ describe(data_combined[, c(2,3)])
 lags <- VARselect(train_lev_ts, type = "const")
 lag_order <- VARselect(train_lev_ts, type = "both")$selection["AIC(n)"]
 var_model <- vars::VAR(train_lev_ts, p = lag_order)
+
 
 
 # diff
@@ -403,26 +316,20 @@ grangerForw
 #grangerForw2
 
 # 1. Shock from "spot" to "spot"
-#var_irf_spot_to_spot <- vars::irf(var_model, impulse = "spot", response = "spot")
-#plot(var_irf_spot_to_spot, main = "Shock from 'Spot' to 'Spot'")
+#var_irf_spot_to_spot <- irf(var_model, impulse = "spot", response = "spot")
+#plot(var_irf_spot_to_spot, main = "Shock from 'spot' to 'spot'")
 
 # 2. Shock from "spot" to "forwp"
-#var_irf_spot_to_forwp <- vars::irf(var_model, impulse = "spot", response = "forwp")
-#plot(var_irf_spot_to_forwp, main = "Shock from 'Spot' to 'Forward'")
+#var_irf_spot_to_forwp <- irf(var_model, impulse = "spot", response = "forwp")
+#plot(var_irf_spot_to_forwp, main = "Shock from 'spot' to 'forwp'")
 
 # 3. Shock from "spot" to "forw1m"
 #var_irf_spot_to_forw1m <- irf(var_model, impulse = "spot", response = "forw1m")
 #plot(var_irf_spot_to_forw1m, main = "Shock from 'spot' to 'forw1m'")
 
-
-# 4. Shock from "forwp" to "forwp"
-#var_irf_forwp_to_forwp <- vars::irf(var_model, impulse = "forwp", response = "forwp")
-#plot(var_irf_forwp_to_forwp, main = "Shock from 'Forward' to 'Forward'")
-
 # 4. Shock from "forwp" to "spot"
-#var_irf_forwp_to_spot <- vars::irf(var_model, impulse = "forwp", response = "spot")
-#plot(var_irf_forwp_to_spot, main = "Shock from 'Forward' to 'Spot'")
-
+#var_irf_forwp_to_spot <- irf(var_model, impulse = "forwp", response = "spot")
+#plot(var_irf_forwp_to_spot, main = "Shock from 'forwp' to 'spot'")
 
 # 5. Shock from "forwc" to "forwc"
 #var_irf_forwc_to_forwc <- irf(var_model, impulse = "forwc", response = "forwc")
@@ -446,7 +353,7 @@ grangerForw
 
 # Variance decomposition
 
-#var_vd1 <- vars::fevd(var_model)
+#var_vd1 <- fevd(var_model)
 #plot(var_vd1)
 
 
@@ -472,16 +379,16 @@ varx_model <- vars::VAR(train_lev_ts, p = lag_order, type = "both", exogen = exo
 
 summary(varx_model)
 
-#varx_model3 <- VARX(train_lev_ts, x = exog_lev_ts , p = lag_order)
+varx_model3 <- VARX(train_lev_ts, x = exog_lev_ts , p = lag_order)
 
 # diff
-#lags <- VARselect(train_diff_ts, type = "const")
-#lag_order <- VARselect(train_diff_ts, type = "both")$selection["AIC(n)"]
-#varx_model <- vars::VAR(train_diff_ts, p = lag_order, type = "both", exogen = exog_diff_ts)
+lags <- VARselect(train_diff_ts, type = "const")
+lag_order <- VARselect(train_diff_ts, type = "both")$selection["AIC(n)"]
+varx_model <- vars::VAR(train_diff_ts, p = lag_order, type = "both", exogen = exog_diff_ts)
 
-#summary(varx_model)
+summary(varx_model)
 
-#varx_model3 <- VARX(train_diff_ts, x = exog_diff_ts , p = lag_order)
+varx_model3 <- VARX(train_diff_ts, x = exog_diff_ts , p = lag_order)
 
 
 # VECM
@@ -582,10 +489,7 @@ print(white_test_forw)
 
 
 # Step 9: Forecast future values
-
-####### ENDRE ##########
 forecast_horizon <- 1
-####### ENDRE ##########
 
 
 
@@ -595,7 +499,7 @@ forecast_horizon <- 1
 last_observation_matrix <- as.matrix(tail(exog_lev[-1], 1))
 
 # Forecast 1 step ahead using the last known values of the exogenous variables
-#varx_fcs <- VARXpred(varx_model3, newxt = last_observation_matrix, hstep = 1, orig = 0)
+varx_fcs <- VARXpred(varx_model3, newxt = last_observation_matrix, hstep = 1, orig = 0)
 
 #vecm_forecasts <- predict(vecm_model, n.ahead = forecast_horizon)
 var_fcs <- predict(var_model, n.ahead = forecast_horizon) 
@@ -608,8 +512,8 @@ arima_fcs_spot <- forecast(arima_model_spot, h = forecast_horizon)
 arima_fcs_forwp <- forecast(arima_model_forwp, h = forecast_horizon)
 
 # Determine the number of rounds based on the test set size and forecast horizon
-#num_rounds <- min(floor(len_test / forecast_horizon), 30)
-num_rounds <- floor(nrow(test_lev) / forecast_horizon)
+num_rounds <- min(floor(len_test / forecast_horizon), 30)
+#num_rounds <- floor(nrow(test_lev) / forecast_horizon)
 
 print(num_rounds)
 
@@ -717,7 +621,7 @@ calculate_mape <- function(actual, forecast) {
   # Ensure no zero values in actual to avoid division by zero
   if(any(actual == 0)) return(0)
   
-  mape <- mean(abs(actual - forecast) / actual) * 100
+  mape <- mean(abs((actual - forecast) / actual)) * 100
   return(mape)
 }
 
@@ -757,8 +661,7 @@ for (round in 1:num_rounds) {
     #hmx_dev = diff(exog_log_levels$hmx_dev),
     #pmx_dev = diff(exog_log_levels$pmx_dev),
     #csz_dev = diff(exog_lev$csz_dev),
-    bdi = diff(exog_lev$bdi)
-    #eur_usd = diff(exog_lev$eur_usd)
+    eur_usd = diff(exog_lev$eur_usd)
     #iron = diff(exog_lev$iron),
     #coal = diff(exog_lev$coal)
   )
@@ -785,7 +688,7 @@ for (round in 1:num_rounds) {
   #bvar_model <- bvar(train_diff_ts, lags = lag_order, type = "both")
   #bvar_fcs <- predict(bvar_model, horizon = forecast_horizon)
   #bvar_fcs_fcast <- summary(bvar_fcs)
-
+  
   
   # VECM
   coint_test <- ca.jo(train_lev_ts, spec = "longrun", type = "trace", ecdet = "trend", K = lag_order)
@@ -947,9 +850,9 @@ for (round in 1:num_rounds) {
   # VAR forwp
   theil_results$VAR_forwp <- c(theil_results$VAR_forwp, calculate_theils_u(forecast = var_rev_fcs_forwp, actual = act_forwp))
   # VARX spot
- # theil_results$VARX_spot <- c(theil_results$VARX_spot, calculate_theils_u(forecast = varx_rev_fcs_spot, actual = act_spot))
+  theil_results$VARX_spot <- c(theil_results$VARX_spot, calculate_theils_u(forecast = varx_rev_fcs_spot, actual = act_spot))
   # VARX forwp
-  #theil_results$VARX_forwp <- c(theil_results$VARX_forwp, calculate_theils_u(forecast = varx_rev_fcs_forwp, actual = act_forwp))
+  theil_results$VARX_forwp <- c(theil_results$VARX_forwp, calculate_theils_u(forecast = varx_rev_fcs_forwp, actual = act_forwp))
   # BVAR spot
   #theil_results$BVAR_spot <- c(theil_results$BVAR_spot, calculate_theils_u(forecast = bvar_rev_fcs_spot, actual = act_spot))
   # BVAR forwp
@@ -1018,8 +921,6 @@ rmse_reduction_from_rw <- list(
   RW_forwp = numeric(),
   VECM_spot = numeric(),
   VECM_forwp = numeric(),
-  #BVAR_spot = numeric(),
-  #BVAR_forwp = numeric(),
   VARX_spot = numeric(),
   VARX_forwp = numeric()
 )
@@ -1038,7 +939,7 @@ aggregated_actuals <- list(
   forwp = unlist(lapply(actual_values_list, `[[`, "forwp"))
 )
 
-models <- c("VAR", "ARIMA", "VECM", "VARX", "RW")
+models <- c("VAR", "ARIMA", "VECM", "RW", "VARX")
 for(model in models) {
   aggregated_forecasts[[model]] <- list(
     spot = unlist(lapply(forecasted_values, function(x) x[[model]][["spot"]])),
@@ -1060,9 +961,6 @@ for(model in models) {
     }
   }
 }
-
-
-cat("1day PMX 1MON")
 
 # Printing Results
 cat("=== Average Direction Accuracy for Each Model (%) ===\n")
@@ -1095,8 +993,8 @@ for(model_name in names(rmse_reduction_from_rw)) {
   cat(model_name, ":", sprintf("%.2f%%", rmse_reduction_from_rw[[model_name]]), "\n")
 }
 
-#cat("\n=== Diebold-Mariano Test Results (Statistic and P-Value) ===\n")
-#for(result in names(dm_test_results)) {
-# cat(result, ": Statistic =", sprintf("%.4f", dm_test_results[[result]]$statistic),
-#      ", P-Value =", sprintf("%.4f", dm_test_results[[result]]$p.value), "\n")
-#}
+cat("\n=== Diebold-Mariano Test Results (Statistic and P-Value) ===\n")
+for(result in names(dm_test_results)) {
+  cat(result, ": Statistic =", sprintf("%.4f", dm_test_results[[result]]$statistic),
+      ", P-Value =", sprintf("%.4f", dm_test_results[[result]]$p.value), "\n")
+}

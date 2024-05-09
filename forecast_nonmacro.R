@@ -114,7 +114,7 @@ eur_usd <- eur_usd %>%
 # Merge data frames on the Date column, include trade volume
 #data_combined <- merge(spot, csz_forw, by = "Date")
 #data_combined <- merge(data_combined, gbti_dev, by = "Date")
-data_combined <- inner_join(spot[, c("Date", "CSZ")], csz_forw[, c("Date", "1Q")], by = "Date")
+data_combined <- inner_join(spot[, c("Date", "CSZ")], csz_forw[, c("Date", "1MON")], by = "Date")
 #data_combined <- inner_join(data_combined, gbti_dev[, c("Date", "Iron Ore Trade Vol", "Coal Trade Vol", "Grain Trade Vol", "Minor Bulk Trade Vol", "Dry Bulk Trade Vol")], by = "Date")
 data_combined <- inner_join(data_combined, oecd_ip_dev[, c("Date", "Ind Prod Excl Const VOLA")], by = "Date")
 #data_combined <- inner_join(data_combined, fleet_dev[, c("Date", "HSZ fleet", "HMX fleet", "PMX fleet", "CSZ fleet")], by = "Date")
@@ -133,7 +133,7 @@ data_combined <- data_combined %>%
 data_log_levels <- data.frame(
   Date = data_combined$Date,
   spot = log(data_combined$CSZ),
-  forwp = log(data_combined$`1Q`)
+  forwp = log(data_combined$`1MON`)
 )
 
 #exog_log_levels <- data.frame(
@@ -417,7 +417,7 @@ print(white_test_forw)
 
 
 # Step 9: Forecast future values
-forecast_horizon <- 2
+forecast_horizon <- 20
 
 
 

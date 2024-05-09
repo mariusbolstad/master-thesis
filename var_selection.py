@@ -19,18 +19,18 @@ import json
 
 import tensorflow as tf
 
-local = True
+local = False
 
 if local:
-    csv_file_spot = "log_spot.csv"
-    csv_file_forw = "log_forw.csv"
+    csv_file_spot = "validation/var_selection_spot.csv"
+    csv_file_forw = "validation/var_selection_forw.csv"
     log = "model_metrics.log"
     max_workers = 2
 else:
-    csv_file_spot = "/storage/users/mariumbo/log_spot.csv"
-    csv_file_forw = "/storage/users/mariumbo/log_forw.csv"
+    csv_file_spot = "/storage/users/mariumbo/validation/var_selection_spot.csv"
+    csv_file_forw = "/storage/users/mariumbo/validation/var_selection_forw.csv"
     log = "/storage/users/mariumbo/model_metrics.log"
-    max_workers = 8
+    max_workers = 16
 
 
 
@@ -159,8 +159,9 @@ def create_dataset(dataset, look_back, hor, is_test=False, exog_col=None):
         for i in range(look_back, len(dataset) - hor + 1):
             X.append(dataset[i - look_back:i])
             if len(exog_col) != 0:
-                # Exclude specified columns from Y
-                y = np.delete(dataset[i:i + hor], exog_col, axis=1)
+                # Delete the last n=len(exog_col) columns from Y
+                n = len(exog_col)
+                y = dataset[i:i + hor, :-n]
             else:
                 y = dataset[i:i + hor]
             Y.append(y)
@@ -207,7 +208,8 @@ def mlp_predict(trainX_flat, trainY_flat, nodes, layers, epochs, batch_size, ver
         model_mlp.add(Dense(nodes, activation='relu'))
     model_mlp.add(Dense(trainY_flat.shape[1], activation="linear"))
     model_mlp.compile(loss='mean_squared_error', optimizer='adam')
-    model_mlp.fit(trainX_flat, trainY_flat, epochs=epochs, batch_size=batch_size, verbose=verbose, callbacks=callback)
+    callbacks = None
+    model_mlp.fit(trainX_flat, trainY_flat, epochs=epochs, batch_size=batch_size, verbose=verbose, callbacks=callbacks)
     return model_mlp
 
 def lstm_predict(trainX, trainY_flat, nodes, layers, epochs, batch_size, verbose):
@@ -221,7 +223,8 @@ def lstm_predict(trainX, trainY_flat, nodes, layers, epochs, batch_size, verbose
     model_lstm.add(Dense(trainY_flat.shape[1], activation='linear'))
 
     model_lstm.compile(loss='mean_squared_error', optimizer='adam')
-    model_lstm.fit(trainX, trainY_flat, epochs=epochs, batch_size=batch_size, verbose=verbose, callbacks=[callback])
+    callbacks = None
+    model_lstm.fit(trainX, trainY_flat, epochs=epochs, batch_size=batch_size, verbose=verbose, callbacks=callbacks)
     return model_lstm
     
     
@@ -428,207 +431,204 @@ def main():
 
     
     # Number of rounds based on the test set size and forecast horizon
-    exog_col = [2, 3]
-    hor = 3
-    s_col = "CSZ"
+    exog_col_lst = [[], [2], [3], [4], [2,3], [2,4], [3,4], [2,3,4]]
+    hors = [1,10]
+    s_cols = "CSZ", "PMX", "SMX"
     f_col = "1MON"
     #fleet_col = "CSZ fleet"
-    forw = pick_forw(s_col)
-    
-    models = ["MLP", "LSTM", "MLP_POINT", "LSTM_POINT", "RW"]
+    for exog_col in exog_col_lst:
+        for s_col in s_cols:
+            forw = pick_forw(s_col)
+            for hor in hors:
+                models = ["MLP", "LSTM", "RW"]
+                # Ensure 'Date' columns are in datetime format for all datasets
+                #oecd_ip_dev['Date'] = pd.to_datetime(oecd_ip_dev['Date'])
+                #fleet_dev['Date'] = pd.to_datetime(fleet_dev['Date'])
+                eur_usd['Date'] = pd.to_datetime(eur_usd['Date'])
+                sp500['Date'] = pd.to_datetime(sp500['Date'])    
+                spot['Date'] = pd.to_datetime(spot['Date'])
+                pmx_forw['Date'] = pd.to_datetime(pmx_forw['Date'])
+                csz_forw['Date'] = pd.to_datetime(csz_forw['Date'])
+                smx_forw['Date'] = pd.to_datetime(smx_forw['Date'])
 
 
+                #prod_col = 'Ind Prod Excl Const VOLA'
+                eur_col = 'Last'
+                sp500_col = "Close"
+                sofr_col = ""
+                bdi_col = 'BDI'
 
-    # Ensure 'Date' columns are in datetime format for all datasets
-    #oecd_ip_dev['Date'] = pd.to_datetime(oecd_ip_dev['Date'])
-    #fleet_dev['Date'] = pd.to_datetime(fleet_dev['Date'])
-    eur_usd['Date'] = pd.to_datetime(eur_usd['Date'])
-    sp500['Date'] = pd.to_datetime(sp500['Date'])    
-    spot['Date'] = pd.to_datetime(spot['Date'])
-    pmx_forw['Date'] = pd.to_datetime(pmx_forw['Date'])
-    csz_forw['Date'] = pd.to_datetime(csz_forw['Date'])
-    smx_forw['Date'] = pd.to_datetime(smx_forw['Date'])
-
-
-    #prod_col = 'Ind Prod Excl Const VOLA'
-    eur_col = 'Last'
-    sp500_col = "Close"
-    sofr_col = ""
-
-    # Merge data frames on the Date column
-    data_combined = pd.merge(spot, forw, on='Date')
-    #data_combined = pd.merge(data_combined, oecd_ip_dev[['Date', prod_col]], on='Date', how='inner')
-    #data_combined = pd.merge(data_combined, fleet_dev[['Date', fleet_col]], on='Date', how='inner')
-    data_combined = pd.merge(data_combined, eur_usd[['Date', eur_col]], on='Date', how='inner')
-    data_combined = pd.merge(data_combined, sp500[['Date', sp500_col]], on='Date', how='inner')
-    #data_combined = pd.merge(data_combined, sofr[['Date', sofr_col]], on='Date', how='inner')
+                # Merge data frames on the Date column
+                data_combined = pd.merge(spot, forw, on='Date')
+                #data_combined = pd.merge(data_combined, oecd_ip_dev[['Date', prod_col]], on='Date', how='inner')
+                #data_combined = pd.merge(data_combined, fleet_dev[['Date', fleet_col]], on='Date', how='inner')
+                data_combined = pd.merge(data_combined, eur_usd[['Date', eur_col]], on='Date', how='inner')
+                data_combined = pd.merge(data_combined, sp500[['Date', sp500_col]], on='Date', how='inner')
+                #data_combined = pd.merge(data_combined, sofr[['Date', sofr_col]], on='Date', how='inner')
 
 
-
-    # Filter out rows where the specified columns contain zeros or NA values
-    cols_to_check = [s_col, f_col, eur_col, sp500_col]
-    data_combined = data_combined.dropna(subset=cols_to_check)  # Drop rows where NA values are present in the specified columns
-    data_combined = data_combined[(data_combined[cols_to_check] != 0).all(axis=1)]  # Drop rows where 0 values are present in the specified columns
-
-
-    # Remove rows with NA or 0 in specific columns (assuming 'SMX' and '1Q' are column names in 'data_combined')
-    #data_combined = data_combined[(data_combined[s_col].notna() & data_combined[s_col] != 0) & (data_combined[f_col].notna() & data_combined[f_col] != 0)]
-
-    # Transform data to log levels
-    data_log_levels = pd.DataFrame()
-    data_log_levels["spot"] = np.log(data_combined[s_col])
-    data_log_levels["forwp"] = np.log(data_combined[f_col])
-    #data_log_levels[fleet_col] = np.log(data_combined[fleet_col])
-    #data_log_levels[prod_col] = np.log(data_combined[prod_col])
-    if len(exog_col) == 1:
-        data_log_levels[eur_col] = np.log(data_combined[eur_col])
-    elif len(exog_col) == 2:
-        data_log_levels[eur_col] = np.log(data_combined[eur_col])
-        data_log_levels[sp500_col] = np.log(data_combined[sp500_col])
-        
-
-    data_log_levels.index = data_combined["Date"]
-    
-    # Validation 
-    split_index = math.floor(len(data_log_levels) * 0.7)
-    test_index = math.floor(len(data_log_levels) * 0.8)
-    len_test = len(data_log_levels[split_index:test_index])
-    num_rounds = math.floor(len_test / hor)
-    print("Num rounds:",num_rounds)
-
-    # Test
-    #split_index = math.floor(len(data_log_levels) * 0.8)
-    #len_test = len(data_log_levels[split_index:])
-    #num_rounds = math.floor(len_test / hor)
-    #print("Num rounds:",num_rounds)
+                # Filter out rows where the specified columns contain zeros or NA values
+                cols_to_check = [s_col, f_col, eur_col, sp500_col, bdi_col]
+                data_combined = data_combined.dropna(subset=cols_to_check)  # Drop rows where NA values are present in the specified columns
+                data_combined = data_combined[(data_combined[cols_to_check] != 0).all(axis=1)]  # Drop rows where 0 values are present in the specified columns
 
 
-    #num_rounds = min(num_rounds, 5)
+                # Remove rows with NA or 0 in specific columns (assuming 'SMX' and '1Q' are column names in 'data_combined')
+                #data_combined = data_combined[(data_combined[s_col].notna() & data_combined[s_col] != 0) & (data_combined[f_col].notna() & data_combined[f_col] != 0)]
 
-    split_indices = []
-    split_index = split_index - hor #account for first additioin
-    for i in range(num_rounds):
-        split_index = split_index +  hor
-        split_indices.append(split_index)
+                # Transform data to log levels
+                data_log_levels = pd.DataFrame()
+                data_log_levels["spot"] = np.log(data_combined[s_col])
+                data_log_levels["forwp"] = np.log(data_combined[f_col])
+                #data_log_levels[fleet_col] = np.log(data_combined[fleet_col])
+                #data_log_levels[prod_col] = np.log(data_combined[prod_col])
+                for col in exog_col:
+                    if col == 2:
+                        data_log_levels[eur_col] = np.log(data_combined[eur_col])
+                    elif col == 3:
+                        data_log_levels[sp500_col] = np.log(data_combined[sp500_col])
+                    elif col == 4:
+                        data_log_levels[bdi_col] = np.log(data_combined[bdi_col])
 
-    batch_size_lst = [1, 8, 32, 64]
-    nodes_lst = [8, 16, 32, 64]
-    
+                data_log_levels.index = data_combined["Date"]
+                
+                # Validation 
+                split_index = math.floor(len(data_log_levels) * 0.7)
+                test_index = math.floor(len(data_log_levels) * 0.8)
+                len_test = len(data_log_levels[split_index:test_index])
+                num_rounds = math.floor(len_test / hor)
+                print("Num rounds:",num_rounds)
+
+                # Test
+                #split_index = math.floor(len(data_log_levels) * 0.8)
+                #len_test = len(data_log_levels[split_index:])
+                #num_rounds = math.floor(len_test / hor)
+                #print("Num rounds:",num_rounds)
+
+
+                #num_rounds = min(num_rounds, 2)
+
+                split_indices = []
+                split_index = split_index - hor #account for first additioin
+                for i in range(num_rounds):
+                    split_index = split_index +  hor
+                    split_indices.append(split_index)
+
+                                
+                '''     epochs = 100
+                batch_size = 32
+                verbose = 1
+                nodes = 16
+                layers = 2
+                look_back = 10  # Adjust based on your temporal structure@ 
+                '''
+                nodes = 16
+                batch_size = 1
+                epochs = 100
+                verbose = 1
+                look_back = 10
+                layers = 2
+                results_list = []
+                predictions_list = []
+                logger.info(f"Spot: {s_col}. Forw: {f_col}. Lookback: {look_back}. Horizon: {hor}. Exog_Col = {exog_col}. Epochs = {epochs}. Nodes: {nodes} Batchsize: {batch_size}")
+                with ProcessPoolExecutor(max_workers=max_workers) as executor:
+                    futures = [executor.submit(train_and_evaluate, data_log_levels, models, split_idx, look_back, hor, exog_col, epochs, batch_size, verbose, nodes, layers) for split_idx in split_indices]
+                    for future in futures:
+                        results_list.append(future.result())
+                    # Initialize a dictionary to aggregate scores
+                    aggregate_results = defaultdict(lambda: defaultdict(list))
+
+                    # Aggregate results
+                    for result in results_list:
+                        for model, scores in result.items():
+                            for score_type, value in scores.items():
+                                aggregate_results[score_type][model].append(value)
                     
-    '''     epochs = 100
-    batch_size = 32
-    verbose = 1
-    nodes = 16
-    layers = 2
-    look_back = 10  # Adjust based on your temporal structure@ 
-    '''
-    epochs = 100
-    verbose = 1
-    look_back = 10
-    layers = 2
-    for batch_size in batch_size_lst:
-        for nodes in nodes_lst:
-            results_list = []
-            predictions_list = []
-            logger.info(f"Spot: {s_col}. Forw: {f_col}. Lookback: {look_back}. Horizon: {hor}. Exog_Col = {exog_col}. Epochs = {epochs}. Nodes: {nodes} Batchsize: {batch_size}")
-            with ProcessPoolExecutor(max_workers=max_workers) as executor:
-                futures = [executor.submit(train_and_evaluate, data_log_levels, models, split_idx, look_back, hor, exog_col, epochs, batch_size, verbose, nodes, layers) for split_idx in split_indices]
-                for future in futures:
-                    results_list.append(future.result())
-                # Initialize a dictionary to aggregate scores
-                aggregate_results = defaultdict(lambda: defaultdict(list))
-
-                # Aggregate results
-                for result in results_list:
-                    for model, scores in result.items():
-                        for score_type, value in scores.items():
-                            aggregate_results[score_type][model].append(value)
-                
-                
-                metrics = {}    
-                # Compute and print mean scores
-                for score_type, scores in aggregate_results.items():
-                    print(score_type)
-                    for model, values in scores.items():
-                        if "corr_dir" in score_type:
-                            mean_score = calculate_avg_dir_accuracy(values)
-                        elif "pred" in score_type:
-                            mean_score = np.concatenate(values, axis=0)
-                        else:
-                            mean_score = sum(values) / len(values)
-                        if not metrics.get(score_type):
-                            metrics[score_type] = {}
-                        metrics[score_type][model] = mean_score
-                        #print(f"Mean {score_type} for {model}: {mean_score:.5f}")
-
-                # Compute average scores and organize metrics data
-                    metrics_summary = {}
-                    for metric, models in aggregate_results.items():
-                        metrics_summary[metric] = {}
-                        for model, values in models.items():
-                            if "pred" not in metric:
-                                average = sum(values) / len(values)
-                                metrics_summary[metric][model] = average
+                    
+                    metrics = {}    
+                    # Compute and print mean scores
+                    for score_type, scores in aggregate_results.items():
+                        print(score_type)
+                        for model, values in scores.items():
+                            if "corr_dir" in score_type:
+                                mean_score = calculate_avg_dir_accuracy(values)
+                            elif "pred" in score_type:
+                                mean_score = np.concatenate(values, axis=0)
                             else:
-                                pass
-                            
-                            
-                # compute dm test
-                metrics_summary["dm_teststat_spot"] = {}
-                metrics_summary["dm_pvalue_spot"] = {}
-                metrics_summary["dm_teststat_forw"] = {}
-                metrics_summary["dm_pvalue_forw"] = {}
-                
-                for model in metrics_summary["rmse_spot"]:
-                    #spot
-                    actuals = metrics["pred_spot"]["Actual"]
-                    pred = metrics["pred_spot"][model]
-                    rw_pred = metrics["pred_spot"]["RW"]
-                    teststat, pvalue = diebold_mariano_test(actuals, pred, rw_pred)
-                    metrics_summary["dm_teststat_spot"][model] = teststat
-                    metrics_summary["dm_pvalue_spot"][model] = pvalue
-                    
-                    #forw
-                    actuals = metrics["pred_forw"]["Actual"]
-                    pred = metrics["pred_forw"][model]
-                    rw_pred = metrics["pred_forw"]["RW"]
-                    teststat, pvalue = diebold_mariano_test(actuals, pred, rw_pred)
-                    metrics_summary["dm_teststat_forw"][model] = teststat
-                    metrics_summary["dm_pvalue_forw"][model] = pvalue           
-                    
-                
+                                mean_score = sum(values) / len(values)
+                            if not metrics.get(score_type):
+                                metrics[score_type] = {}
+                            metrics[score_type][model] = mean_score
+                            #print(f"Mean {score_type} for {model}: {mean_score:.5f}")
 
-                # Compute reductions for RMSE compared to RW and integrate directly into metrics_summary
-                if "rmse_spot" in metrics_summary and "rmse_forw" in metrics_summary:
-                    metrics_summary["reduction_rmse_spot"] = {}
-                    metrics_summary["reduction_rmse_forw"] = {}
+                    # Compute average scores and organize metrics data
+                        metrics_summary = {}
+                        for metric, models in aggregate_results.items():
+                            metrics_summary[metric] = {}
+                            for model, values in models.items():
+                                if "pred" not in metric:
+                                    average = sum(values) / len(values)
+                                    metrics_summary[metric][model] = average
+                                else:
+                                    pass
+                                
+                                
+                    # compute dm test
+                    metrics_summary["dm_teststat_spot"] = {}
+                    metrics_summary["dm_pvalue_spot"] = {}
+                    metrics_summary["dm_teststat_forw"] = {}
+                    metrics_summary["dm_pvalue_forw"] = {}
+                    
                     for model in metrics_summary["rmse_spot"]:
-                        if model != "RW":
-                            metrics_summary["reduction_rmse_spot"][model] = rmse_reduction(metrics_summary["rmse_spot"][model], metrics_summary["rmse_spot"]["RW"] )
-                            metrics_summary["reduction_rmse_forw"][model] = rmse_reduction(metrics_summary["rmse_forw"][model], metrics_summary["rmse_forw"]["RW"] )
-                        else:
-                            # Set reductions for RW to zero as it is the baseline
-                            metrics_summary["reduction_rmse_spot"][model] = 0
-                            metrics_summary["reduction_rmse_forw"][model] = 0
+                        #spot
+                        actuals = metrics["pred_spot"]["Actual"]
+                        pred = metrics["pred_spot"][model]
+                        rw_pred = metrics["pred_spot"]["RW"]
+                        teststat, pvalue = diebold_mariano_test(actuals, pred, rw_pred)
+                        metrics_summary["dm_teststat_spot"][model] = teststat
+                        metrics_summary["dm_pvalue_spot"][model] = pvalue
+                        
+                        #forw
+                        actuals = metrics["pred_forw"]["Actual"]
+                        pred = metrics["pred_forw"][model]
+                        rw_pred = metrics["pred_forw"]["RW"]
+                        teststat, pvalue = diebold_mariano_test(actuals, pred, rw_pred)
+                        metrics_summary["dm_teststat_forw"][model] = teststat
+                        metrics_summary["dm_pvalue_forw"][model] = pvalue           
+                        
+                    
 
-                
-                # Create a DataFrame for configurations
-                config_df = {
-                    'Spot': s_col,
-                    'Forw': f_col,
-                    'Lookback': str(look_back),
-                    'Horizon': str(hor),
-                    'Exog_Col': str(exog_col),
-                    'Epochs': str(epochs),
-                    'Batchsize': str(batch_size)
-                }
+                    # Compute reductions for RMSE compared to RW and integrate directly into metrics_summary
+                    if "rmse_spot" in metrics_summary and "rmse_forw" in metrics_summary:
+                        metrics_summary["reduction_rmse_spot"] = {}
+                        metrics_summary["reduction_rmse_forw"] = {}
+                        for model in metrics_summary["rmse_spot"]:
+                            if model != "RW":
+                                metrics_summary["reduction_rmse_spot"][model] = rmse_reduction(metrics_summary["rmse_spot"][model], metrics_summary["rmse_spot"]["RW"] )
+                                metrics_summary["reduction_rmse_forw"][model] = rmse_reduction(metrics_summary["rmse_forw"][model], metrics_summary["rmse_forw"]["RW"] )
+                            else:
+                                # Set reductions for RW to zero as it is the baseline
+                                metrics_summary["reduction_rmse_spot"][model] = 0
+                                metrics_summary["reduction_rmse_forw"][model] = 0
 
-                # Log and print all metrics
-                log_metrics(metrics_summary)
-                log_print_csv_spot((metrics_summary["reduction_rmse_spot"]), config_df)
-                log_print_csv_forw((metrics_summary["reduction_rmse_forw"]), config_df)
+                    
+                    # Create a DataFrame for configurations
+                    config_df = {
+                        'Spot': s_col,
+                        'Forw': f_col,
+                        'Lookback': str(look_back),
+                        'Horizon': str(hor),
+                        'Exog_Col': str(exog_col),
+                        'Epochs': str(epochs),
+                        'Batchsize': str(batch_size)
+                    }
 
-                #return metrics_summary
+                    # Log and print all metrics
+                    log_metrics(metrics_summary)
+                    log_print_csv_spot((metrics_summary["reduction_rmse_spot"]), config_df)
+                    log_print_csv_forw((metrics_summary["reduction_rmse_forw"]), config_df)
+
+                    #return metrics_summary
 
  
             

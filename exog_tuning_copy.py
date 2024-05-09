@@ -17,9 +17,7 @@ import csv
 import logging
 import json
 
-import tensorflow as tf
-
-local = True
+local = False
 
 if local:
     csv_file_spot = "log_spot.csv"
@@ -27,10 +25,10 @@ if local:
     log = "model_metrics.log"
     max_workers = 2
 else:
-    csv_file_spot = "/storage/users/mariumbo/log_spot.csv"
-    csv_file_forw = "/storage/users/mariumbo/log_forw.csv"
-    log = "/storage/users/mariumbo/model_metrics.log"
-    max_workers = 8
+    csv_file_spot = "/storage/users/mariumbo/log_spot_exog.csv"
+    csv_file_forw = "/storage/users/mariumbo/log_forw_exog.csv"
+    log = "/storage/users/mariumbo/model_metrics_exog.log"
+    max_workers = 16
 
 
 
@@ -503,7 +501,7 @@ def main():
     #print("Num rounds:",num_rounds)
 
 
-    #num_rounds = min(num_rounds, 5)
+    #num_rounds = min(num_rounds, 2)
 
     split_indices = []
     split_index = split_index - hor #account for first additioin
@@ -513,6 +511,7 @@ def main():
 
     batch_size_lst = [1, 8, 32, 64]
     nodes_lst = [8, 16, 32, 64]
+    look_back_lst = [5, 10, 20]
     
                     
     '''     epochs = 100
@@ -523,112 +522,113 @@ def main():
     look_back = 10  # Adjust based on your temporal structure@ 
     '''
     epochs = 100
-    verbose = 1
-    look_back = 10
+    verbose = 0
+    #look_back = 10
     layers = 2
     for batch_size in batch_size_lst:
         for nodes in nodes_lst:
-            results_list = []
-            predictions_list = []
-            logger.info(f"Spot: {s_col}. Forw: {f_col}. Lookback: {look_back}. Horizon: {hor}. Exog_Col = {exog_col}. Epochs = {epochs}. Nodes: {nodes} Batchsize: {batch_size}")
-            with ProcessPoolExecutor(max_workers=max_workers) as executor:
-                futures = [executor.submit(train_and_evaluate, data_log_levels, models, split_idx, look_back, hor, exog_col, epochs, batch_size, verbose, nodes, layers) for split_idx in split_indices]
-                for future in futures:
-                    results_list.append(future.result())
-                # Initialize a dictionary to aggregate scores
-                aggregate_results = defaultdict(lambda: defaultdict(list))
+            for look_back in look_back_lst:
+                results_list = []
+                predictions_list = []
+                logger.info(f"Spot: {s_col}. Forw: {f_col}. Lookback: {look_back}. Horizon: {hor}. Exog_Col = {exog_col}. Epochs = {epochs}. Nodes: {nodes} Batchsize: {batch_size}")
+                with ProcessPoolExecutor(max_workers=max_workers) as executor:
+                    futures = [executor.submit(train_and_evaluate, data_log_levels, models, split_idx, look_back, hor, exog_col, epochs, batch_size, verbose, nodes, layers) for split_idx in split_indices]
+                    for future in futures:
+                        results_list.append(future.result())
+                    # Initialize a dictionary to aggregate scores
+                    aggregate_results = defaultdict(lambda: defaultdict(list))
 
-                # Aggregate results
-                for result in results_list:
-                    for model, scores in result.items():
-                        for score_type, value in scores.items():
-                            aggregate_results[score_type][model].append(value)
-                
-                
-                metrics = {}    
-                # Compute and print mean scores
-                for score_type, scores in aggregate_results.items():
-                    print(score_type)
-                    for model, values in scores.items():
-                        if "corr_dir" in score_type:
-                            mean_score = calculate_avg_dir_accuracy(values)
-                        elif "pred" in score_type:
-                            mean_score = np.concatenate(values, axis=0)
-                        else:
-                            mean_score = sum(values) / len(values)
-                        if not metrics.get(score_type):
-                            metrics[score_type] = {}
-                        metrics[score_type][model] = mean_score
-                        #print(f"Mean {score_type} for {model}: {mean_score:.5f}")
-
-                # Compute average scores and organize metrics data
-                    metrics_summary = {}
-                    for metric, models in aggregate_results.items():
-                        metrics_summary[metric] = {}
-                        for model, values in models.items():
-                            if "pred" not in metric:
-                                average = sum(values) / len(values)
-                                metrics_summary[metric][model] = average
+                    # Aggregate results
+                    for result in results_list:
+                        for model, scores in result.items():
+                            for score_type, value in scores.items():
+                                aggregate_results[score_type][model].append(value)
+                    
+                    
+                    metrics = {}    
+                    # Compute and print mean scores
+                    for score_type, scores in aggregate_results.items():
+                        print(score_type)
+                        for model, values in scores.items():
+                            if "corr_dir" in score_type:
+                                mean_score = calculate_avg_dir_accuracy(values)
+                            elif "pred" in score_type:
+                                mean_score = np.concatenate(values, axis=0)
                             else:
-                                pass
-                            
-                            
-                # compute dm test
-                metrics_summary["dm_teststat_spot"] = {}
-                metrics_summary["dm_pvalue_spot"] = {}
-                metrics_summary["dm_teststat_forw"] = {}
-                metrics_summary["dm_pvalue_forw"] = {}
-                
-                for model in metrics_summary["rmse_spot"]:
-                    #spot
-                    actuals = metrics["pred_spot"]["Actual"]
-                    pred = metrics["pred_spot"][model]
-                    rw_pred = metrics["pred_spot"]["RW"]
-                    teststat, pvalue = diebold_mariano_test(actuals, pred, rw_pred)
-                    metrics_summary["dm_teststat_spot"][model] = teststat
-                    metrics_summary["dm_pvalue_spot"][model] = pvalue
-                    
-                    #forw
-                    actuals = metrics["pred_forw"]["Actual"]
-                    pred = metrics["pred_forw"][model]
-                    rw_pred = metrics["pred_forw"]["RW"]
-                    teststat, pvalue = diebold_mariano_test(actuals, pred, rw_pred)
-                    metrics_summary["dm_teststat_forw"][model] = teststat
-                    metrics_summary["dm_pvalue_forw"][model] = pvalue           
-                    
-                
+                                mean_score = sum(values) / len(values)
+                            if not metrics.get(score_type):
+                                metrics[score_type] = {}
+                            metrics[score_type][model] = mean_score
+                            #print(f"Mean {score_type} for {model}: {mean_score:.5f}")
 
-                # Compute reductions for RMSE compared to RW and integrate directly into metrics_summary
-                if "rmse_spot" in metrics_summary and "rmse_forw" in metrics_summary:
-                    metrics_summary["reduction_rmse_spot"] = {}
-                    metrics_summary["reduction_rmse_forw"] = {}
+                    # Compute average scores and organize metrics data
+                        metrics_summary = {}
+                        for metric, models in aggregate_results.items():
+                            metrics_summary[metric] = {}
+                            for model, values in models.items():
+                                if "pred" not in metric:
+                                    average = sum(values) / len(values)
+                                    metrics_summary[metric][model] = average
+                                else:
+                                    pass
+                                
+                                
+                    # compute dm test
+                    metrics_summary["dm_teststat_spot"] = {}
+                    metrics_summary["dm_pvalue_spot"] = {}
+                    metrics_summary["dm_teststat_forw"] = {}
+                    metrics_summary["dm_pvalue_forw"] = {}
+                    
                     for model in metrics_summary["rmse_spot"]:
-                        if model != "RW":
-                            metrics_summary["reduction_rmse_spot"][model] = rmse_reduction(metrics_summary["rmse_spot"][model], metrics_summary["rmse_spot"]["RW"] )
-                            metrics_summary["reduction_rmse_forw"][model] = rmse_reduction(metrics_summary["rmse_forw"][model], metrics_summary["rmse_forw"]["RW"] )
-                        else:
-                            # Set reductions for RW to zero as it is the baseline
-                            metrics_summary["reduction_rmse_spot"][model] = 0
-                            metrics_summary["reduction_rmse_forw"][model] = 0
+                        #spot
+                        actuals = metrics["pred_spot"]["Actual"]
+                        pred = metrics["pred_spot"][model]
+                        rw_pred = metrics["pred_spot"]["RW"]
+                        teststat, pvalue = diebold_mariano_test(actuals, pred, rw_pred)
+                        metrics_summary["dm_teststat_spot"][model] = teststat
+                        metrics_summary["dm_pvalue_spot"][model] = pvalue
+                        
+                        #forw
+                        actuals = metrics["pred_forw"]["Actual"]
+                        pred = metrics["pred_forw"][model]
+                        rw_pred = metrics["pred_forw"]["RW"]
+                        teststat, pvalue = diebold_mariano_test(actuals, pred, rw_pred)
+                        metrics_summary["dm_teststat_forw"][model] = teststat
+                        metrics_summary["dm_pvalue_forw"][model] = pvalue           
+                        
+                    
 
-                
-                # Create a DataFrame for configurations
-                config_df = {
-                    'Spot': s_col,
-                    'Forw': f_col,
-                    'Lookback': str(look_back),
-                    'Horizon': str(hor),
-                    'Exog_Col': str(exog_col),
-                    'Epochs': str(epochs),
-                    'Batchsize': str(batch_size)
-                }
+                    # Compute reductions for RMSE compared to RW and integrate directly into metrics_summary
+                    if "rmse_spot" in metrics_summary and "rmse_forw" in metrics_summary:
+                        metrics_summary["reduction_rmse_spot"] = {}
+                        metrics_summary["reduction_rmse_forw"] = {}
+                        for model in metrics_summary["rmse_spot"]:
+                            if model != "RW":
+                                metrics_summary["reduction_rmse_spot"][model] = rmse_reduction(metrics_summary["rmse_spot"][model], metrics_summary["rmse_spot"]["RW"] )
+                                metrics_summary["reduction_rmse_forw"][model] = rmse_reduction(metrics_summary["rmse_forw"][model], metrics_summary["rmse_forw"]["RW"] )
+                            else:
+                                # Set reductions for RW to zero as it is the baseline
+                                metrics_summary["reduction_rmse_spot"][model] = 0
+                                metrics_summary["reduction_rmse_forw"][model] = 0
 
-                # Log and print all metrics
-                log_metrics(metrics_summary)
-                log_print_csv_spot((metrics_summary["reduction_rmse_spot"]), config_df)
-                log_print_csv_forw((metrics_summary["reduction_rmse_forw"]), config_df)
+                    
+                    # Create a DataFrame for configurations
+                    config_df = {
+                        'Spot': s_col,
+                        'Forw': f_col,
+                        'Lookback': str(look_back),
+                        'Horizon': str(hor),
+                        'Exog_Col': str(exog_col),
+                        'Epochs': str(epochs),
+                        'Batchsize': str(batch_size)
+                    }
 
-                #return metrics_summary
+                    # Log and print all metrics
+                    log_metrics(metrics_summary)
+                    log_print_csv_spot((metrics_summary["reduction_rmse_spot"]), config_df)
+                    log_print_csv_forw((metrics_summary["reduction_rmse_forw"]), config_df)
+
+                    #return metrics_summary
 
  
             
