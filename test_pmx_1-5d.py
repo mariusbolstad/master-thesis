@@ -506,7 +506,11 @@ def main():
     ###### PARAMS ########
     
     #f_col = "1MON"
+<<<<<<< HEAD
     f_col_lst = ["1MON", "1Q"]
+=======
+    f_col_lst = ["1MON"]
+>>>>>>> e89d3689a3b523ba6bce19e76f474d17c2a429f1
     s_col = "PMX"
     exog_col_lst = [[], [2], [2,4]]
     #exog_col = [2]

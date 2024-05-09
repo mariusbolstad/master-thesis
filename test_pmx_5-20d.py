@@ -506,11 +506,19 @@ def main():
     ###### PARAMS ########
     
     #f_col = "1MON"
+<<<<<<< HEAD
     f_col_lst = ["1MON", "1Q"]
     s_col = "PMX"
     exog_col_lst = [[], [2], [2,4]]
     #exog_col = [2]
     hors = [5,10,20]
+=======
+    f_col_lst = ["1MON"]
+    s_col = "PMX"
+    exog_col_lst = [[], [2], [2,4]]
+    #exog_col = [2]
+    hors = [10,20]
+>>>>>>> e89d3689a3b523ba6bce19e76f474d17c2a429f1
     #hor = 1
     diff = False
     

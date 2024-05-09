@@ -165,6 +165,7 @@ print(head(data_log_levels))
 
 data_ts <- ts(data_log_levels[, c("spot")])
 # Perform the analysis to find breakpoints
+<<<<<<< HEAD
 breakpoint_analysis <- breakpoints(data_ts ~ 1)
 
 # Summary of the breakpoints
@@ -173,6 +174,20 @@ summary(breakpoint_analysis)
 # Plot the breakpoints along with the time series
 plot(breakpoint_analysis)
 
+=======
+#breakpoint_analysis <- breakpoints(data_ts ~ 1)
+
+# Summary of the breakpoints
+#summary(breakpoint_analysis)
+
+# Plot the breakpoints along with the time series
+#plot(breakpoint_analysis)
+
+#data_combined <- data_combined[1972:nrow(data_combined), ]
+#data_log_levels <- data_log_levels[1972:nrow(data_log_levels), ]
+#data_combined <- data_combined[580:1971, ]
+#data_log_levels <- data_log_levels[580:1971, ]
+>>>>>>> e89d3689a3b523ba6bce19e76f474d17c2a429f1
 # Split into train and test sets
 
 # Calculate the index for the split
@@ -373,6 +388,7 @@ grangerForw
 # VARX
 
 # lev
+<<<<<<< HEAD
 lags <- VARselect(train_lev_ts, type = "const")
 lag_order <- VARselect(train_lev_ts, type = "both")$selection["AIC(n)"]
 varx_model <- vars::VAR(train_lev_ts, p = lag_order, type = "both", exogen = exog_lev_ts)
@@ -389,6 +405,24 @@ varx_model <- vars::VAR(train_diff_ts, p = lag_order, type = "both", exogen = ex
 summary(varx_model)
 
 varx_model3 <- VARX(train_diff_ts, x = exog_diff_ts , p = lag_order)
+=======
+#lags <- VARselect(train_lev_ts, type = "const")
+#lag_order <- VARselect(train_lev_ts, type = "both")$selection["AIC(n)"]
+#varx_model <- vars::VAR(train_lev_ts, p = lag_order, type = "both", exogen = exog_lev_ts)
+
+#summary(varx_model)
+
+#varx_model3 <- VARX(train_lev_ts, x = exog_lev_ts , p = lag_order)
+
+# diff
+#lags <- VARselect(train_diff_ts, type = "const")
+#lag_order <- VARselect(train_diff_ts, type = "both")$selection["AIC(n)"]
+#varx_model <- vars::VAR(train_diff_ts, p = lag_order, type = "both", exogen = exog_diff_ts)
+
+#summary(varx_model)
+
+#varx_model3 <- VARX(train_diff_ts, x = exog_diff_ts , p = lag_order)
+>>>>>>> e89d3689a3b523ba6bce19e76f474d17c2a429f1
 
 
 # VECM
@@ -489,7 +523,11 @@ print(white_test_forw)
 
 
 # Step 9: Forecast future values
+<<<<<<< HEAD
 forecast_horizon <- 1
+=======
+forecast_horizon <- 10
+>>>>>>> e89d3689a3b523ba6bce19e76f474d17c2a429f1
 
 
 
@@ -499,7 +537,11 @@ forecast_horizon <- 1
 last_observation_matrix <- as.matrix(tail(exog_lev[-1], 1))
 
 # Forecast 1 step ahead using the last known values of the exogenous variables
+<<<<<<< HEAD
 varx_fcs <- VARXpred(varx_model3, newxt = last_observation_matrix, hstep = 1, orig = 0)
+=======
+#varx_fcs <- VARXpred(varx_model3, newxt = last_observation_matrix, hstep = 1, orig = 0)
+>>>>>>> e89d3689a3b523ba6bce19e76f474d17c2a429f1
 
 #vecm_forecasts <- predict(vecm_model, n.ahead = forecast_horizon)
 var_fcs <- predict(var_model, n.ahead = forecast_horizon) 
@@ -512,8 +554,13 @@ arima_fcs_spot <- forecast(arima_model_spot, h = forecast_horizon)
 arima_fcs_forwp <- forecast(arima_model_forwp, h = forecast_horizon)
 
 # Determine the number of rounds based on the test set size and forecast horizon
+<<<<<<< HEAD
 num_rounds <- min(floor(len_test / forecast_horizon), 30)
 #num_rounds <- floor(nrow(test_lev) / forecast_horizon)
+=======
+#num_rounds <- min(floor(len_test / forecast_horizon), 30)
+num_rounds <- floor(nrow(test_lev) / forecast_horizon)
+>>>>>>> e89d3689a3b523ba6bce19e76f474d17c2a429f1
 
 print(num_rounds)
 
@@ -679,10 +726,17 @@ for (round in 1:num_rounds) {
   var_fcs <- predict(var_model, n.ahead = forecast_horizon)  
   
   ## VARX
+<<<<<<< HEAD
   varx_model <- VARX(train_diff_ts, x = exog_diff_ts , p = lag_order, output = FALSE)
   last_observation_matrix <- as.matrix(tail(exog_diff[-1], 1))
   # Forecast 1 step ahead using the last known values of the exogenous variables
   varx_fcs <- VARXpred(varx_model, newxt = last_observation_matrix, hstep = 1, orig = 0)
+=======
+  #varx_model <- VARX(train_diff_ts, x = exog_diff_ts , p = lag_order, output = FALSE)
+  #last_observation_matrix <- as.matrix(tail(exog_diff[-1], 1))
+  # Forecast 1 step ahead using the last known values of the exogenous variables
+  #varx_fcs <- VARXpred(varx_model, newxt = last_observation_matrix, hstep = 1, orig = 0)
+>>>>>>> e89d3689a3b523ba6bce19e76f474d17c2a429f1
   
   ## BVAR
   #bvar_model <- bvar(train_diff_ts, lags = lag_order, type = "both")
@@ -728,8 +782,13 @@ for (round in 1:num_rounds) {
   var_rev_fcs_forwp <- last_forwp + cumsum(var_fcs$fcst[[2]][, "fcst"])
   
   #VARX
+<<<<<<< HEAD
   varx_rev_fcs_spot <- last_spot + cumsum(varx_fcs$pred["spot"])
   varx_rev_fcs_forwp <- last_forwp + cumsum(varx_fcs$pred["forwp"])
+=======
+  #varx_rev_fcs_spot <- last_spot + cumsum(varx_fcs$pred["spot"])
+  #varx_rev_fcs_forwp <- last_forwp + cumsum(varx_fcs$pred["forwp"])
+>>>>>>> e89d3689a3b523ba6bce19e76f474d17c2a429f1
   
   #BVAR
   #bvar_rev_fcs_spot <- last_spot + cumsum(t(bvar_fcs_fcast$quants[,,1])[,"50%"])
@@ -750,8 +809,13 @@ for (round in 1:num_rounds) {
     VAR = list(spot = var_rev_fcs_spot, forwp = var_rev_fcs_forwp),
     VECM = list(spot = vecm_fcs$fcst[[1]][, "fcst"], forwp = vecm_fcs$fcst[[2]][, "fcst"]),
     ARIMA = list(spot = arima_fcs_spot$mean, forwp = arima_fcs_forwp$mean),
+<<<<<<< HEAD
     RW = list(spot = rw_fcs_spot$mean, forwp = rw_fcs_forwp$mean),
     VARX = list(spot =  varx_rev_fcs_spot, forwp = varx_rev_fcs_forwp)
+=======
+    RW = list(spot = rw_fcs_spot$mean, forwp = rw_fcs_forwp$mean)
+    #VARX = list(spot =  varx_rev_fcs_spot, forwp = varx_rev_fcs_forwp)
+>>>>>>> e89d3689a3b523ba6bce19e76f474d17c2a429f1
     #BVAR = list(spot =  bvar_rev_fcs_spot, forwp = bvar_rev_fcs_forwp)
   )
   
@@ -795,8 +859,13 @@ for (round in 1:num_rounds) {
   rmse_results$VAR_forwp <- c(rmse_results$VAR_forwp, sqrt(mean((var_rev_fcs_forwp - act_forwp)^2)))
   
   # Calculate and append MSE for VARX forecasts
+<<<<<<< HEAD
   rmse_results$VARX_spot <- c(rmse_results$VARX_spot, sqrt(mean((varx_rev_fcs_spot - act_spot)^2)))
   rmse_results$VARX_forwp <- c(rmse_results$VARX_forwp, sqrt(mean((varx_rev_fcs_forwp - act_forwp)^2)))
+=======
+  #rmse_results$VARX_spot <- c(rmse_results$VARX_spot, sqrt(mean((varx_rev_fcs_spot - act_spot)^2)))
+  #rmse_results$VARX_forwp <- c(rmse_results$VARX_forwp, sqrt(mean((varx_rev_fcs_forwp - act_forwp)^2)))
+>>>>>>> e89d3689a3b523ba6bce19e76f474d17c2a429f1
   
   # Calculate and append MSE for BVAR forecasts
   #rmse_results$BVAR_spot <- c(rmse_results$BVAR_spot, sqrt(mean((bvar_rev_fcs_spot - act_spot)^2)))
@@ -822,8 +891,13 @@ for (round in 1:num_rounds) {
   mae_results$VAR_forwp <- c(mae_results$VAR_forwp, mean(abs(var_rev_fcs_forwp - act_forwp)))
   
   # Calculate and append MAE for VARX forecasts
+<<<<<<< HEAD
   mae_results$VARX_spot <- c(mae_results$VARX_spot, mean(abs(varx_rev_fcs_spot - act_spot)))
   mae_results$VARX_forwp <- c(mae_results$VARX_forwp, mean(abs(varx_rev_fcs_forwp - act_forwp)))
+=======
+  #mae_results$VARX_spot <- c(mae_results$VARX_spot, mean(abs(varx_rev_fcs_spot - act_spot)))
+  #mae_results$VARX_forwp <- c(mae_results$VARX_forwp, mean(abs(varx_rev_fcs_forwp - act_forwp)))
+>>>>>>> e89d3689a3b523ba6bce19e76f474d17c2a429f1
   
   # Calculate and append MAE for BVAR forecasts
   #mae_results$BVAR_spot <- c(mae_results$BVAR_spot, mean(abs(bvar_rev_fcs_spot - act_spot)))
@@ -844,6 +918,7 @@ for (round in 1:num_rounds) {
   
   # Calculate Theil
   
+<<<<<<< HEAD
   theil_results$VAR_spot <- c(theil_results$VAR_spot, calculate_theils_u(forecast = var_rev_fcs_spot, actual = act_spot))
   
   # Continuing Theil's U calculations for other models
@@ -853,11 +928,23 @@ for (round in 1:num_rounds) {
   theil_results$VARX_spot <- c(theil_results$VARX_spot, calculate_theils_u(forecast = varx_rev_fcs_spot, actual = act_spot))
   # VARX forwp
   theil_results$VARX_forwp <- c(theil_results$VARX_forwp, calculate_theils_u(forecast = varx_rev_fcs_forwp, actual = act_forwp))
+=======
+  #theil_results$VAR_spot <- c(theil_results$VAR_spot, calculate_theils_u(forecast = var_rev_fcs_spot, actual = act_spot))
+  
+  # Continuing Theil's U calculations for other models
+  # VAR forwp
+  #theil_results$VAR_forwp <- c(theil_results$VAR_forwp, calculate_theils_u(forecast = var_rev_fcs_forwp, actual = act_forwp))
+  # VARX spot
+  #theil_results$VARX_spot <- c(theil_results$VARX_spot, calculate_theils_u(forecast = varx_rev_fcs_spot, actual = act_spot))
+  # VARX forwp
+  #theil_results$VARX_forwp <- c(theil_results$VARX_forwp, calculate_theils_u(forecast = varx_rev_fcs_forwp, actual = act_forwp))
+>>>>>>> e89d3689a3b523ba6bce19e76f474d17c2a429f1
   # BVAR spot
   #theil_results$BVAR_spot <- c(theil_results$BVAR_spot, calculate_theils_u(forecast = bvar_rev_fcs_spot, actual = act_spot))
   # BVAR forwp
   #theil_results$BVAR_forwp <- c(theil_results$BVAR_forwp, calculate_theils_u(forecast = bvar_rev_fcs_forwp, actual = act_forwp))
   # VECM spot
+<<<<<<< HEAD
   theil_results$VECM_spot <- c(theil_results$VECM_spot, calculate_theils_u(forecast = vecm_fcs$fcst[[1]][, "fcst"], actual = act_spot))
   # VECM forwp
   theil_results$VECM_forwp <- c(theil_results$VECM_forwp, calculate_theils_u(forecast = vecm_fcs$fcst[[2]][, "fcst"], actual = act_forwp))
@@ -869,6 +956,19 @@ for (round in 1:num_rounds) {
   theil_results$RW_spot <- c(theil_results$RW_spot, calculate_theils_u(forecast = rw_fcs_spot$mean, actual = act_spot))
   # Random Walk forwp
   theil_results$RW_forwp <- c(theil_results$RW_forwp, calculate_theils_u(forecast = rw_fcs_forwp$mean, actual = act_forwp))
+=======
+  #theil_results$VECM_spot <- c(theil_results$VECM_spot, calculate_theils_u(forecast = vecm_fcs$fcst[[1]][, "fcst"], actual = act_spot))
+  # VECM forwp
+  #theil_results$VECM_forwp <- c(theil_results$VECM_forwp, calculate_theils_u(forecast = vecm_fcs$fcst[[2]][, "fcst"], actual = act_forwp))
+  # ARIMA spot
+  #theil_results$ARIMA_spot <- c(theil_results$ARIMA_spot, calculate_theils_u(forecast = arima_fcs_spot$mean, actual = act_spot))
+  # ARIMA forwp
+  #theil_results$ARIMA_forwp <- c(theil_results$ARIMA_forwp, calculate_theils_u(forecast = arima_fcs_forwp$mean, actual = act_forwp))
+  # Random Walk spot
+  #theil_results$RW_spot <- c(theil_results$RW_spot, calculate_theils_u(forecast = rw_fcs_spot$mean, actual = act_spot))
+  # Random Walk forwp
+  #theil_results$RW_forwp <- c(theil_results$RW_forwp, calculate_theils_u(forecast = rw_fcs_forwp$mean, actual = act_forwp))
+>>>>>>> e89d3689a3b523ba6bce19e76f474d17c2a429f1
   
   
   # Calculate and append MAPE for VAR forecasts
@@ -876,8 +976,13 @@ for (round in 1:num_rounds) {
   mape_results$VAR_forwp <- c(mape_results$VAR_forwp, calculate_mape(act_forwp, var_rev_fcs_forwp))
   
   # Calculate and append MAPE for VARX forecasts
+<<<<<<< HEAD
   mape_results$VARX_spot <- c(mape_results$VARX_spot, calculate_mape(act_spot, varx_rev_fcs_spot))
   mape_results$VARX_forwp <- c(mape_results$VARX_forwp, calculate_mape(act_forwp, varx_rev_fcs_forwp))
+=======
+  #mape_results$VARX_spot <- c(mape_results$VARX_spot, calculate_mape(act_spot, varx_rev_fcs_spot))
+  #mape_results$VARX_forwp <- c(mape_results$VARX_forwp, calculate_mape(act_forwp, varx_rev_fcs_forwp))
+>>>>>>> e89d3689a3b523ba6bce19e76f474d17c2a429f1
   
   # Calculate and append MAPE for BVAR forecasts
   #mape_results$BVAR_spot <- c(mape_results$BVAR_spot, calculate_mape(act_spot, bvar_rev_fcs_spot))
@@ -939,7 +1044,11 @@ aggregated_actuals <- list(
   forwp = unlist(lapply(actual_values_list, `[[`, "forwp"))
 )
 
+<<<<<<< HEAD
 models <- c("VAR", "ARIMA", "VECM", "RW", "VARX")
+=======
+models <- c("VAR", "ARIMA", "VECM", "RW")
+>>>>>>> e89d3689a3b523ba6bce19e76f474d17c2a429f1
 for(model in models) {
   aggregated_forecasts[[model]] <- list(
     spot = unlist(lapply(forecasted_values, function(x) x[[model]][["spot"]])),

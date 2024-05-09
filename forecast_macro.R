@@ -12,6 +12,7 @@
 #install.packages("tsbox")
 #install.packages("MTS")
 #install.packages("BVAR")
+#install.packages("strucchange")
 #install.packages("psych")
 
 getwd()
@@ -33,6 +34,7 @@ library(data.table)
 library(progress)
 library(MTS)
 library(BVAR)
+library(strucchange)
 library(psych)
 
 
@@ -177,11 +179,10 @@ eur_usd <- eur_usd %>%
 #data_combined <- merge(spot, csz_forw, by = "Date")
 #data_combined <- merge(data_combined, gbti_dev, by = "Date")
 
+
 ####### ENDRE ######
 data_combined <- inner_join(spot[, c("Date", "PMX")], pmx_forw[, c("Date", "1MON")], by = "Date")
 ####### ENDRE ######
-
-
 
 #data_combined <- inner_join(data_combined, gbti_dev[, c("Date", "Iron Ore Trade Vol", "Coal Trade Vol", "Grain Trade Vol", "Minor Bulk Trade Vol", "Dry Bulk Trade Vol")], by = "Date")
 #data_combined <- inner_join(data_combined, oecd_ip_dev[, c("Date", "Ind Prod Excl Const VOLA")], by = "Date")
@@ -202,8 +203,6 @@ data_combined <- data_combined %>%
 # Transform data to log levels and create a new data frame for log levels
 data_log_levels <- data.frame(
   Date = data_combined$Date,
-  
-  
   
   ####### ENDRE ######
   spot = log(data_combined$PMX),
@@ -238,6 +237,16 @@ exog_log_levels <- data.frame(
 
 # Display the first few rows of each new data frame to verify
 print(head(data_log_levels))
+
+data_ts <- ts(data_log_levels[, c("spot")])
+# Perform the analysis to find breakpoints
+breakpoint_analysis <- breakpoints(data_ts ~ 1)
+
+# Summary of the breakpoints
+summary(breakpoint_analysis)
+
+# Plot the breakpoints along with the time series
+plot(breakpoint_analysis)
 
 # Split into train and test sets
 
