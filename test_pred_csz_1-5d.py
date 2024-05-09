@@ -31,10 +31,10 @@ import tensorflow as tf
 
 local = True
 system_test = True
-path = "test/csz_1-5d"
+path = "pred/csz"
 spot_path = f"{path}_spot"
 forw_path = f"{path}_forw"
-pred_path = f"{path}_pred"
+pred_path = f"{path}"
 
 if local:
     csv_file_spot = f"{spot_path}.csv"
@@ -536,6 +536,7 @@ def main():
     for f_col in f_col_lst:
         for hor in hors:
             for exog_col in exog_col_lst:
+                index = exog_col_lst.index(exog_col)
                 models = ["MLP", "LSTM", "RW"]
                 forw = pick_forw(s_col)
                 # Ensure 'Date' columns are in datetime format for all datasets
@@ -743,19 +744,19 @@ def main():
                     }
 
                     # Log and print all metrics
-                    log_metrics(metrics_summary)
-                    log_print_csv_spot((metrics_summary["reduction_rmse_spot"]), config_df)
-                    log_print_csv_forw((metrics_summary["reduction_rmse_forw"]), config_df)
+                    #log_metrics(metrics_summary)
+                    #log_print_csv_spot((metrics_summary["reduction_rmse_spot"]), config_df)
+                    #log_print_csv_forw((metrics_summary["reduction_rmse_forw"]), config_df)
 
                     #return metrics_summary
 
  
-            print(preds)
-            if local:
-                csv_path = f"{pred_path}_{hor}.csv"
-            else:
-                csv_path = f"/storage/users/mariumbo/{pred_path}_{hor}.csv"
-            preds.to_csv(csv_path)
+                print(preds)
+                if local:
+                    csv_path = f"{pred_path}_{hor}_{index}.csv"
+                else:
+                    csv_path = f"/storage/users/mariumbo/{pred_path}_{hor}_{index}.csv"
+                preds.to_csv(csv_path)
 
             
             
