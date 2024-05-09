@@ -21,7 +21,6 @@ import json
 
 import tensorflow as tf
 
-
 ##### THINGS TO CHNAGE ########
 
 #1. local and system test False
@@ -35,6 +34,7 @@ system_test = False
 path = "test/pmx_1-5d"
 spot_path = f"{path}_spot"
 forw_path = f"{path}_forw"
+pred_path = f"{path}_pred"
 
 if local:
     csv_file_spot = f"{spot_path}.csv"
@@ -522,7 +522,7 @@ def main():
     epochs = 100
     if system_test:
         epochs = 1
-    verbose = 1
+    verbose = 0
     look_back = 10
     layers = 2
     #dropout_lst = [None, 0.2, 0.5]
@@ -532,7 +532,7 @@ def main():
     #earlystop_lst = [None, 3, 10]    
     earlystop = 10
     ######################
-
+    
     for f_col in f_col_lst:
         for hor in hors:
             for exog_col in exog_col_lst:
@@ -597,13 +597,15 @@ def main():
                 #print("Num rounds:",num_rounds)
 
                 # Test
-                split_index = math.floor(len(data_log_levels) * 0.8)
+                split_index = math.floor(len(data_log_levels) * 0.8) + 3
+                first_split_index = split_index
+                print("Split index: ", split_index)
                 len_test = len(data_log_levels[split_index:])
                 num_rounds = math.floor(len_test / hor)
                 print("Num rounds:",num_rounds)
 
                 if system_test:
-                    num_rounds = min(num_rounds, 2)
+                    num_rounds = min(num_rounds, 3)
 
                 split_indices = []
                 split_index = split_index - hor #account for first additioin
@@ -613,6 +615,20 @@ def main():
 
                 results_list = []
                 predictions_list = []
+                
+                headers = [
+                        "Actual", "RW_pred", f"MLP_pred_{exog_col}", f"LSTM_pred_{exog_col}", "RW_res", f"MLP_res_{exog_col}", f"LSTM_res_{exog_col}"]
+                # Creating an empty DataFrame with specified headers
+                num_rows = len(data_log_levels[first_split_index:first_split_index+hor*num_rounds])
+                preds = pd.DataFrame(columns=headers, index=range(num_rows))
+                preds["Actual"] = data_log_levels[first_split_index:first_split_index+hor*num_rounds].values
+                preds["RW_pred"] = np.zeros(num_rows)
+                preds[f"MLP_pred_{exog_col}"] = np.array(num_rows)
+                preds[f"LSTM_pred_{exog_col}"] = np.array(num_rows)
+                preds["RW_res"] = np.array(num_rows)
+                preds[f"MLP_res_{exog_col}"] = np.array(num_rows)
+                preds[f"LSTM_res_{exog_col}"] = np.array(num_rows)
+
                 logger.info(f"Spot: {s_col}. Forw: {f_col}. Lookback: {look_back}. Horizon: {hor}. Exog_Col = {exog_col}. Epochs = {epochs}. Nodes: {nodes} Batchsize: {batch_size}")
                 with ProcessPoolExecutor(max_workers=max_workers) as executor:
                     futures = [executor.submit(train_and_evaluate, data_log_levels, models, split_idx, look_back, hor, exog_col, epochs, batch_size, verbose, nodes, layers, diff, earlystop, dropout, regul) for split_idx in split_indices]
@@ -627,7 +643,7 @@ def main():
                             for score_type, value in scores.items():
                                 aggregate_results[score_type][model].append(value)
                     
-                    
+
                     metrics = {}    
                     # Compute and print mean scores
                     for score_type, scores in aggregate_results.items():
@@ -637,13 +653,29 @@ def main():
                                 mean_score = calculate_avg_dir_accuracy(values)
                             elif "pred" in score_type:
                                 mean_score = np.concatenate(values, axis=0)
+                                if score_type == "pred_spot":
+                                    pred_col = None
+                                    res_col = None
+                                    if model == "RW":
+                                        pred_col = "RW_pred"
+                                        res_col = "RW_res"
+                                    elif model == "MLP" or model == "LSTM":
+                                        pred_col = f"{model}_pred_{exog_col}"
+                                        res_col = f"{model}_res_{exog_col}"   
+                                    if pred_col:   
+                                        predictions = np.concatenate(values)
+                                        act = preds["Actual"].values
+                                        residuals = predictions - act
+                                        
+                                        preds[pred_col] = predictions
+                                        preds[res_col] = residuals
+                                                                            
                             else:
                                 mean_score = sum(values) / len(values)
                             if not metrics.get(score_type):
                                 metrics[score_type] = {}
                             metrics[score_type][model] = mean_score
                             #print(f"Mean {score_type} for {model}: {mean_score:.5f}")
-
                     # Compute average scores and organize metrics data
                         metrics_summary = {}
                         for metric, models in aggregate_results.items():
@@ -655,7 +687,7 @@ def main():
                                 else:
                                     pass
                                 
-                                
+
                     # compute dm test
                     metrics_summary["dm_teststat_spot"] = {}
                     metrics_summary["dm_pvalue_spot"] = {}
@@ -694,7 +726,7 @@ def main():
                                 metrics_summary["reduction_rmse_spot"][model] = 0
                                 metrics_summary["reduction_rmse_forw"][model] = 0
 
-                    
+
                     # Create a DataFrame for configurations
                     config_df = {
                         'Spot': s_col,
@@ -718,7 +750,13 @@ def main():
                     #return metrics_summary
 
  
-            
+            print(preds)
+            if local:
+                csv_path = f"{pred_path}_{hor}.csv"
+            else:
+                csv_path = f"/storage/users/mariumbo/{pred_path}_{hor}.csv"
+            preds.to_csv(csv_path)
+
             
             
 if __name__ == "__main__":

@@ -1,0 +1,64 @@
+2024-05-08 14:27:27,279 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 14:27:29,378 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = [4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 14:27:31,325 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = [2, 4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 14:27:33,339 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 2. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 14:27:35,204 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 2. Exog_Col = [4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 14:27:37,174 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 2. Exog_Col = [2, 4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 14:27:39,148 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 5. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 14:27:41,047 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 5. Exog_Col = [4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 14:27:43,182 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 5. Exog_Col = [2, 4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 14:27:45,218 - INFO - Spot: CSZ. Forw: 1Q. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 14:27:47,207 - INFO - Spot: CSZ. Forw: 1Q. Lookback: 10. Horizon: 1. Exog_Col = [4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 14:27:49,331 - INFO - Spot: CSZ. Forw: 1Q. Lookback: 10. Horizon: 1. Exog_Col = [2, 4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 14:27:51,476 - INFO - Spot: CSZ. Forw: 1Q. Lookback: 10. Horizon: 2. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 14:27:53,458 - INFO - Spot: CSZ. Forw: 1Q. Lookback: 10. Horizon: 2. Exog_Col = [4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 14:27:55,556 - INFO - Spot: CSZ. Forw: 1Q. Lookback: 10. Horizon: 2. Exog_Col = [2, 4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 14:27:57,666 - INFO - Spot: CSZ. Forw: 1Q. Lookback: 10. Horizon: 5. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 14:27:59,647 - INFO - Spot: CSZ. Forw: 1Q. Lookback: 10. Horizon: 5. Exog_Col = [4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 14:28:01,772 - INFO - Spot: CSZ. Forw: 1Q. Lookback: 10. Horizon: 5. Exog_Col = [2, 4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 14:28:41,664 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 14:28:49,520 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 14:30:35,678 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:06:33,581 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:08:46,241 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:10:01,019 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:10:53,118 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:13:04,376 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:13:30,470 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:14:07,140 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:17:21,226 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:20:07,776 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:21:28,007 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:23:13,628 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:27:07,981 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:27:09,956 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = [4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:27:11,938 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = [2, 4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:27:13,915 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 2. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:28:06,650 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:28:08,652 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = [4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:28:10,653 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = [2, 4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:28:12,652 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 2. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:29:21,870 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:29:23,861 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = [4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:29:25,830 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = [2, 4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:29:27,837 - INFO - Spot: CSZ. Forw: 1Q. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:29:29,958 - INFO - Spot: CSZ. Forw: 1Q. Lookback: 10. Horizon: 1. Exog_Col = [4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:29:31,977 - INFO - Spot: CSZ. Forw: 1Q. Lookback: 10. Horizon: 1. Exog_Col = [2, 4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:30:54,031 - INFO - Spot: PMX. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:30:56,038 - INFO - Spot: PMX. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = [4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:30:58,112 - INFO - Spot: PMX. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = [2, 4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:31:00,122 - INFO - Spot: PMX. Forw: 1Q. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:31:02,230 - INFO - Spot: PMX. Forw: 1Q. Lookback: 10. Horizon: 1. Exog_Col = [4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:31:04,195 - INFO - Spot: PMX. Forw: 1Q. Lookback: 10. Horizon: 1. Exog_Col = [2, 4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:31:48,835 - INFO - Spot: PMX. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:31:50,816 - INFO - Spot: PMX. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = [2]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:31:52,886 - INFO - Spot: PMX. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = [2, 4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:31:54,971 - INFO - Spot: PMX. Forw: 1Q. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:31:57,072 - INFO - Spot: PMX. Forw: 1Q. Lookback: 10. Horizon: 1. Exog_Col = [2]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:31:59,015 - INFO - Spot: PMX. Forw: 1Q. Lookback: 10. Horizon: 1. Exog_Col = [2, 4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:34:16,035 - INFO - Spot: SMX. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:34:18,038 - INFO - Spot: SMX. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = [2]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:34:20,082 - INFO - Spot: SMX. Forw: 1MON. Lookback: 10. Horizon: 1. Exog_Col = [3, 4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:34:22,112 - INFO - Spot: SMX. Forw: 1Q. Lookback: 10. Horizon: 1. Exog_Col = []. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:34:24,268 - INFO - Spot: SMX. Forw: 1Q. Lookback: 10. Horizon: 1. Exog_Col = [2]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-08 15:34:26,247 - INFO - Spot: SMX. Forw: 1Q. Lookback: 10. Horizon: 1. Exog_Col = [3, 4]. Epochs = 1. Nodes: 16 Batchsize: 32

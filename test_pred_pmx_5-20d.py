@@ -32,9 +32,11 @@ import tensorflow as tf
 
 local = False
 system_test = False
-path = "test/pmx_1-5d"
+path = "test/pmx_5-20d"
 spot_path = f"{path}_spot"
 forw_path = f"{path}_forw"
+pred_path = f"{path}_pred"
+
 
 if local:
     csv_file_spot = f"{spot_path}.csv"
@@ -510,9 +512,9 @@ def main():
     s_col = "PMX"
     exog_col_lst = [[], [2], [2,4]]
     #exog_col = [2]
-    hors = [1,2,5]
+    hors = [10,20]
     #hor = 1
-    diff = True
+    diff = False
     
     
     #### HYPERPARAMS #######
@@ -528,9 +530,9 @@ def main():
     #dropout_lst = [None, 0.2, 0.5]
     dropout = None
     #regul_lst = [None, 0.01, 0.1]
-    regul = 0.1
+    regul = None
     #earlystop_lst = [None, 3, 10]    
-    earlystop = 10
+    earlystop = None
     ######################
 
     for f_col in f_col_lst:
@@ -597,7 +599,9 @@ def main():
                 #print("Num rounds:",num_rounds)
 
                 # Test
-                split_index = math.floor(len(data_log_levels) * 0.8)
+                split_index = math.floor(len(data_log_levels) * 0.8) + 3
+                first_split_index = split_index
+                print("Split index: ", split_index)
                 len_test = len(data_log_levels[split_index:])
                 num_rounds = math.floor(len_test / hor)
                 print("Num rounds:",num_rounds)
@@ -613,6 +617,19 @@ def main():
 
                 results_list = []
                 predictions_list = []
+                
+                headers = [
+                        "Actual", "RW_pred", f"MLP_pred_{exog_col}", f"LSTM_pred_{exog_col}", "RW_res", f"MLP_res_{exog_col}", f"LSTM_res_{exog_col}"]
+                # Creating an empty DataFrame with specified headers
+                num_rows = len(data_log_levels[first_split_index:first_split_index+hor*num_rounds])
+                preds = pd.DataFrame(columns=headers, index=range(num_rows))
+                preds["Actual"] = data_log_levels[first_split_index:first_split_index+hor*num_rounds].values
+                preds["RW_pred"] = np.zeros(num_rows)
+                preds[f"MLP_pred_{exog_col}"] = np.array(num_rows)
+                preds[f"LSTM_pred_{exog_col}"] = np.array(num_rows)
+                preds["RW_res"] = np.array(num_rows)
+                preds[f"MLP_res_{exog_col}"] = np.array(num_rows)
+                preds[f"LSTM_res_{exog_col}"] = np.array(num_rows)
                 logger.info(f"Spot: {s_col}. Forw: {f_col}. Lookback: {look_back}. Horizon: {hor}. Exog_Col = {exog_col}. Epochs = {epochs}. Nodes: {nodes} Batchsize: {batch_size}")
                 with ProcessPoolExecutor(max_workers=max_workers) as executor:
                     futures = [executor.submit(train_and_evaluate, data_log_levels, models, split_idx, look_back, hor, exog_col, epochs, batch_size, verbose, nodes, layers, diff, earlystop, dropout, regul) for split_idx in split_indices]
@@ -637,6 +654,22 @@ def main():
                                 mean_score = calculate_avg_dir_accuracy(values)
                             elif "pred" in score_type:
                                 mean_score = np.concatenate(values, axis=0)
+                                if score_type == "pred_spot":
+                                    pred_col = None
+                                    res_col = None
+                                    if model == "RW":
+                                        pred_col = "RW_pred"
+                                        res_col = "RW_res"
+                                    elif model == "MLP" or model == "LSTM":
+                                        pred_col = f"{model}_pred_{exog_col}"
+                                        res_col = f"{model}_res_{exog_col}"   
+                                    if pred_col:   
+                                        predictions = np.concatenate(values)
+                                        act = preds["Actual"].values
+                                        residuals = predictions - act
+                                        
+                                        preds[pred_col] = predictions
+                                        preds[res_col] = residuals
                             else:
                                 mean_score = sum(values) / len(values)
                             if not metrics.get(score_type):
@@ -717,7 +750,12 @@ def main():
 
                     #return metrics_summary
 
- 
+            print(preds)
+            if local:
+                csv_path = f"{pred_path}_{hor}.csv"
+            else:
+                csv_path = f"/storage/users/mariumbo/{pred_path}_{hor}.csv"
+            preds.to_csv(csv_path)
             
             
             

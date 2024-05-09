@@ -21,7 +21,6 @@ import json
 
 import tensorflow as tf
 
-
 ##### THINGS TO CHNAGE ########
 
 #1. local and system test False
@@ -30,9 +29,9 @@ import tensorflow as tf
 #4. exog_col
 #5. 
 
-local = False
-system_test = False
-path = "test/pmx_1-5d"
+local = True
+system_test = True
+path = "fit/csz"
 spot_path = f"{path}_spot"
 forw_path = f"{path}_forw"
 
@@ -47,7 +46,21 @@ else:
     log = f"/storage/users/mariumbo/{path}.log"
     max_workers = 16
 
+def approximate_AIC_ANN(model, y_pred, y):
+    # Calculate the number of parameters in the model (weights + biases)
+    k = sum([np.prod(w.shape) for w in model.get_weights()])
+    print("PARAMS: " + str(k))
+    
+    # Calculate the MSE as a proxy for variance
+    mse = np.mean((y - y_pred)**2)
 
+    # Calculate the log-likelihood (assuming Gaussian distribution of errors)
+    n = len(y)
+    log_likelihood = -n/2 * np.log(2 * np.pi) - n/2 * np.log(mse) - 1/(2 * mse) * np.sum((y - y_pred)**2)
+
+    # Calculate AIC
+    AIC = 2 * k - 2 * log_likelihood
+    return AIC
 
 
 def log_print_csv_spot(data_dict, config_values):
@@ -276,8 +289,11 @@ def mlp_forecast(trainX_flat, trainY_flat, testX, exog_col, scaler, epochs, batc
 
     model_mlp = mlp_predict(trainX_flat=trainX_flat, trainY_flat=trainY_flat, nodes=nodes, layers=layers, epochs=epochs, 
                             batch_size=batch_size, verbose=verbose, diff=diff, earlystop=earlystop, dropout=dropout, regul=regul)
+    
     # Make predictions
     trainPredict_scal_flat = model_mlp.predict(trainX_flat)
+    trainPredict_scal = create_even_odd_array(trainPredict_scal_flat)
+    trainPredict = invert_predictions(trainPredict_scal, scaler, exog_col)
     #testX, _ = create_dataset(trainX, look_back=look_back, is_test=True)
     testX_flat = testX.reshape(testX.shape[0], -1)
     testPredict_scal_flat = model_mlp.predict(testX_flat)
@@ -290,12 +306,16 @@ def mlp_forecast(trainX_flat, trainY_flat, testX, exog_col, scaler, epochs, batc
 
         
     # Step 3: Extract the original predictions (now inversely scaled)
-    return testPredict
+    return testPredict, trainPredict, model_mlp
 
 def lstm_forecast(trainX, trainY_flat, testX, scaler, exog_col, epochs, batch_size, verbose, nodes, layers, diff, 
                   last_value_spot, last_value_forw, earlystop, dropout, regul):
     model_lstm = lstm_predict(trainX=trainX, trainY_flat=trainY_flat, nodes=nodes, layers=layers, epochs=epochs, 
                               batch_size=batch_size, verbose=verbose, diff=diff, earlystop=earlystop, dropout=dropout, regul=regul)
+    trainPredict_scal_flat = model_lstm.predict(trainX)
+    trainPredict_scal = create_even_odd_array(trainPredict_scal_flat)
+    trainPredict = invert_predictions(trainPredict_scal, scaler, exog_col)
+    
     testPredict_scal_flat = model_lstm.predict(testX)
     testPredict_scal = create_even_odd_array(testPredict_scal_flat)
 
@@ -304,7 +324,7 @@ def lstm_forecast(trainX, trainY_flat, testX, scaler, exog_col, epochs, batch_si
         testPredict[:, 0] = last_value_spot + testPredict[:, 0].cumsum(axis=0)
         testPredict[:, 1] = last_value_forw + testPredict[:, 1].cumsum(axis=0)
         
-    return testPredict
+    return testPredict, trainPredict, model_lstm
 
 
 def mlp_point_forecast(train_scal, look_back, last_train_values, scaler, exog_col, combined_testPredict_point, hor, epochs, batch_size, verbose, nodes, layers):
@@ -395,12 +415,12 @@ def train_and_evaluate(data_log_levels, models, split_index, look_back, hor, exo
         # Placeholder to store combined predictions for all horizons
         combined_testPredict_point = np.zeros((1, hor * 2))  # Multiply by 2 as each step predicts 2 variables
         if model == "MLP":
-            testPredict = mlp_forecast(trainX_flat=trainX_flat, trainY_flat=trainY_flat, testX=testX, scaler=scaler, epochs=epochs, 
+            testPredict, trainPredict, est_model = mlp_forecast(trainX_flat=trainX_flat, trainY_flat=trainY_flat, testX=testX, scaler=scaler, epochs=epochs, 
                                        batch_size=batch_size, verbose=verbose, exog_col=exog_col, nodes=nodes, layers=layers,
                                        diff=diff, last_value_spot=last_value_spot, last_value_forw=last_value_forw,
                                        earlystop=earlystop, dropout=dropout, regul=regul)
         elif model == "LSTM":
-            testPredict = lstm_forecast(trainX=trainX, trainY_flat=trainY_flat, testX=testX, scaler=scaler, exog_col=exog_col, 
+            testPredict, trainPredict, est_model = lstm_forecast(trainX=trainX, trainY_flat=trainY_flat, testX=testX, scaler=scaler, exog_col=exog_col, 
                                         epochs=epochs, batch_size=batch_size, verbose=verbose,  nodes=nodes, layers=layers, diff=diff,
                                         last_value_spot=last_value_spot, last_value_forw=last_value_forw,
                                         earlystop=earlystop, dropout=dropout, regul=regul)
@@ -412,9 +432,24 @@ def train_and_evaluate(data_log_levels, models, split_index, look_back, hor, exo
                                               exog_col=exog_col, combined_testPredict_point=combined_testPredict_point, hor=hor, epochs=epochs, 
                                               batch_size=batch_size, verbose=verbose, nodes=nodes, layers=layers)
             
-        if diff:
-            pass
- 
+        if model == "MLP" or model == "LSTM":
+            y = train["spot"].values
+            print(f"AIC {model} spot: ")
+            y_pred = trainPredict[:, 0]
+            y_pred = np.concatenate((y[:10], y_pred))
+            mlp_aic_spot = approximate_AIC_ANN(est_model, y_pred, y)
+            print(mlp_aic_spot)
+            
+            
+            print(f"AIC {model} forw: ")
+            y = train["forwp"].values
+            y_pred = trainPredict[:, 1]
+            y_pred = np.concatenate((y[:10], y_pred))
+            mlp_aic_spot = approximate_AIC_ANN(est_model, y_pred, y)
+            print(mlp_aic_spot)
+        
+
+        
         # predictions
         pred_spot = testPredict[:,0]
         pred_forw = testPredict[:, 1]        
@@ -506,13 +541,13 @@ def main():
     ###### PARAMS ########
     
     #f_col = "1MON"
-    f_col_lst = ["1MON"]
-    s_col = "PMX"
-    exog_col_lst = [[], [2], [2,4]]
+    f_col_lst = ["1MON", "1Q"]
+    s_col = "SMX"
+    exog_col_lst = [[], [2], [3,4]]
     #exog_col = [2]
-    hors = [1,2,5]
+    hors = [1]
     #hor = 1
-    diff = True
+    diff = False
     
     
     #### HYPERPARAMS #######
@@ -522,7 +557,7 @@ def main():
     epochs = 100
     if system_test:
         epochs = 1
-    verbose = 1
+    verbose = 0
     look_back = 10
     layers = 2
     #dropout_lst = [None, 0.2, 0.5]
@@ -536,6 +571,8 @@ def main():
     for f_col in f_col_lst:
         for hor in hors:
             for exog_col in exog_col_lst:
+                print(f"Spot: {s_col}. Forw: {f_col}. Lookback: {look_back}. Horizon: {hor}. Exog_Col = {exog_col}. Epochs = {epochs}. Nodes: {nodes} Batchsize: {batch_size}")
+
                 models = ["MLP", "LSTM", "RW"]
                 forw = pick_forw(s_col)
                 # Ensure 'Date' columns are in datetime format for all datasets
@@ -614,110 +651,9 @@ def main():
                 results_list = []
                 predictions_list = []
                 logger.info(f"Spot: {s_col}. Forw: {f_col}. Lookback: {look_back}. Horizon: {hor}. Exog_Col = {exog_col}. Epochs = {epochs}. Nodes: {nodes} Batchsize: {batch_size}")
-                with ProcessPoolExecutor(max_workers=max_workers) as executor:
-                    futures = [executor.submit(train_and_evaluate, data_log_levels, models, split_idx, look_back, hor, exog_col, epochs, batch_size, verbose, nodes, layers, diff, earlystop, dropout, regul) for split_idx in split_indices]
-                    for future in futures:
-                        results_list.append(future.result())
-                    # Initialize a dictionary to aggregate scores
-                    aggregate_results = defaultdict(lambda: defaultdict(list))
-
-                    # Aggregate results
-                    for result in results_list:
-                        for model, scores in result.items():
-                            for score_type, value in scores.items():
-                                aggregate_results[score_type][model].append(value)
-                    
-                    
-                    metrics = {}    
-                    # Compute and print mean scores
-                    for score_type, scores in aggregate_results.items():
-                        print(score_type)
-                        for model, values in scores.items():
-                            if "corr_dir" in score_type:
-                                mean_score = calculate_avg_dir_accuracy(values)
-                            elif "pred" in score_type:
-                                mean_score = np.concatenate(values, axis=0)
-                            else:
-                                mean_score = sum(values) / len(values)
-                            if not metrics.get(score_type):
-                                metrics[score_type] = {}
-                            metrics[score_type][model] = mean_score
-                            #print(f"Mean {score_type} for {model}: {mean_score:.5f}")
-
-                    # Compute average scores and organize metrics data
-                        metrics_summary = {}
-                        for metric, models in aggregate_results.items():
-                            metrics_summary[metric] = {}
-                            for model, values in models.items():
-                                if "pred" not in metric:
-                                    average = sum(values) / len(values)
-                                    metrics_summary[metric][model] = average
-                                else:
-                                    pass
-                                
-                                
-                    # compute dm test
-                    metrics_summary["dm_teststat_spot"] = {}
-                    metrics_summary["dm_pvalue_spot"] = {}
-                    metrics_summary["dm_teststat_forw"] = {}
-                    metrics_summary["dm_pvalue_forw"] = {}
-                    
-                    for model in metrics_summary["rmse_spot"]:
-                        #spot
-                        actuals = metrics["pred_spot"]["Actual"]
-                        pred = metrics["pred_spot"][model]
-                        rw_pred = metrics["pred_spot"]["RW"]
-                        teststat, pvalue = diebold_mariano_test(actuals, pred, rw_pred)
-                        metrics_summary["dm_teststat_spot"][model] = teststat
-                        metrics_summary["dm_pvalue_spot"][model] = pvalue
+                results = train_and_evaluate(data_log_levels, models, split_indices[0], look_back, hor, exog_col, epochs, batch_size, verbose, nodes, layers, diff, earlystop, dropout, regul)
+                metrics = {}    
                         
-                        #forw
-                        actuals = metrics["pred_forw"]["Actual"]
-                        pred = metrics["pred_forw"][model]
-                        rw_pred = metrics["pred_forw"]["RW"]
-                        teststat, pvalue = diebold_mariano_test(actuals, pred, rw_pred)
-                        metrics_summary["dm_teststat_forw"][model] = teststat
-                        metrics_summary["dm_pvalue_forw"][model] = pvalue           
-                        
-                    
-
-                    # Compute reductions for RMSE compared to RW and integrate directly into metrics_summary
-                    if "rmse_spot" in metrics_summary and "rmse_forw" in metrics_summary:
-                        metrics_summary["reduction_rmse_spot"] = {}
-                        metrics_summary["reduction_rmse_forw"] = {}
-                        for model in metrics_summary["rmse_spot"]:
-                            if model != "RW":
-                                metrics_summary["reduction_rmse_spot"][model] = rmse_reduction(metrics_summary["rmse_spot"][model], metrics_summary["rmse_spot"]["RW"] )
-                                metrics_summary["reduction_rmse_forw"][model] = rmse_reduction(metrics_summary["rmse_forw"][model], metrics_summary["rmse_forw"]["RW"] )
-                            else:
-                                # Set reductions for RW to zero as it is the baseline
-                                metrics_summary["reduction_rmse_spot"][model] = 0
-                                metrics_summary["reduction_rmse_forw"][model] = 0
-
-                    
-                    # Create a DataFrame for configurations
-                    config_df = {
-                        'Spot': s_col,
-                        'Forw': f_col,
-                        'Lookback': str(look_back),
-                        'Horizon': str(hor),
-                        'Exog_Col': str(exog_col),
-                        'Epochs': str(epochs),
-                        'Batchsize': str(batch_size),
-                        'Diff': str(diff),
-                        'Dropout': str(dropout),
-                        'Regularizer': str(regul),
-                        'Earlystop': str(earlystop)
-                    }
-
-                    # Log and print all metrics
-                    log_metrics(metrics_summary)
-                    log_print_csv_spot((metrics_summary["reduction_rmse_spot"]), config_df)
-                    log_print_csv_forw((metrics_summary["reduction_rmse_forw"]), config_df)
-
-                    #return metrics_summary
-
- 
             
             
             

@@ -506,11 +506,11 @@ def main():
     ###### PARAMS ########
     
     #f_col = "1MON"
-    f_col_lst = ["1MON", "1Q"]
+    f_col_lst = ["1MON"]
     s_col = "SMX"
     exog_col_lst = [[], [2], [3,4]]
     #exog_col = [2]
-    hors = [5,10,20]
+    hors = [10,20]
     #hor = 1
     diff = False
     
