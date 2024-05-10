@@ -1,0 +1,2 @@
+Spot,Forw,Lookback,Horizon,Exog_Col,Epochs,Batchsize,Diff,Dropout,Regularizer,Earlystop,LSTM,RW
+CSZ,1MON,10,10,[4],1,32,False,None,None,None,-305.0800318503118,0
