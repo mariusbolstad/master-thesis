@@ -138,8 +138,8 @@ bdi <- bdi %>%
 #data_combined <- merge(data_combined, gbti_dev, by = "Date")
 
 ####### ENDRE ######
-data_combined <- inner_join(spot[, c("Date", "PMX")], pmx_forw[, c("Date", "1MON")], by = "Date")
-data_ID <- list("PMX", "1MON")
+data_combined <- inner_join(spot[, c("Date", "CSZ")], csz_forw[, c("Date", "1MON")], by = "Date")
+data_ID <- list("CSZ", "1REG")
 ####### ENDRE ######
 
 
@@ -167,7 +167,7 @@ data_log_levels <- data.frame(
   
   
   ####### ENDRE ######
-  spot = log(data_combined$PMX),
+  spot = log(data_combined$CSZ),
   forwp = log(data_combined$`1MON`)
   ####### ENDRE ######
   
@@ -197,13 +197,22 @@ exog_log_levels <- data.frame(
   #coal = log(data_combined$`Coal Trade Vol`)
 )
 
+
+
+data_combined <- data_combined[1:579, ]
+data_log_levels <- data_log_levels[1:579, ]
+#data_combined <- data_combined[580:1971, ]
+#data_log_levels <- data_log_levels[580:1971, ]
+#data_combined <- data_combined[1972:nrow(data_combined), ]
+#data_log_levels <- data_log_levels[1972:nrow(data_log_levels), ]
+
 # Display the first few rows of each new data frame to verify
 print(head(data_log_levels))
 
 # Split into train and test sets
 
 # Calculate the index for the split
-split_index <- floor(nrow(data_combined) * 0.8) + 3
+split_index <- floor(nrow(data_combined) * 0.8)
 
 # Split the data into training and test sets
 train_lev <- data_log_levels[1:split_index, ]
@@ -296,9 +305,9 @@ lapply(train_diff_ts, function(series) jarque.bera.test(series))
 
 # Retrieve the descriptive statistics
 cat("Log-level Descriptive Statistics", data_ID[[1]], data_ID[[2]])
-describe(data_log_levels[, c(2,3)])
+#describe(data_log_levels[, c(2,3)])
 cat("Log-differences Descriptive Statistics", data_ID[[1]], data_ID[[2]])
-describe(data_log_diff[, c(2,3)])
+#describe(data_log_diff[, c(2,3)])
 
 # Calculate the Autocorrelation for the differenced data sets
 acf(data_log_diff[[2]], lag.max = 40, main = paste("Autocorrelation for Log-Differences, ", data_ID[[1]], "Spot"), ylim = c(-1,1), lwd = 3)
@@ -318,7 +327,7 @@ lapply(exog_lev_ts, function(series) pp.test(series))
 lapply(exog_lev_ts, function(series) kpss.test(series))
 lapply(exog_lev_ts, function(series) Box.test(series, type = "Ljung-Box"))
 lapply(exog_lev_ts, function(series) jarque.bera.test(series))
-describe(exog_lev_ts)
+#describe(exog_lev_ts)
 
 cat("Log-Differences")
 lapply(exog_diff_ts, function(series) adf.test(series, alternative = "stationary"))
@@ -326,7 +335,7 @@ lapply(exog_diff_ts, function(series) pp.test(series))
 lapply(exog_diff_ts, function(series) kpss.test(series))
 lapply(exog_diff_ts, function(series) Box.test(series, type = "Ljung-Box"))
 lapply(exog_diff_ts, function(series) jarque.bera.test(series))
-describe(exog_diff_ts)
+#describe(exog_diff_ts)
 
 # Plot the relevant Spot and Forward
 #ggplot(data_combined, aes(x = Date)) +
@@ -613,7 +622,7 @@ print(cor_matrix_vecm)
 # Step 9: Forecast future values
 
 ####### ENDRE ##########
-forecast_horizon <-2
+forecast_horizon <-10
 ####### ENDRE ##########
 
 

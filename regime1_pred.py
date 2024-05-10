@@ -30,9 +30,11 @@ import tensorflow as tf
 #4. exog_col
 #5. 
 
-local = True
-system_test = True
+local = False
+system_test = False
+##### ENDRE ########
 path = "reg/csz1"
+##### ENDRE ########
 spot_path = f"{path}_spot"
 forw_path = f"{path}_forw"
 pred_path = f"{path}"
@@ -579,7 +581,11 @@ def main():
                         data_log_levels[bdi_col] = np.log(data_combined[bdi_col])
 
                 data_log_levels.index = data_combined["Date"]
+                
+                ###### ENDRE ########
                 data_log_levels = data_log_levels.iloc[:579]
+                ###### ENDRE ########
+
 
                 
                 # Validation 
@@ -590,7 +596,7 @@ def main():
                 #print("Num rounds:",num_rounds)
 
                 # Test
-                split_index = math.floor(len(data_log_levels) * 0.8) + 3
+                split_index = math.floor(len(data_log_levels) * 0.8)
                 first_split_index = split_index
                 print("Split index: ", split_index)
                 len_test = len(data_log_levels[split_index:])

@@ -120,7 +120,7 @@ eur_usd <- eur_usd %>%
 
 
 ####### ENDRE ######
-data_combined <- inner_join(spot[, c("Date", "SMX")], smx_forw[, c("Date", "1MON")], by = "Date")
+data_combined <- inner_join(spot[, c("Date", "CSZ")], smx_forw[, c("Date", "1MON")], by = "Date")
 ####### ENDRE ######
 
 #data_combined <- inner_join(data_combined, gbti_dev[, c("Date", "Iron Ore Trade Vol", "Coal Trade Vol", "Grain Trade Vol", "Minor Bulk Trade Vol", "Dry Bulk Trade Vol")], by = "Date")
@@ -142,7 +142,7 @@ data_log_levels <- data.frame(
   Date = data_combined$Date,
   
   ####### ENDRE ######
-  spot = log(data_combined$SMX),
+  spot = log(data_combined$CSZ),
   forwp = log(data_combined$`1MON`)
   ####### ENDRE ######
   

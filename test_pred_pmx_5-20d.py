@@ -30,7 +30,7 @@ import tensorflow as tf
 #4. exog_col
 #5. 
 
-local = True
+local = False
 system_test = False
 path = "pred/pmx"
 spot_path = f"{path}_spot"
