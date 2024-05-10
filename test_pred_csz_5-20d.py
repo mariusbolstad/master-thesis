@@ -32,7 +32,7 @@ import tensorflow as tf
 
 local = False
 system_test = False
-path = "test/csz"
+path = "pred/csz"
 spot_path = f"{path}_spot"
 forw_path = f"{path}_forw"
 pred_path = f"{path}"
