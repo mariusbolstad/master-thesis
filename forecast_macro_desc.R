@@ -139,7 +139,7 @@ bdi <- bdi %>%
 
 ####### ENDRE ######
 data_combined <- inner_join(spot[, c("Date", "CSZ")], csz_forw[, c("Date", "1MON")], by = "Date")
-data_ID <- list("CSZ", "1REG")
+data_ID <- list("CSZ", "1MON")
 ####### ENDRE ######
 
 
@@ -199,8 +199,8 @@ exog_log_levels <- data.frame(
 
 
 
-data_combined <- data_combined[1:579, ]
-data_log_levels <- data_log_levels[1:579, ]
+#data_combined <- data_combined[1:579, ]
+#data_log_levels <- data_log_levels[1:579, ]
 #data_combined <- data_combined[580:1971, ]
 #data_log_levels <- data_log_levels[580:1971, ]
 #data_combined <- data_combined[1972:nrow(data_combined), ]
@@ -622,7 +622,7 @@ print(cor_matrix_vecm)
 # Step 9: Forecast future values
 
 ####### ENDRE ##########
-forecast_horizon <-10
+forecast_horizon <-20
 ####### ENDRE ##########
 
 
