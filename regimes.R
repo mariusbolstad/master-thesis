@@ -12,10 +12,10 @@
 #install.packages("tsbox")
 #install.packages("MTS")
 #install.packages("BVAR")
-install.packages("strucchange")
+#install.packages("strucchange")
 
 getwd()
-setwd("./VSCode/master-thesis")
+#setwd("./VSCode/master-thesis")
 #setwd("./master-thesis")
 library(readr)  # For reading CSV files
 library(dplyr)  # For data manipulation
@@ -96,13 +96,34 @@ vessel_sale_volume <- read_csv('./data/other/vessel_sale_daily.csv',
                                col_types = cols(Date = col_date(format = "%d-%m-%Y")),
                                trim_ws = TRUE)
 
+
+
 eur_usd <- read_delim('./data/other/EUR_USD_historical.csv', 
                       delim = ';', 
                       escape_double = FALSE, 
                       col_types = cols(Date = col_date(format = "%d.%m.%Y")),
                       trim_ws = TRUE)
+
+sp500 <- read_delim('./data/other/sp500.csv', 
+                    delim = ',', 
+                    escape_double = FALSE, 
+                    col_types = cols(Date = col_date(format = "%d-%b-%Y")),
+                    trim_ws = TRUE)
+
+bdi <- read_delim('./data/spot/clarkson_data.csv', 
+                  delim = ';', 
+                  escape_double = FALSE, 
+                  col_types = cols(Date = col_date(format = "%d/%m/%Y")),
+                  trim_ws = TRUE)
+
 # Convert columns from text to numeric, replacing commas with dots
 eur_usd <- eur_usd %>%
+  mutate(across(-Date, ~as.numeric(gsub(",", ".", .x))))
+
+sp500 <- sp500 %>%
+  mutate(across(-Date, ~as.numeric(gsub(",", ".", .x))))
+
+bdi <- bdi %>%
   mutate(across(-Date, ~as.numeric(gsub(",", ".", .x))))
 
 
@@ -122,7 +143,8 @@ data_combined <- inner_join(spot[, c("Date", "CSZ")], csz_forw[, c("Date", "1MON
 #data_combined <- inner_join(data_combined, fleet_dev[, c("Date", "HSZ fleet", "HMX fleet", "PMX fleet", "CSZ fleet")], by = "Date")
 #data_combined <- inner_join(data_combined, fleet_dev[, c("Date", "PMX fleet")], by = "Date")
 data_combined <- inner_join(data_combined, eur_usd[, c("Date", "Last")], by = "Date")
-# Removing rows where ColumnA or ColumnB have 0 or NA values
+data_combined <- inner_join(data_combined, sp500[, c("Date", "Close")], by = "Date")
+data_combined <- inner_join(data_combined, bdi[, c("Date", "BDI")], by = "Date")# Removing rows where ColumnA or ColumnB have 0 or NA values
 data_combined <- data_combined %>%
   filter(if_all(-Date, ~ .x != 0 & !is.na(.x)))
 
