@@ -1,1 +1,61 @@
 2024-05-10 11:48:19,825 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 10. Exog_Col = [4]. Epochs = 1. Nodes: 16 Batchsize: 32
+2024-05-10 12:08:02,229 - INFO - Logged Metrics:
+{
+    "rmse_spot": {
+        "LSTM": 0.9443943097393904,
+        "RW": 0.23313770995465166
+    },
+    "rmse_forw": {
+        "LSTM": 0.5422913728360902,
+        "RW": 0.1542911293723102
+    },
+    "mae_spot": {
+        "LSTM": 0.9349545744728842,
+        "RW": 0.20723042193104382
+    },
+    "mae_forw": {
+        "LSTM": 0.5286011292160359,
+        "RW": 0.13520385919218034
+    },
+    "mape_spot": {
+        "LSTM": 9.735398851674498,
+        "RW": 2.1352624352724736
+    },
+    "mape_forw": {
+        "LSTM": 5.512338537092956,
+        "RW": 1.40171819316555
+    },
+    "correct_direction_spot": {
+        "LSTM": 0.0
+    },
+    "correct_direction_forw": {
+        "LSTM": 0.0
+    },
+    "pred_spot": {},
+    "pred_forw": {},
+    "dm_teststat_spot": {
+        "LSTM": 8.559644059331609,
+        "RW": 0.0
+    },
+    "dm_pvalue_spot": {
+        "LSTM": 1.1321651651126133e-17,
+        "RW": 1.0
+    },
+    "dm_teststat_forw": {
+        "LSTM": 7.626453256726561,
+        "RW": 0.0
+    },
+    "dm_pvalue_forw": {
+        "LSTM": 2.4130036476429998e-14,
+        "RW": 1.0
+    },
+    "reduction_rmse_spot": {
+        "LSTM": -305.0800318503118,
+        "RW": 0
+    },
+    "reduction_rmse_forw": {
+        "LSTM": -251.47281314372972,
+        "RW": 0
+    }
+}
+2024-05-10 12:08:15,872 - INFO - Spot: CSZ. Forw: 1MON. Lookback: 10. Horizon: 10. Exog_Col = [4]. Epochs = 1. Nodes: 16 Batchsize: 32

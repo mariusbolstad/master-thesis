@@ -2,18 +2,19 @@
 library("readr")
 library("dplyr")
 library("MCS")
-setwd("./VSCode/master-thesis")
+library("tidyverse")
+#setwd("./VSCode/master-thesis")
+getwd()
 
 # Read your CSV file (replace 'forecasts.csv' with your file path)
-data <- read_csv('mcs/csz_1.csv')
+data <- read_csv('mcs/csz_2.csv')
 
 # Identify columns that end with '_res'
 residual_columns <- grep("_res", names(data), value = TRUE)
+print(residual_columns)
 
-# Reorder these columns into a new data frame
-residuals_df <- data %>%
-  select(all_of(residual_columns))
-
+# Reorder these columns into a new data frame using indexing
+residuals_df <- data[, residual_columns]
 
 # Rename columns that contain `_[x,y]` to `_x_y`
 rename_columns <- function(colnames) {
@@ -24,12 +25,22 @@ rename_columns <- function(colnames) {
 }
 # Apply renaming function to the data frame column names
 colnames(residuals_df) <- rename_columns(colnames(residuals_df))
+# Define a function to ensure all columns are numeric, and filter out non-numeric rows
 
+
+to_numeric <- function(x) {
+  suppressWarnings(as.numeric(x))
+}
+
+residuals_df <- residuals_df %>%
+  mutate(across(everything(), to_numeric)) %>%
+  filter(complete.cases(.))
 
 
 
 # Display the new data frame
 print(residuals_df)
+
 
 # Extract residual columns for MCS (update with your actual residual column names)
 #residuals <- as.matrix(data[, c('Model1_Residual', 'Model2_Residual', 'Model3_Residual')])

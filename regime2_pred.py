@@ -32,7 +32,7 @@ import tensorflow as tf
 
 local = True
 system_test = True
-path = "reg/csz1"
+path = "reg/csz2"
 spot_path = f"{path}_spot"
 forw_path = f"{path}_forw"
 pred_path = f"{path}"
@@ -579,7 +579,8 @@ def main():
                         data_log_levels[bdi_col] = np.log(data_combined[bdi_col])
 
                 data_log_levels.index = data_combined["Date"]
-                data_log_levels = data_log_levels.iloc[:579]
+                data_log_levels = data_log_levels.iloc[579:1972]
+
 
                 
                 # Validation 
