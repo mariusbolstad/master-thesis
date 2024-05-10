@@ -138,8 +138,8 @@ bdi <- bdi %>%
 #data_combined <- merge(data_combined, gbti_dev, by = "Date")
 
 ####### ENDRE ######
-data_combined <- inner_join(spot[, c("Date", "CSZ")], csz_forw[, c("Date", "1MON")], by = "Date")
-data_ID <- list("CSZ", "1MON")
+data_combined <- inner_join(spot[, c("Date", "PMX")], pmx_forw[, c("Date", "1MON")], by = "Date")
+data_ID <- list("PMX", "1MON")
 ####### ENDRE ######
 
 
@@ -149,8 +149,8 @@ data_ID <- list("CSZ", "1MON")
 #data_combined <- inner_join(data_combined, fleet_dev[, c("Date", "HSZ fleet", "HMX fleet", "PMX fleet", "CSZ fleet")], by = "Date")
 #data_combined <- inner_join(data_combined, fleet_dev[, c("Date", "PMX fleet")], by = "Date")
 data_combined <- inner_join(data_combined, eur_usd[, c("Date", "Last")], by = "Date")
-#data_combined <- inner_join(data_combined, sp500[, c("Date", "Close")], by = "Date")
-#data_combined <- inner_join(data_combined, bdi[, c("Date", "BDI")], by = "Date")
+data_combined <- inner_join(data_combined, sp500[, c("Date", "Close")], by = "Date")
+data_combined <- inner_join(data_combined, bdi[, c("Date", "BDI")], by = "Date")
 # Removing rows where ColumnA or ColumnB have 0 or NA values
 data_combined <- data_combined %>%
   filter(if_all(-Date, ~ .x != 0 & !is.na(.x)))
@@ -167,7 +167,7 @@ data_log_levels <- data.frame(
   
   
   ####### ENDRE ######
-  spot = log(data_combined$CSZ),
+  spot = log(data_combined$PMX),
   forwp = log(data_combined$`1MON`)
   ####### ENDRE ######
   
@@ -203,7 +203,7 @@ print(head(data_log_levels))
 # Split into train and test sets
 
 # Calculate the index for the split
-split_index <- round(nrow(data_combined) * 0.8)
+split_index <- floor(nrow(data_combined) * 0.8) + 3
 
 # Split the data into training and test sets
 train_lev <- data_log_levels[1:split_index, ]
@@ -613,7 +613,7 @@ print(cor_matrix_vecm)
 # Step 9: Forecast future values
 
 ####### ENDRE ##########
-forecast_horizon <-10
+forecast_horizon <-2
 ####### ENDRE ##########
 
 
