@@ -81,18 +81,7 @@ def log_print_csv_forw(data_dict, config_values):
         writer.writerow(data)
         
 
-# Setup logging configuration
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s',
-                    handlers=[
-                        logging.FileHandler(log),
-                        logging.StreamHandler()
-                    ])
-logger = logging.getLogger()
 
-def log_metrics(metrics, ):
-    # Logging the metrics in a pretty JSON format
-    metrics_json = json.dumps(metrics, indent=4)
-    logger.info("Logged Metrics:\n" + metrics_json)
 
 
 def calculate_mape(y_true, y_pred):
@@ -512,7 +501,7 @@ def main():
     s_col = "PMX"
     exog_col_lst = [[], [2], [2,4]]
     #exog_col = [2]
-    hors = [10,20]
+    hors = [20]
     #hor = 1
     diff = False
     
@@ -632,7 +621,7 @@ def main():
                 preds["RW_res"] = np.array(num_rows)
                 preds[f"MLP_res_{exog_col}"] = np.array(num_rows)
                 preds[f"LSTM_res_{exog_col}"] = np.array(num_rows)
-                logger.info(f"Spot: {s_col}. Forw: {f_col}. Lookback: {look_back}. Horizon: {hor}. Exog_Col = {exog_col}. Epochs = {epochs}. Nodes: {nodes} Batchsize: {batch_size}")
+                #logger.info(f"Spot: {s_col}. Forw: {f_col}. Lookback: {look_back}. Horizon: {hor}. Exog_Col = {exog_col}. Epochs = {epochs}. Nodes: {nodes} Batchsize: {batch_size}")
                 with ProcessPoolExecutor(max_workers=max_workers) as executor:
                     futures = [executor.submit(train_and_evaluate, data_log_levels, models, split_idx, look_back, hor, exog_col, epochs, batch_size, verbose, nodes, layers, diff, earlystop, dropout, regul) for split_idx in split_indices]
                     for future in futures:
