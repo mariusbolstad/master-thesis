@@ -501,7 +501,7 @@ def main():
     s_col = "PMX"
     exog_col_lst = [[], [2], [2,4]]
     #exog_col = [2]
-    hors = [20]
+    hors = [10]
     #hor = 1
     diff = False
     
@@ -590,7 +590,7 @@ def main():
                 #print("Num rounds:",num_rounds)
 
                 # Test
-                split_index = math.floor(len(data_log_levels) * 0.8) + 3
+                split_index = math.floor(len(data_log_levels) * 0.8)
                 first_split_index = split_index
                 print("Split index: ", split_index)
                 len_test = len(data_log_levels[split_index:])
